@@ -67,28 +67,9 @@
                                         <div class="text-center">
                                             <a class="small" href="#">Forgot Password?</a>
                                         </div>
-
-                                        <div class="text-center mt-4">
-                                            <h1 class="h4 text-gray-900 mb-4">Register</h1>
+                                        <div class="text-center">
+                                            <a class="small" href="{{ route('register') }}">Don't have an account? Create one!</a>
                                         </div>
-                                        <form class="user" action="/register" method="POST">
-                                            @csrf
-                                            <div class="form-group">
-                                                <input type="text" name="name" class="form-control form-control-user"
-                                                    placeholder="Name">
-                                            </div>
-                                            <div class="form-group">
-                                                <input type="email" name="email" class="form-control form-control-user"
-                                                    placeholder="Email Address">
-                                            </div>
-                                            <div class="form-group">
-                                                <input type="password" name="password" class="form-control form-control-user"
-                                                    placeholder="Password">
-                                            </div>
-                                            <button type="submit" class="btn btn-success btn-user btn-block">
-                                                Register
-                                            </button>
-                                        </form>
                                     @endauth
 
                                 </div>
