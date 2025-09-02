@@ -35,42 +35,32 @@
                             <div class="col-lg-6">
                                 <div class="p-5">
 
-                                    @auth
-                                        <div class="text-center">
-                                            <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
-                                            <p>Congrats, you are logged in!</p>
+                                    <!-- Always show login form first -->
+                                    <div class="text-center">
+                                        <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
+                                    </div>
+                                    <form class="user" action="/login" method="POST">
+                                        @csrf
+                                        <div class="form-group">
+                                            <input type="text" name="loginname" class="form-control form-control-user"
+                                                placeholder="Enter Username..." required>
                                         </div>
-                                        <form action="/logout" method="POST">
-                                            @csrf
-                                            <button type="submit" class="btn btn-danger btn-user btn-block">Logout</button>
-                                        </form>
-                                    @else
-                                        <div class="text-center">
-                                            <h1 class="h4 text-gray-900 mb-4">Login</h1>
+                                        <div class="form-group">
+                                            <input type="password" name="loginpassword"
+                                                class="form-control form-control-user" placeholder="Password" required>
                                         </div>
-                                        <form class="user" action="/login" method="POST">
-                                            @csrf
-                                            <div class="form-group">
-                                                <input type="text" name="loginname" class="form-control form-control-user"
-                                                    placeholder="Enter Username...">
-                                            </div>
-                                            <div class="form-group">
-                                                <input type="password" name="loginpassword"
-                                                    class="form-control form-control-user" placeholder="Password">
-                                            </div>
-                                            <button type="submit" class="btn btn-primary btn-user btn-block">
-                                                Login
-                                            </button>
-                                        </form>
+                                        <button type="submit" class="btn btn-primary btn-user btn-block">
+                                            Login
+                                        </button>
+                                    </form>
 
-                                        <hr>
-                                        <div class="text-center">
-                                            <a class="small" href="#">Forgot Password?</a>
-                                        </div>
-                                        <div class="text-center">
-                                            <a class="small" href="{{ route('register') }}">Don't have an account? Create one!</a>
-                                        </div>
-                                    @endauth
+                                    <hr>
+                                    <div class="text-center">
+                                        <a class="small" href="#">Forgot Password?</a>
+                                    </div>
+                                    <div class="text-center">
+                                        <a class="small" href="/register">Don't have an account? Create one!</a>
+                                    </div>
 
                                 </div>
                             </div>
