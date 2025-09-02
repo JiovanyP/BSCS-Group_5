@@ -2,31 +2,43 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use Laravel\Socialite\Facades\Socialite;
 
-// Homepage -> redirect to login form
+// Root shows login page
 Route::get('/', function () {
-    return view('home'); // This will show the login page
-});
-
-// Add these new GET routes:
-Route::get('/login', function () {
-    return view('home'); // Shows the login form
+    return view('login');   // resources/views/login.blade.php
 })->name('login');
 
+// Show login page
+Route::get('/login', function () {
+    return view('login');
+})->name('login');
+
+// Show register page
 Route::get('/register', function () {
-    return view('register'); // Shows the registration form
+    return view('register');   // teammates already made register.blade.php
 })->name('register');
 
-// Dashboard
+// Dashboard page (from teammate’s version)
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
 
-// Auth routes (your existing POST routes)
-Route::post("/register", [UserController::class, 'register']); 
-Route::post("/logout", [UserController::class, 'logout']);
-Route::post("/login", [UserController::class, 'login']);
 
-// Add these routes to your routes/web.php file
-// Route::post('/check-email', [UserController::class, 'checkEmail']);
-// Route::post('/check-username', [UserController::class, 'checkUsername']);
+// Auth routes
+Route::post('/register', [UserController::class, 'register'])->name('register.post'); 
+Route::post('/logout', [UserController::class, 'logout'])->name('logout');
+Route::post('/login', [UserController::class, 'login'])->name('login.post');
+
+Route::post('/check-email', [UserController::class, 'checkEmail']);
+Route::post('/check-username', [UserController::class, 'checkUsername']);
+
+Route::get('/auth/google', function () {
+    return Socialite::driver('google')->redirect();
+})->name('google.login');
+
+Route::get('/auth/google/callback', function () {
+    $googleUser = Socialite::driver('google')->user();
+    dd($googleUser);
+});
+
