@@ -24,19 +24,21 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
 
-// Handle form submissions
+
+// Auth routes
 Route::post('/register', [UserController::class, 'register'])->name('register.post'); 
 Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 Route::post('/login', [UserController::class, 'login'])->name('login.post');
 
-// Google login
+Route::post('/check-email', [UserController::class, 'checkEmail']);
+Route::post('/check-username', [UserController::class, 'checkUsername']);
+
 Route::get('/auth/google', function () {
     return Socialite::driver('google')->redirect();
 })->name('google.login');
 
 Route::get('/auth/google/callback', function () {
     $googleUser = Socialite::driver('google')->user();
-
-    // For now just dump the user details to test
     dd($googleUser);
 });
+

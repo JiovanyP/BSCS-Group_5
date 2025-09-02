@@ -205,16 +205,33 @@
             <form action="/register" method="POST">
                 @csrf
 
+                <!-- Show validation errors -->
+                @if($errors->any())
+                    <div style="color: red; margin-bottom: 15px; padding: 10px; background: #ffeeee; border-radius: 5px;">
+                        <ul style="list-style: none;">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <!-- Name -->
                 <div class="form-group">
                     <label for="name">Full Name</label>
-                    <input type="text" id="name" name="name" class="form-control-modern" placeholder="Full Name" required>
+                    <input type="text" id="name" name="name" class="form-control-modern" placeholder="Full Name" value="{{ old('name') }}" required>
                 </div>
 
                 <!-- Email -->
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" class="form-control-modern" placeholder="Email Address" required>
+                    <input type="email" id="email" name="email" class="form-control-modern" placeholder="Email Address" value="{{ old('email') }}" required>
+                </div>
+
+                <!-- Location -->
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" name="location" class="form-control-modern" placeholder="Location" value="{{ old('location') }}" required>
                 </div>
 
                 <!-- Password -->
@@ -238,14 +255,6 @@
                 Already have an account? <a href="{{ route('login') }}">Login</a>
             </div>
         </div>
-
-        <!-- Right Panel - Branding -->
-        <!-- <div class="register-right">
-            <div>
-                <h2>Join Our Platform Today</h2>
-                <p>Be part of our mission to make campus maintenance efficient and hassle-free.</p>
-            </div>
-        </div> -->
     </div>
 
     <!-- Bootstrap core JavaScript-->
@@ -255,7 +264,49 @@
     <!-- Core plugin JavaScript-->
     <script src="{{ asset('assets/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
 
-    <!-- Custom scripts for all pages-->
-    <script src="{{ asset('assets/js/sb-admin-2.min.js') }}"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Success message
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: '{{ session('success') }}',
+                    confirmButtonColor: '#4facfe',
+                    confirmButtonText: 'Back to Login',
+                    showCancelButton: true,
+                    cancelButtonText: 'Stay Here',
+                    cancelButtonColor: '#a0aec0',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = "{{ route('login') }}";
+                    }
+                });
+            @endif
+
+            // Error messages
+            @if($errors->any())
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Registration Failed',
+                    html: `@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach`,
+                    confirmButtonColor: '#4facfe',
+                    confirmButtonText: 'OK'
+                });
+            @endif
+
+            // Button loading state
+            const form = document.querySelector('form');
+            const submitBtn = form.querySelector('.btn-register');
+            
+            form.addEventListener('submit', function() {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+                submitBtn.disabled = true;
+            });
+        });
+    </script>
 </body>
 </html>
