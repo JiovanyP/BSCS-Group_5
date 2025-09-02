@@ -2,27 +2,34 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PostController;
 
-// Homepage -> redirect to login form
+// Homepage (Workwise feed + login/register forms if you want)
 Route::get('/', function () {
-    return view('home'); // This will show the login page
-});
+    return view('home');
+})->name('home');
 
-// Add these new GET routes:
+// Instead of separate views, point login/register here
 Route::get('/login', function () {
-    return view('home'); // Shows the login form
+    return view('home'); 
 })->name('login');
 
 Route::get('/register', function () {
-    return view('register'); // Shows the registration form
+    return view('register'); 
 })->name('register');
 
-// Dashboard
+// Dashboard (only for logged in users)
 Route::get('/dashboard', function () {
     return view('dashboard');
-})->name('dashboard');
+})->middleware('auth')->name('dashboard');
 
-// Auth routes (your existing POST routes)
-Route::post("/register", [UserController::class, 'register']); 
-Route::post("/logout", [UserController::class, 'logout']);
-Route::post("/login", [UserController::class, 'login']);
+// Auth routes (POST)
+Route::post('/register', [UserController::class, 'register']); 
+Route::post('/login', [UserController::class, 'login']); 
+Route::post('/logout', [UserController::class, 'logout'])->name('logout');
+
+// Timeline routes (only for logged in users)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/timeline', [PostController::class, 'index'])->name('timeline');
+    Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
+});

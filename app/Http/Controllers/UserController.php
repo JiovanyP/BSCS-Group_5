@@ -2,44 +2,65 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class UserController extends Controller
 {
-    public function login(Request $request) {
-        $incomingFields = $request->validate([
-            'loginname' => 'required',
-            'loginpassword' => 'required'
+    /**
+     * Handle user registration.
+     */
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|unique:users',
+            'password' => 'required|string|min:6|confirmed',
         ]);
 
-        if (auth() ->attempt(['name'=> $incomingFields['loginname'], 'password' => $incomingFields['loginpassword']])) {
-            $request->session()->regenerate();
-    
-        }
+        $user = User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
 
-        // return redirect('/');
+        // Log in the new user
+        Auth::login($user);
+
+        return redirect()->route('timeline');
     }
 
-
-
-    public function logout() {
-        auth() ->logout();
-        return redirect('/');
-    }   
-
-    public function register(Request $request) {
-        $incomingFields = $request->validate([
-            'name' => ['required', 'min:3' , 'max:10', Rule::unique('users', 'name')],
-            'email' => ['required', 'email', Rule::unique('users', 'email')],
-            'password' => ['required' , 'min:8', 'max:200']
+    /**
+     * Handle user login.
+     */
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required',
         ]);
 
-        $incomingFields['password'] = bcrypt($incomingFields['password']);
-        $user =  User::create($incomingFields);
-        auth () ->login($user);
-        return redirect('/');
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate(); // prevent session fixation
+            return redirect()->route('timeline');
+        }
 
+        return back()->withErrors([
+            'email' => 'Invalid login credentials.',
+        ]);
+    }
+
+    /**
+     * Handle user logout.
+     */
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('home');
     }
 }
