@@ -7,8 +7,8 @@ use Laravel\Socialite\Facades\Socialite;
 
 // Homepage (feed + login/register options)
 Route::get('/', function () {
-    return view('home');   // resources/views/home.blade.php
-})->name('home');
+    return view('login');   // resources/views/home.blade.php
+})->name('login');
 
 // Login page
 Route::get('/login', function () {

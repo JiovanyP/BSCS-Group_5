@@ -11,7 +11,7 @@ class PostController extends Controller
     public function index()
     {
         $posts = Post::with('user')->latest()->get();
-        $posts->load('user:id, name, avatar'); // eager load the user's avatar
+        $posts->load('user:id,name'); // eager load the user's avatar
         return view('timeline', compact('posts'));
     }
 
