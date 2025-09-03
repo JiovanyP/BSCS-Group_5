@@ -8,13 +8,21 @@ use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
+    /**
+     * Display a listing of posts with user details.
+     */
     public function index()
     {
-        $posts = Post::with('user')->latest()->get();
-        $posts->load('user:id,name'); // eager load the user's avatar
+        $posts = Post::with(['user:id,name,avatar'])
+            ->latest()
+            ->get();
+
         return view('timeline', compact('posts'));
     }
 
+    /**
+     * Store a newly created post.
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -26,7 +34,8 @@ class PostController extends Controller
             'content' => $request->content,
         ]);
 
-        return redirect()->route('timeline')->with('success', 'Post created!');
+        return redirect()
+            ->route('timeline')
+            ->with('success', 'Post created!');
     }
 }
-
