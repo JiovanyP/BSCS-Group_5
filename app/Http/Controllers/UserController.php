@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use App\Models\User;
 
 class UserController extends Controller
@@ -14,22 +15,19 @@ class UserController extends Controller
      */
     public function register(Request $request)
     {
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|string|email|unique:users',
-            'password' => 'required|string|min:6|confirmed',
+        $incomingFields = $request->validate([
+            'name'     => ['required', 'min:1', 'max:100', Rule::unique('users', 'name')],
+            'email'    => ['required', 'email', Rule::unique('users', 'email')],
+            'location' => ['required', 'min:1', 'max:100'], // Keep location validation
+            'password' => ['required', 'min:8', 'max:200', 'confirmed'],
         ]);
 
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        $incomingFields['password'] = bcrypt($incomingFields['password']);
+        $user = User::create($incomingFields);
 
-        // Log in the new user
         Auth::login($user);
 
-        return redirect()->route('timeline');
+        return redirect()->route('timeline')->with('success', 'You are successfully registered!');
     }
 
     /**
