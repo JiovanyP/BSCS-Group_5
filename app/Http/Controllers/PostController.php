@@ -8,10 +8,11 @@ use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
+    // In PostController.php
     public function index()
     {
         $posts = Post::with('user')->latest()->get();
-        $posts->load('user:id, name, avatar'); // eager load the user's avatar
+        $posts->load('user:id,name'); // ✅ Removed avatar for now
         return view('timeline', compact('posts'));
     }
 
@@ -29,4 +30,3 @@ class PostController extends Controller
         return redirect()->route('timeline')->with('success', 'Post created!');
     }
 }
-

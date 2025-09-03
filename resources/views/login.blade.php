@@ -120,11 +120,20 @@
 
     <!-- Email/password login -->
     <form method="POST" action="{{ route('login.post') }}">
-      @csrf
-      <input type="text" name="email" placeholder="Email or Username" class="input-field" required>
-      <input type="password" name="password" placeholder="Password" class="input-field" required>
-      <button type="submit" class="login-btn">Log In</button>
-    </form>
+    @csrf
+    
+    <!-- Error messages -->
+    @if($errors->any())
+        <div style="color: red; margin-bottom: 15px; font-size: 14px; background: #ffe6e6; padding: 10px; border-radius: 8px; border: 1px solid red;">
+            {{ $errors->first() }}
+        </div>
+    @endif
+    
+    <input type="text" name="email" placeholder="Email or Username" class="input-field" 
+           value="{{ old('email') }}" required>
+    <input type="password" name="password" placeholder="Password" class="input-field" required>
+    <button type="submit" class="login-btn">Log In</button>
+</form>
 
     <!-- Links -->
     <a href="#" class="link">Forgot password?</a>
