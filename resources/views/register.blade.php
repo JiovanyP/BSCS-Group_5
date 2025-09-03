@@ -202,6 +202,17 @@
         <div class="register-left">
             <h3 class="form-title">Create an Account</h3>
 
+            {{-- Error messages --}}
+            @if ($errors->any())
+                <div style="color: red; margin-bottom: 1rem;">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <form action="/register" method="POST">
                 @csrf
 

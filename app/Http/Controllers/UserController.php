@@ -2,65 +2,63 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use App\Models\User;
 
 class UserController extends Controller
 {
-    public function login(Request $request) {
+    /**
+     * Handle user registration.
+     */
+    public function register(Request $request)
+    {
         $incomingFields = $request->validate([
-            'loginname' => 'required',
-            'loginpassword' => 'required'
+            'name'     => ['required', 'min:1', 'max:100', Rule::unique('users', 'name')],
+            'email'    => ['required', 'email', Rule::unique('users', 'email')],
+            'location' => ['required', 'min:1', 'max:100'], // Keep location validation
+            'password' => ['required', 'min:8', 'max:200', 'confirmed'],
         ]);
-
-        if (auth() ->attempt(['name'=> $incomingFields['loginname'], 'password' => $incomingFields['loginpassword']])) {
-            $request->session()->regenerate();
-    
-        }
-
-        // return redirect('/');
-    }
-
-    // public function register(Request $request) {
-    // $incomingFields = $request->validate([
-    //     'name' => ['required', 'min:3', 'max:10', Rule::unique('users', 'name')],
-    //     'email' => ['required', 'email', Rule::unique('users', 'email')],
-    //     'password' => ['required', 'min:8', 'max:200', 'confirmed'] // Add 'confirmed' rule
-    // ]);
-
-    // $incomingFields['password'] = bcrypt($incomingFields['password']);
-    // $user = User::create($incomingFields);
-
-    // auth()->login($user);
-
-    // return redirect('/')->with('success', 'You are successfully registered!');
-    // }
-    public function register(Request $request) {
-        $incomingFields = $request->validate([
-            'name' => ['required', 'min:1', 'max:100', Rule::unique('users', 'name')],
-            'email' => ['required', 'email', Rule::unique('users', 'email')],
-            'location' => ['required', 'min:1', 'max:100'], // Added location validation
-            'password' => ['required', 'min:8', 'max:200', 'confirmed']
-        ]);
-
-        // \Log::info('Validated fields:', $incomingFields); 
 
         $incomingFields['password'] = bcrypt($incomingFields['password']);
         $user = User::create($incomingFields);
-        
-        // Debug: Check if user was created
-        if ($user) {
-            \Log::info('User created successfully:', $user->toArray());
-        } else {
-            \Log::error('User creation failed');
+
+        Auth::login($user);
+
+        return redirect()->route('timeline')->with('success', 'You are successfully registered!');
+    }
+
+    /**
+     * Handle user login.
+     */
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate(); // prevent session fixation
+            return redirect()->route('timeline');
         }
 
-        auth()->login($user);
+        return back()->withErrors([
+            'email' => 'Invalid login credentials.',
+        ]);
+    }
 
-        // return redirect('/')->with('success', 'You are successfully registered!');
+    /**
+     * Handle user logout.
+     */
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        // Stay on the registration page with success message
-        return back()->with('success', 'You are successfully registered!');
+        return redirect()->route('home');
     }
 }
