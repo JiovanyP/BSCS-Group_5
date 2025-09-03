@@ -5,16 +5,16 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PostController;
 use Laravel\Socialite\Facades\Socialite;
 
-// Homepage (feed + login/register options)
+// Homepage (redirect guests to login, later you can show feed if logged in)
 Route::get('/', function () {
     return view('login');
 })->name('login');
 
-// Routes for GUESTS only (not logged in users)
+// Routes for GUESTS only (not logged-in users)
 Route::middleware('guest')->group(function () {
     // Login page
     Route::get('/login', function () {
-        return view('login');
+        return view('login');  // resources/views/login.blade.php
     })->name('login');
 
     // Register page
@@ -33,25 +33,6 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/auth/google/callback', function () {
         $googleUser = Socialite::driver('google')->user();
-        dd($googleUser); // replace with proper login/registration logic
+        dd($googleUser); // TODO: replace with proper login/registration logic
     });
 });
-
-// Routes for AUTHENTICATED users only
-Route::middleware('auth')->group(function () {
-    // Dashboard page
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
-
-    // Timeline routes
-    Route::get('/timeline', [PostController::class, 'index'])->name('timeline');
-    Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
-
-    // Logout
-    Route::post('/logout', [UserController::class, 'logout'])->name('logout');
-});
-
-// Extra checks (these can be accessed by anyone)
-Route::post('/check-email', [UserController::class, 'checkEmail']);
-Route::post('/check-username', [UserController::class, 'checkUsername']);

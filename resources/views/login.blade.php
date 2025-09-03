@@ -118,7 +118,6 @@
 
     <div class="divider">OR</div>
 
-    <!-- Email/password login -->
     <form method="POST" action="{{ route('login.post') }}">
     @csrf
     
