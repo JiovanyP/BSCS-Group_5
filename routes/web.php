@@ -5,48 +5,62 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PostController;
 use Laravel\Socialite\Facades\Socialite;
 
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
+
 // Homepage (feed + login/register options)
 Route::get('/', function () {
     return view('home');   // resources/views/home.blade.php
 })->name('home');
 
-// Login page
-Route::get('/login', function () {
-    return view('login');  // resources/views/login.blade.php
-})->name('login');
+// Login + Register pages (GET)
+Route::view('/login', 'login')->name('login');
+Route::view('/register', 'register')->name('register');
 
-// Register page
-Route::get('/register', function () {
-    return view('register'); 
-})->name('register');
-
-// Dashboard page (protected)
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware('auth')->name('dashboard');
-
-// Auth routes
+// Auth actions (POST)
 Route::post('/register', [UserController::class, 'register'])->name('register.post'); 
 Route::post('/login', [UserController::class, 'login'])->name('login.post'); 
 Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 
-// Timeline routes (only for logged in users)
+// AJAX checks (optional for live validation)
+Route::post('/check-email', [UserController::class, 'checkEmail'])->name('check.email');
+Route::post('/check-username', [UserController::class, 'checkUsername'])->name('check.username');
+
+/*
+|--------------------------------------------------------------------------
+| Timeline / Post Routes (Protected)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth'])->group(function () {
+    // Dashboard (after login)
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    // Timeline (feed)
     Route::get('/timeline', [PostController::class, 'index'])->name('timeline');
     Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
+
+    // Post interactions
+    Route::prefix('posts/{post}')->group(function () {
+        Route::post('/like', [PostController::class, 'like'])->name('posts.like');
+        Route::post('/comment', [PostController::class, 'comment'])->name('posts.comment');
+    });
 });
 
-// Extra checks
-Route::post('/check-email', [UserController::class, 'checkEmail']);
-Route::post('/check-username', [UserController::class, 'checkUsername']);
-
-// Google OAuth
-Route::get('/auth/google', function () {
-    return Socialite::driver('google')->redirect();
-})->name('google.login');
+/*
+|--------------------------------------------------------------------------
+| Google OAuth
+|--------------------------------------------------------------------------
+*/
+Route::get('/auth/google', fn() => Socialite::driver('google')->redirect())
+    ->name('google.login');
 
 Route::get('/auth/google/callback', function () {
     $googleUser = Socialite::driver('google')->user();
-    dd($googleUser); // replace with proper login/registration logic
+    // TODO: Replace with proper login/registration logic
+    dd($googleUser);
 });
-
