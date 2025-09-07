@@ -17,12 +17,12 @@
     }
 
     .login-container {
-      background: #ffffff; /* White card */
+      background: #ffffff;
       border-radius: 20px;
       padding: 40px;
       width: 380px;
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-      text-align: center; /* Center text and inline elements */
+      text-align: center;
     }
 
     .login-container h2 {
@@ -31,7 +31,7 @@
     }
 
     .social-btn {
-      width: 90%; /* narrower for clean centered look */
+      width: 90%;
       padding: 12px;
       border: 1px solid #ccc;
       border-radius: 12px;
@@ -119,20 +119,22 @@
     <div class="divider">OR</div>
 
     <form method="POST" action="{{ route('login.post') }}">
-    @csrf
-    
-    <!-- Error messages -->
-    @if($errors->any())
+      @csrf
+
+      <!-- Error messages -->
+      @if($errors->any())
         <div style="color: red; margin-bottom: 15px; font-size: 14px; background: #ffe6e6; padding: 10px; border-radius: 8px; border: 1px solid red;">
-            {{ $errors->first() }}
+          {{ $errors->first() }}
         </div>
-    @endif
-    
-    <input type="text" name="email" placeholder="Email or Username" class="input-field" 
-           value="{{ old('email') }}" required>
-    <input type="password" name="password" placeholder="Password" class="input-field" required>
-    <button type="submit" class="login-btn">Log In</button>
-</form>
+      @endif
+
+      <input type="email" name="email" placeholder="Email" class="input-field" 
+             value="{{ old('email') }}" required>
+
+      <input type="password" name="password" placeholder="Password" class="input-field" required>
+
+      <button type="submit" class="login-btn">Log In</button>
+    </form>
 
     <!-- Links -->
     <a href="#" class="link">Forgot password?</a>

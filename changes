@@ -1,0 +1,12 @@
+#What was changed:s
+-UserController
+  - Added **session reset** on login/register to avoid `419 Page Expired` errors caused by ghost sessions.
+  - Forced Laravel to issue a **fresh session cookie** (`laravel_session`) on every successful login and register.
+  - Added cookie cleanup on logout, so stale cookies won’t cause login loops.
+-Login Blade:
+  - Added success/error messages with styled alerts for better UX.
+  - Improved consistency with Register page (shows messages clearly).
+-Register Blade:
+  - (Earlier change) Auto-redirects to timeline after successful register.
+-Environment Config:
+  - Ensured `.env` uses `SESSION_DRIVER=database` with correct session handling.
