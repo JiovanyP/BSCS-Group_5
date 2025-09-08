@@ -33,14 +33,19 @@
         .widget-body { padding:1.4rem; }
         .widget-footer { background:#FFDEDE; padding:1rem 1.07rem; position:relative; }
         .meta ul { list-style:none; padding:0; margin:0; display:flex; }
-        .meta ul li { margin-right:0.5rem; }
+        .meta ul li { margin-right:0.5rem; display:flex; align-items:center; }
         .meta ul li a { font-size:1.1rem; transition:0.3s; }
-        .meta ul li a i.la-heart { color:#FF0B55; }
-        .meta ul li a i.la-heart:hover { color:#CF0F47; }
+        .meta ul li a i.la-arrow-up,
+        .meta ul li a i.la-arrow-down { color:#000; cursor:pointer; }
         .meta ul li a i.la-comment { color:#000000; }
         .meta ul li a i.la-comment:hover { color:#CF0F47; }
+
+        .voted-up i.la-arrow-up { color:#28a745 !important; }
+        .voted-down i.la-arrow-down { color:#dc3545 !important; }
+
         .user-image img { width:40px; height:40px; margin-right:10px; border:2px solid #CF0F47; }
-        .time-right { float:right; font-size:0.85rem; color:#000000; margin-top:10px; }
+        .time-right { font-size:0.85rem; color:#000000; margin-left:auto; margin-top:10px; }
+
         @media screen and (max-width:768px) {
             .timeline .timeline-item { width:100%; margin-bottom:20px; }
             .timeline:before { left:42px; width:0; }
@@ -110,6 +115,29 @@
                                         </div>
                                     </div>
                                     <div class="time-right">{{ $post->created_at->diffForHumans() }}</div>
+
+                                    {{-- Dropdown --}}
+                                    <div class="dropdown ml-2">
+                                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                            <i class="la la-ellipsis-h"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            @if (auth()->id() === $post->user_id)
+                                                <a class="dropdown-item" href="{{ route('posts.edit', $post->id) }}">
+                                                    <i class="la la-edit"></i> Edit Post
+                                                </a>
+                                                <form action="{{ route('posts.destroy', $post->id) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="la la-trash"></i> Delete Post
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            <a class="dropdown-item" href="#"><i class="la la-bell-slash"></i> Disable Notifications</a>
+                                            <a class="dropdown-item" href="#"><i class="la la-question-circle"></i> FAQ</a>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="widget-body">
@@ -121,13 +149,22 @@
                                         <div class="meta">
                                             <ul>
                                                 <li>
-                                                    <a href="#" class="like-btn" data-id="{{ $post->id }}">
-                                                        <i class="la la-heart"></i>
-                                                        <span class="numb">{{ $post->likes_count ?? 0 }}</span>
+                                                    <a href="#" class="upvote-btn {{ $post->userVote === 'upvote' ? 'voted-up' : '' }}" data-id="{{ $post->id }}">
+                                                        <i class="la la-arrow-up"></i>
                                                     </a>
+                                                    <span class="mx-1 font-weight-bold text-success upvote-count" id="upvote-count-{{ $post->id }}">
+                                                        {{ $post->upvotes_count ?? 0 }}
+                                                    </span>
+
+                                                    <a href="#" class="downvote-btn {{ $post->userVote === 'downvote' ? 'voted-down' : '' }}" data-id="{{ $post->id }}">
+                                                        <i class="la la-arrow-down"></i>
+                                                    </a>
+                                                    <span class="mx-1 font-weight-bold text-danger downvote-count" id="downvote-count-{{ $post->id }}">
+                                                        {{ $post->downvotes_count ?? 0 }}
+                                                    </span>
                                                 </li>
                                                 <li>
-                                                    <a href="#" class="comment-btn" data-id="{{ $post->id }}">
+                                                    <a href="#" class="comment-btn toggle-comments" data-id="{{ $post->id }}">
                                                         <i class="la la-comment"></i>
                                                         <span class="numb">{{ $post->comments_count ?? 0 }}</span>
                                                     </a>
@@ -137,8 +174,8 @@
                                     </div>
                                 </div>
 
-                                {{-- Comment box --}}
-                                <div class="widget-footer">
+                                {{-- ✅ Comments hidden by default --}}
+                                <div class="widget-footer comments-section" id="comments-section-{{ $post->id }}" style="display:none;">
                                     <div class="input-group">
                                         <input type="text" class="form-control comment-input" placeholder="Write a comment...">
                                         <div class="input-group-append">
@@ -146,14 +183,11 @@
                                         </div>
                                     </div>
 
-                                    {{-- Comments list --}}
                                     <div class="comments-list mt-2">
                                         @foreach ($post->comments as $comment)
                                             <div class="comment mb-2" id="comment-{{ $comment->id }}">
                                                 <strong>{{ $comment->user->name }}:</strong> {{ $comment->content }}
                                                 <a href="#" class="reply-btn ml-2 small text-primary" data-id="{{ $comment->id }}">Reply</a>
-
-                                                {{-- Replies --}}
                                                 <div class="replies ml-4 mt-1">
                                                     @foreach ($comment->replies as $reply)
                                                         <div class="reply mb-1" id="comment-{{ $reply->id }}">
@@ -177,71 +211,87 @@
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+{{-- ✅ Load JS dependencies --}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+
+{{-- ✅ Custom Script --}}
 <script>
-    $(document).ready(function () {
-        // ✅ Setup CSRF token
-        $.ajaxSetup({
-            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
-        });
+$(document).ready(function(){
+    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-        // ✅ Like button
-        $(document).on('click', '.like-btn', function(e){
-            e.preventDefault();
-            let btn = $(this);
-            let postId = btn.data('id');
+    // Toggle comments section
+    $(document).on('click', '.toggle-comments', function(e){
+        e.preventDefault();
+        let postId = $(this).data('id');
+        $("#comments-section-" + postId).slideToggle("fast");
+    });
 
-            $.post(`/posts/${postId}/like`, {}, function(res){
-                btn.find('.numb').text(res.likes_count);
-                btn.find('i').css('color', res.liked ? '#CF0F47' : '#FF0B55');
-            });
-        });
-
-        // ✅ Comment send (new comments + replies)
-        $(document).on('click', '.comment-send', function(){
-            let btn = $(this);
-            let postId = btn.data('id');
-            let input = btn.closest('.input-group').find('.comment-input');
-            let content = input.val();
-            let parentId = input.data('parent') || null;
-
-            if(content.trim() === '') return;
-
-            $.post(`/posts/${postId}/comment`, { content: content, parent_id: parentId }, function(res){
-                input.val('');
-                input.removeAttr('data-parent');
-
-                if(res.parent_id){
-                    // Append as reply
-                    $(`#comment-${res.parent_id} .replies`).append(
-                        `<div class="reply mb-1" id="comment-${res.id}">
-                            <strong>${res.user}:</strong> ${res.comment}
-                        </div>`
-                    );
-                } else {
-                    // Append as top-level comment
-                    btn.closest('.widget-footer').find('.comments-list').append(
-                        `<div class="comment mb-2" id="comment-${res.id}">
-                            <strong>${res.user}:</strong> ${res.comment}
-                            <a href="#" class="reply-btn ml-2 small text-primary" data-id="${res.id}">Reply</a>
-                            <div class="replies ml-4 mt-1"></div>
-                        </div>`
-                    );
-                }
-
-                btn.closest('.widget').find('.comment-btn .numb').text(res.comments_count);
-            });
-        });
-
-        // ✅ Reply button → focus input
-        $(document).on('click', '.reply-btn', function(e){
-            e.preventDefault();
-            let parentId = $(this).data('id');
-            let input = $(this).closest('.widget').find('.comment-input');
-            input.focus();
-            input.attr('data-parent', parentId);
+    // Upvote
+    $(document).on('click', '.upvote-btn', function(e){
+        e.preventDefault();
+        let btn = $(this);
+        let postId = btn.data('id');
+        $.post(`/posts/${postId}/upvote`, {}, function(res){
+            $('#upvote-count-' + postId).text(res.upvotes_count);
+            $('#downvote-count-' + postId).text(res.downvotes_count);
+            btn.addClass('voted-up');
+            btn.closest('li').find('.downvote-btn').removeClass('voted-down');
         });
     });
+
+    // Downvote
+    $(document).on('click', '.downvote-btn', function(e){
+        e.preventDefault();
+        let btn = $(this);
+        let postId = btn.data('id');
+        $.post(`/posts/${postId}/downvote`, {}, function(res){
+            $('#upvote-count-' + postId).text(res.upvotes_count);
+            $('#downvote-count-' + postId).text(res.downvotes_count);
+            btn.addClass('voted-down');
+            btn.closest('li').find('.upvote-btn').removeClass('voted-up');
+        });
+    });
+
+    // Comment send
+    $(document).on('click', '.comment-send', function(){
+        let btn = $(this);
+        let postId = btn.data('id');
+        let input = btn.closest('.input-group').find('.comment-input');
+        let content = input.val();
+        let parentId = input.data('parent') || null;
+        if(content.trim() === '') return;
+
+        $.post(`/posts/${postId}/comment`, { content: content, parent_id: parentId }, function(res){
+            input.val('').removeAttr('data-parent');
+            if(res.parent_id){
+                $(`#comment-${res.parent_id} .replies`).append(
+                    `<div class="reply mb-1" id="comment-${res.id}">
+                        <strong>${res.user}:</strong> ${res.comment}
+                    </div>`
+                );
+            } else {
+                btn.closest('.comments-section').find('.comments-list').append(
+                    `<div class="comment mb-2" id="comment-${res.id}">
+                        <strong>${res.user}:</strong> ${res.comment}
+                        <a href="#" class="reply-btn ml-2 small text-primary" data-id="${res.id}">Reply</a>
+                        <div class="replies ml-4 mt-1"></div>
+                    </div>`
+                );
+            }
+            btn.closest('.widget').find('.comment-btn .numb').text(res.comments_count);
+        });
+    });
+
+    // Reply button
+    $(document).on('click', '.reply-btn', function(e){
+        e.preventDefault();
+        let parentId = $(this).data('id');
+        let input = $(this).closest('.widget').find('.comment-input');
+        input.focus().attr('data-parent', parentId);
+    });
+});
 </script>
 </body>
 </html>

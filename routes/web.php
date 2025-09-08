@@ -35,7 +35,8 @@ Route::post('/check-username', [UserController::class, 'checkUsername'])->name('
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
-    // Dashboard (after login)
+
+    // Dashboard (optional)
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
@@ -46,9 +47,17 @@ Route::middleware(['auth'])->group(function () {
 
     // Post interactions
     Route::prefix('posts/{post}')->group(function () {
-        Route::post('/like', [PostController::class, 'like'])->name('posts.like');
+        Route::post('/upvote', [PostController::class, 'upvote'])->name('posts.upvote');
+        Route::post('/downvote', [PostController::class, 'downvote'])->name('posts.downvote');
         Route::post('/comment', [PostController::class, 'comment'])->name('posts.comment');
     });
+
+    // ⚡ Post CRUD (Edit/Delete)
+    Route::resource('posts', PostController::class)->except(['index', 'store']);
+    // This generates:
+    // GET    /posts/{post}/edit   → posts.edit
+    // PUT    /posts/{post}        → posts.update
+    // DELETE /posts/{post}        → posts.destroy
 });
 
 /*

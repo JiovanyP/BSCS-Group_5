@@ -28,16 +28,17 @@ class Comment extends Model
     }
 
     /**
-     * A comment can have many replies (children).
+     * Replies (children).
      */
     public function replies()
     {
         return $this->hasMany(Comment::class, 'parent_id')
-                    ->with('user'); // eager load user for replies
+                    ->with(['user', 'replies']); 
+        // ✅ Recursive eager load for nested replies
     }
 
     /**
-     * A comment may have a parent (for nested replies).
+     * Parent comment (for replies).
      */
     public function parent()
     {
@@ -45,7 +46,7 @@ class Comment extends Model
     }
 
     /**
-     * Scope: Only top-level comments (not replies).
+     * Scope: Only top-level comments.
      */
     public function scopeTopLevel($query)
     {

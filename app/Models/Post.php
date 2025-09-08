@@ -12,7 +12,7 @@ class Post extends Model
     protected $fillable = ['user_id', 'content'];
 
     /**
-     * A post belongs to a user.
+     * Post belongs to a user.
      */
     public function user()
     {
@@ -20,7 +20,7 @@ class Post extends Model
     }
 
     /**
-     * A post has many likes.
+     * Post has many votes (likes table renamed conceptually).
      */
     public function likes()
     {
@@ -28,12 +28,36 @@ class Post extends Model
     }
 
     /**
-     * A post has many top-level comments (replies handled inside Comment model).
+     * Post upvotes only.
+     */
+    public function upvotes()
+    {
+        return $this->likes()->where('vote_type', 'up');
+    }
+
+    /**
+     * Post downvotes only.
+     */
+    public function downvotes()
+    {
+        return $this->likes()->where('vote_type', 'down');
+    }
+
+    /**
+     * Post has many top-level comments.
      */
     public function comments()
     {
         return $this->hasMany(Comment::class)
-                    ->whereNull('parent_id')   // only top-level comments
-                    ->with(['user', 'replies']); // eager load user + replies
+                    ->whereNull('parent_id')
+                    ->with(['user', 'replies']);
+    }
+
+    /**
+     * Score = upvotes - downvotes (Reddit-style).
+     */
+    public function getScoreAttribute()
+    {
+        return $this->upvotes()->count() - $this->downvotes()->count();
     }
 }

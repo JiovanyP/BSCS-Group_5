@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use App\Models\User;
 
@@ -18,7 +17,7 @@ class UserController extends Controller
         $incomingFields = $request->validate([
             'name'     => ['required', 'min:1', 'max:100', Rule::unique('users', 'name')],
             'email'    => ['required', 'email', Rule::unique('users', 'email')],
-            'location' => ['required', 'min:1', 'max:100'], // Keep location validation
+            'location' => ['required', 'min:1', 'max:100'],
             'password' => ['required', 'min:8', 'max:200', 'confirmed'],
         ]);
 
@@ -41,7 +40,7 @@ class UserController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate(); // prevent session fixation
+            $request->session()->regenerate();
             return redirect()->route('timeline');
         }
 
@@ -60,5 +59,29 @@ class UserController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('home');
+    }
+
+    /**
+     * Update user profile (optional).
+     */
+    public function update(Request $request, User $user)
+    {
+        $this->authorize('update', $user);
+
+        $request->validate([
+            'name'     => ['required', 'min:1', 'max:100', Rule::unique('users')->ignore($user->id)],
+            'email'    => ['required', 'email', Rule::unique('users')->ignore($user->id)],
+            'location' => ['nullable', 'max:100'],
+            'password' => ['nullable', 'min:8', 'max:200', 'confirmed'],
+        ]);
+
+        $data = $request->only(['name', 'email', 'location']);
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
+
+        $user->update($data);
+
+        return redirect()->back()->with('success', 'Profile updated successfully.');
     }
 }
