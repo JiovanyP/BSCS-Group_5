@@ -1,84 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Login Page">
-    <meta name="author" content="">
-    <title>Login</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(135deg, #000000, #CF0F47, #FF0B55);
+      background-size: 400% 400%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+    }
 
-    <!-- Custom fonts for this template-->
-    <link href="{{ asset('assets/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+    .login-container {
+      background: #ffffff; /* White card */
+      border-radius: 20px;
+      padding: 40px;
+      width: 380px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+      text-align: center; /* Center text and inline elements */
+    }
 
-    <!-- Custom styles for this template-->
-    <link href="{{ asset('assets/css/sb-admin-2.min.css') }}" rel="stylesheet">
+    .login-container h2 {
+      color: #CF0F47;
+      margin-bottom: 20px;
+    }
+
+    .social-btn {
+      width: 90%; /* narrower for clean centered look */
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 10px auto;
+      background: white;
+      color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 20px 0;
+      color: #666;
+    }
+
+    .divider::before, .divider::after {
+      content: "";
+      flex: 1;
+      border-bottom: 1px solid #ccc;
+    }
+    .divider:not(:empty)::before {
+      margin-right: 0.75em;
+    }
+    .divider:not(:empty)::after {
+      margin-left: 0.75em;
+    }
+
+    .input-field {
+      width: 90%;
+      padding: 12px;
+      margin: 10px auto;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      outline: none;
+      background: #f9f9f9;
+      color: #333;
+      display: block;
+    }
+
+    .login-btn {
+      width: 90%;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      background: #CF0F47;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      margin: 10px auto;
+      display: block;
+    }
+
+    .login-btn:hover {
+      background: #FF0B55;
+    }
+
+    .link {
+      display: block;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #CF0F47;
+      text-decoration: none;
+    }
+
+    .link:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
+<body>
+  <div class="login-container">
+    <h2>Log In</h2>
 
-<body class="bg-gradient-primary">
+    <!-- Google login -->
+    <a href="{{ route('google.login') }}" class="social-btn">🔴 Continue with Google</a>
 
-    <div class="container">
-        <!-- Outer Row -->
-        <div class="row justify-content-center">
+    <div class="divider">OR</div>
 
-            <div class="col-xl-10 col-lg-12 col-md-9">
+    <!-- Email/password login -->
+    <form method="POST" action="{{ route('login.post') }}">
+      @csrf
+      <input type="text" name="email" placeholder="Email or Username" class="input-field" required>
+      <input type="password" name="password" placeholder="Password" class="input-field" required>
+      <button type="submit" class="login-btn">Log In</button>
+    </form>
 
-                <div class="card o-hidden border-0 shadow-lg my-5">
-                    <div class="card-body p-0">
-                        <!-- Nested Row within Card Body -->
-                        <div class="row">
-                            <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
-                            <div class="col-lg-6">
-                                <div class="p-5">
-                                    <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
-                                    </div>
-                                    <form class="user" action="/login" method="POST">
-                                        @csrf
-                                        <div class="form-group">
-                                            <input type="text" name="email" class="form-control form-control-user"
-                                                placeholder="Enter Email Address..." required>
-                                        </div>
-                                        <div class="form-group">
-                                            <input type="password" name="password" class="form-control form-control-user"
-                                                placeholder="Password" required>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary btn-user btn-block">
-                                            Login
-                                        </button>
-                                    </form>
-
-                                    <hr>
-                                    <div class="text-center">
-                                        <a class="small" href="#">Forgot Password?</a>
-                                    </div>
-                                    <div class="text-center">
-                                        <a class="small" href="{{ route('register') }}">Don't have an account? Create one!</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-    </div>
-
-    <!-- Bootstrap core JavaScript-->
-    <script src="{{ asset('assets/vendor/jquery/jquery.min.js') }}"></script>
-    <script src="{{ asset('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="{{ asset('assets/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="{{ asset('assets/js/sb-admin-2.min.js') }}"></script>
-
+    <!-- Links -->
+    <a href="#" class="link">Forgot password?</a>
+    <a href="{{ route('register') }}" class="link">New here? Sign Up</a>
+  </div>
 </body>
 </html>
