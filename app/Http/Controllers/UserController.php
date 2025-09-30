@@ -32,10 +32,21 @@ class UserController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        // Force fresh cookie
-        Cookie::queue(Cookie::make(config('session.lifetime')));
+        // ✅ Force fresh session cookie
+        Cookie::queue(Cookie::make(
+            config('session.cookie'),
+            $request->session()->getId(),
+            config('session.lifetime'),
+            config('session.path'),
+            config('session.domain'),
+            config('session.secure'),
+            config('session.http_only'),
+            false,
+            config('session.same_site', 'lax')
+        ));
 
-        return redirect()->route('timeline')->with('success', 'Your account has been created and you are now logged in!');
+        // Redirect to dashboard instead of timeline
+        return redirect()->route('dashboard')->with('success', 'Your account has been created and you are now logged in!');
     }
 
     /**
@@ -43,26 +54,37 @@ class UserController extends Controller
      */
     public function login(Request $request)
     {
-        // ✅ Debug: check if controller is reached
-        dd('Login controller reached', $request->all());
-
         // Validate input
         $request->validate([
             'email' => 'required',
             'password' => 'required',
         ]);
 
-        // Determine login field
+        // Support email OR username login
         $loginField = filter_var($request->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
         $credentials = [
             $loginField => $request->email,
             'password' => $request->password,
         ];
 
-        // Attempt login
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->route('timeline')->with('success', 'Welcome back!');
+
+            // ✅ Force fresh session cookie after login
+            Cookie::queue(Cookie::make(
+                config('session.cookie'),
+                $request->session()->getId(),
+                config('session.lifetime'),
+                config('session.path'),
+                config('session.domain'),
+                config('session.secure'),
+                config('session.http_only'),
+                false,
+                config('session.same_site', 'lax')
+            ));
+
+            // Redirect to dashboard
+            return redirect()->route('dashboard')->with('success', 'Welcome back!');
         }
 
         // Failed login
@@ -79,6 +101,10 @@ class UserController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        // ✅ Clear session cookie
+        Cookie::queue(Cookie::forget(config('session.cookie')));
+
         return redirect()->route('login')->with('success', 'You have been logged out.');
     }
 }

@@ -29,7 +29,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [UserController::class, 'login'])->name('login.post');
 });
 
-// Register page (accessible even if logged in, so success popup can show)
+// Register page
 Route::get('/register', function () {
     return view('register');
 })->name('register');
@@ -57,8 +57,8 @@ Route::get('/auth/google/callback', function () {
     // Log them in
     Auth::login($user);
 
-    // Redirect to timeline
-    return redirect()->route('timeline');
+    // Redirect to dashboard (new default)
+    return redirect()->route('dashboard');
 });
 
 // Dashboard (logged in users only)

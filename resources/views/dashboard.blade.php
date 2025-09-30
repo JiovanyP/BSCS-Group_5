@@ -8,9 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.1/css/bootstrap.min.css" rel="stylesheet">
     <style type="text/css">
-    	
-				                
-body{margin-top:20px;}				              
+        body{margin-top:20px;}
     </style>
 </head>
 <body>
@@ -25,13 +23,21 @@ body{margin-top:20px;}
     </div>
     <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav navbar-right">
-        
         <li class="dropdown">
           <a class="dropdown-toggle" role="button" data-toggle="dropdown" href="#">
             <i class="glyphicon glyphicon-user"></i> {{ Auth::user()->name }} <span class="caret"></span></a>
           <ul id="g-account-menu" class="dropdown-menu" role="menu">
             <li><a href="#">My Profile</a></li>
-            <li><a href="{{ route('logout') }}"><i class="glyphicon glyphicon-lock"></i> Logout</a></li>
+            <li>
+              <!-- ✅ Fixed logout -->
+              <a href="{{ route('logout') }}" 
+                 onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                 <i class="glyphicon glyphicon-lock"></i> Logout
+              </a>
+              <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                  @csrf
+              </form>
+            </li>
           </ul>
         </li>
       </ul>
@@ -146,14 +152,8 @@ body{margin-top:20px;}
 </div><!--/container-->
 <!-- /Main -->
 
-
-
-
-  
 <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
 <script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.1/js/bootstrap.min.js"></script>
-<script type="text/javascript">
-	
-</script>
+<script type="text/javascript"></script>
 </body>
 </html>
