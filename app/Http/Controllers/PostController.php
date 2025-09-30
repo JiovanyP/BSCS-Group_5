@@ -8,8 +8,12 @@ use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
+    /**
+     * Display a listing of posts with user details.
+     */
     public function index()
     {
+<<<<<<< HEAD
         $posts = Post::with(['user', 'comments.user', 'comments.replies.user'])
             ->withCount([
                 'likes as upvotes_count'   => fn($q) => $q->where('vote_type', 'up'),
@@ -22,10 +26,18 @@ class PostController extends Controller
                 $post->userVote = $post->likes()->where('user_id', auth()->id())->value('vote_type');
                 return $post;
             });
+=======
+        $posts = Post::with(['user:id,name,avatar'])
+            ->latest()
+            ->get();
+>>>>>>> d536a1bb05adb2f6d352a298a0bfcbfd3c01305b
 
         return view('timeline', compact('posts'));
     }
 
+    /**
+     * Store a newly created post.
+     */
     public function store(Request $request)
     {
         $request->validate(['content' => 'required|max:500']);
@@ -35,8 +47,11 @@ class PostController extends Controller
             'content' => $request->content,
         ]);
 
-        return redirect()->route('timeline')->with('success', 'Post created!');
+        return redirect()
+            ->route('timeline')
+            ->with('success', 'Post created!');
     }
+<<<<<<< HEAD
 
     public function edit(Post $post)
     {
@@ -87,4 +102,6 @@ class PostController extends Controller
             'downvotes_count' => $post->likes()->where('vote_type', 'down')->count(),
         ]);
     }
+=======
+>>>>>>> d536a1bb05adb2f6d352a298a0bfcbfd3c01305b
 }
