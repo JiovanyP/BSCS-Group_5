@@ -12,6 +12,53 @@
             background: #eee;
         }
 
+        /* Navigation styles */
+        .main-nav {
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+        }
+        
+        .nav-menu li {
+            margin: 0;
+        }
+        
+        .nav-menu a {
+            display: block;
+            padding: 15px 20px;
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .nav-menu a:hover {
+            background-color: #f8f9fa;
+            color: #007bff;
+        }
+        
+        .nav-menu a.active {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .nav-menu a.report-link {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .nav-menu a.report-link:hover {
+            background-color: #c82333;
+        }
+
         .timeline {
             width: 100%;
             position: relative;
@@ -173,6 +220,10 @@
                 transform: translateX(-50%);
                 margin: 0 0 20px 42px;
             }
+            
+            .nav-menu {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -180,6 +231,17 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-xl-10 col-12">
+            
+            <!-- Navigation Menu -->
+            <nav class="main-nav">
+                <ul class="nav-menu">
+                    <li><a href="{{ route('timeline') }}" class="active">Timeline</a></li>
+                    <li><a href="{{ route('accidents.create') }}" class="report-link">
+                        <i class="la la-warning"></i> Report Accident
+                    </a></li>
+                    <!-- Add other menu items as needed -->
+                </ul>
+            </nav>
 
             {{-- Post Form --}}
             <div class="card mb-4">
@@ -249,10 +311,10 @@
                                         </div>
                                     </div>
                                 </div>
-        </div>
-        <div class="time-right">{{ $post->created_at->diffForHumans() }}</div>
-    </div>
-</div>
+                            </div>
+                            <div class="time-right">{{ $post->created_at->diffForHumans() }}</div>
+                        </div>
+                    </div>
                 @empty
                     <p class="text-center text-muted">No posts yet.</p>
                 @endforelse
