@@ -19,16 +19,21 @@ Route::get('/', function () {
     return view('home');
 })->name('home');
 
-// Login + Register pages (GET)
-Route::view('/login', 'login')->name('login');
-Route::view('/register', 'register')->name('register');
+// Guest-only routes
+Route::middleware('guest')->group(function () {
+    // Login page + action
+    Route::view('/login', 'login')->name('login');
+    Route::post('/login', [UserController::class, 'login'])->name('login.post');
 
-// Auth actions (POST)
-Route::post('/register', [UserController::class, 'register'])->name('register.post'); 
-Route::post('/login', [UserController::class, 'login'])->name('login.post'); 
+    // Register page + action
+    Route::view('/register', 'register')->name('register');
+    Route::post('/register', [UserController::class, 'register'])->name('register.post');
+});
+
+// Logout (for logged-in users)
 Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 
-// AJAX checks (optional)
+// AJAX checks
 Route::post('/check-email', [UserController::class, 'checkEmail'])->name('check.email');
 Route::post('/check-username', [UserController::class, 'checkUsername'])->name('check.username');
 
@@ -38,21 +43,18 @@ Route::post('/check-username', [UserController::class, 'checkUsername'])->name('
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
-
     // Dashboard
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
 
     // Timeline (feed)
     Route::get('/timeline', [PostController::class, 'index'])->name('timeline');
     Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
 
-    // Post interactions (vote/comments)
+    // Post interactions
     Route::post('/posts/{post}/vote', [PostController::class, 'vote'])->name('posts.vote');
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('posts.comments.store');
 
-    // Post CRUD (edit/delete)
+    // Post CRUD
     Route::resource('posts', PostController::class)->except(['index', 'store']);
 });
 
@@ -61,42 +63,6 @@ Route::middleware(['auth'])->group(function () {
 | Google OAuth
 |--------------------------------------------------------------------------
 */
-Route::get('/auth/google', fn() => Socialite::driver('google')->redirect())
-    ->name('google.login');
-
-Route::get('/auth/google/callback', function () {
-    $googleUser = Socialite::driver('google')->user();
-    dd($googleUser); // Replace with login/registration logic
-});
-| Web Routes
-|--------------------------------------------------------------------------
-*/
-
-// Default homepage = login
-Route::get('/', function () {
-    return view('login');
-})->name('login');
-
-// Guest-only routes
-Route::middleware('guest')->group(function () {
-    // Login page
-    Route::get('/login', function () {
-        return view('login');  // resources/views/login.blade.php
-    })->name('login');
-
-    // Login POST
-    Route::post('/login', [UserController::class, 'login'])->name('login.post');
-});
-
-// Register page (accessible even if logged in, so success popup can show)
-Route::get('/register', function () {
-    return view('register');
-})->name('register');
-
-// Register POST
-Route::post('/register', [UserController::class, 'register'])->name('register.post');
-
-// ✅ Google OAuth
 Route::get('/auth/google', function () {
     return Socialite::driver('google')->redirect();
 })->name('google.login');
@@ -104,35 +70,21 @@ Route::get('/auth/google', function () {
 Route::get('/auth/google/callback', function () {
     $googleUser = Socialite::driver('google')->user();
 
-    // Find or create user
+    // ✅ Option 1: Debug (for testing only)
+    // dd($googleUser);
+
+    // ✅ Option 2: Actual login/registration logic
     $user = User::firstOrCreate(
         ['email' => $googleUser->getEmail()],
         [
             'name' => $googleUser->getName(),
-            'password' => bcrypt(str()->random(16)), // dummy password
+            'password' => bcrypt(str()->random(16)), // random password for OAuth users
         ]
     );
 
-    // Log them in
+    // Log in the user
     Auth::login($user);
 
     // Redirect to timeline
     return redirect()->route('timeline');
 });
-
-// Dashboard (logged in users only)
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware('auth')->name('dashboard');
-
-// Timeline (logged in users only)
-Route::get('/timeline', [PostController::class, 'index'])
-    ->middleware('auth')
-    ->name('timeline');
-
-Route::post('/timeline', [PostController::class, 'store'])
-    ->middleware('auth')
-    ->name('timeline.store');
-
-// Logout
-Route::post('/logout', [UserController::class, 'logout'])->name('logout');
