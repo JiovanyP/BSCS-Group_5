@@ -35,7 +35,8 @@ class UserController extends Controller
         // Force fresh cookie
         Cookie::queue(Cookie::make(config('session.lifetime')));
 
-        return redirect()->route('timeline')->with('success', 'Your account has been created and you are now logged in!');
+        // Redirect to HOMEPAGE instead of timeline
+        return redirect()->route('homepage')->with('success', 'Your account has been created and you are now logged in!');
     }
 
     /**
@@ -44,7 +45,7 @@ class UserController extends Controller
     public function login(Request $request)
     {
         // ✅ Debug: check if controller is reached
-        dd('Login controller reached', $request->all());
+        // dd('Login controller reached', $request->all());
 
         // Validate input
         $request->validate([
@@ -62,7 +63,8 @@ class UserController extends Controller
         // Attempt login
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->route('timeline')->with('success', 'Welcome back!');
+            // Redirect to HOMEPAGE instead of timeline
+            return redirect()->route('homepage')->with('success', 'Welcome back!');
         }
 
         // Failed login

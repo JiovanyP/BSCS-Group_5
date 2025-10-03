@@ -17,7 +17,7 @@ class PostController extends Controller
             ->latest()
             ->get();
 
-        return view('timeline', compact('posts'));
+        return view('homepage', compact('posts'));
     }
 
     /**
@@ -35,7 +35,7 @@ class PostController extends Controller
         ]);
 
         return redirect()
-            ->route('timeline')
+            ->route('homepage')
             ->with('success', 'Post created!');
     }
 }

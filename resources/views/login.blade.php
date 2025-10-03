@@ -153,6 +153,9 @@
     <!-- Links -->
     <a href="#" class="link">Forgot password?</a>
     <a href="{{ route('register') }}" class="link">New here? Sign Up</a>
+    <a href="{{ url('/') }}" class="link" style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+  ← Back to Home
+</a>
   </div>
 </body>
 </html>
