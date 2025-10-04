@@ -1,9 +1,11 @@
+@vite('resources/js/loadingBar.js')
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PubL</title>
+    <title>Publ</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,16 +23,24 @@
             font-family: 'Poppins', sans-serif;
         }
 
-        body {
-            color: #333;
-            line-height: 1.6;
-            overflow-x: hidden;
+        html, body {
+        color: #333;
+        line-height: 1.6;
+        overflow-x: hidden;
+        scrollbar-width: none;            /* Firefox */
+        -ms-overflow-style: none;         /* Internet Explorer 10+ */
+        }
+
+        /* Chrome, Safari, Edge */
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+        display: none;                   /* Chrome, Safari, Edge */
         }
 
         .header {
             min-height: 100vh;
             width: 100%;
-            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://www.usm.edu.ph/wp-content/uploads/2019/01/USM_Administration_Building-1024x682.png);
+            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('assets/img/landingbg.png');            
             background-position: center;
             background-size: cover;
             position: relative;
@@ -96,13 +106,14 @@
         .text-box {
             width: 100%;
             color: #fff;
-            text-align: center;
+            text-align: left; /* left-align the text */
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 0 20px;
+            justify-content: center; /* keep it vertically centered */
+            align-items: flex-start; /* align to left */
+            padding: 0 80px; /* add more left padding so it's not glued to the edge */
+            max-width: 600px; /* optional: keep text from stretching too wide */
         }
 
         .text-box h2 {
@@ -114,12 +125,12 @@
         }
 
         .text-box h1 {
-            font-size: 100px;
+            font-size: 80px;
             /* font-weight: 1500; */
             color: #FF0B55;
             margin-bottom: 20px;
             letter-spacing: 2px;
-            line-height: 1.2;
+            line-height: 1;
         }
 
         .text-box p {
@@ -334,6 +345,24 @@
             font-size: 14px;
         }
 
+        #loading-bar-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        background-color: black;
+        z-index: 9999;
+        }
+
+        #loading-bar {
+        height: 100%;
+        width: 0%;
+        background-color: #FF0B55;
+        transition: width 0.2s ease;
+        }
+
+
         /* Responsive design */
         @media(max-width: 900px) {
             .text-box h1 {
@@ -422,42 +451,39 @@
 </head>
 
 <body>
+
+    <div id="loading-bar-container">
+    <div id="loading-bar"></div>
+    </div>
+
     <section class="header">
         <nav>
-            <h1 class="logo">PubL</h1>
+            <h1 class="logo">Publ</h1>
             <div class="nav-links" id="navLinks">
                 <i class="fa fa-times" onclick="hideMenu()"></i>
                 <ul>
-                    <li><a href="{{ url('/') }}">HOME</a></li>
-                    <li><a href="{{ route('login') }}">LOGIN</a></li>
-                    <li><a href="{{ route('register') }}">REGISTER</a></li>
+                    <li><a href="{{ route('login') }}">Log In</a></li>
+                    <li><a href="{{ route('register') }}">Register</a></li>
                 </ul>
             </div>
             <i class="fa fa-bars" onclick="showMenu()"></i>
         </nav>
 
         <div class="text-box">
-            <h2><b>Welcome to</b></h2>
-            <h1>PubL</h1>
-            <h1>(Change Picture)</h1>
+            <h1>Welcome to Publ!</h1>
             <p>A crowdsourced platform for reporting incidents and verifying their authenticity through community collaboration.</p>
-            
-            <div class="auth-buttons">
-                <a href="{{ url('/login') }}" onclick="event.preventDefault(); window.location.href = this.href + '?t=' + new Date().getTime(); return false;">LOGIN</a>
-                <a href="{{ url('/register') }}" onclick="event.preventDefault(); window.location.href = this.href + '?t=' + new Date().getTime(); return false;">REGISTER</a>
-            </div>
         </div>
     </section>
 
     <!-----------Services----------->
     <section class="services">
         <h1 class="section-title"><b>Our Services</b></h1>
-        <p class="section-description">PubL provides a comprehensive platform for incident reporting and verification, empowering communities to collaborate on safety issues.</p>
+        <p class="section-description">Publ provides a comprehensive platform for incident reporting and verification, empowering communities to collaborate on safety issues.</p>
 
         <div class="row">
             <div class="services-col">
                 <h3>Incident Reporting</h3>
-                <p>Quickly and easily report incidents in your community with our intuitive reporting system. Provide details, location, and media evidence.</p>
+                <p>Quickly and easily report incidents in your community with our intuitive reporting system. Provide details, location, and even media evidence!</p>
             </div>
 
             <div class="services-col">
@@ -466,8 +492,8 @@
             </div>
 
             <div class="services-col">
-                <h3>Authority Response Tracking</h3>
-                <p>Monitor how authorities respond to reported incidents and track resolution progress in real-time.</p>
+                <h3>Enhance Public Awareness</h3>
+                <p>Allow for broader information dissimination and enhance public awareness on incidents.</p>
             </div>
         </div>
     </section>
@@ -475,8 +501,8 @@
     <!-----------How it Works----------->
     <section class="how-it-works">
         <div class="services">
-            <h1 class="section-title">How PubL Works</h1>
-            <p class="section-description">Our process ensures that reported incidents are efficiently verified and addressed by the appropriate authorities.</p>
+            <h1 class="section-title">How Publ Works</h1>
+            <p class="section-description">Our process ensures that reported incidents are efficiently verified and dissiminated.</p>
 
             <div class="steps-row">
                 <div class="step-col">
@@ -525,7 +551,7 @@
             <div>
                 <h2>Our Mission</h2>
                 <p>
-                    At PubL, our mission is to create safer communities by enabling transparent incident reporting and verification. 
+                    At Publ, our mission is to create safer communities by enabling transparent incident reporting and verification. 
                     We believe in the power of collective awareness and responsible authority engagement to address community concerns effectively.
                 </p>
             </div>
