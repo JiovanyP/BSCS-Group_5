@@ -14,6 +14,14 @@ class Comment extends Model
     /**
      * A comment belongs to a post.
      */
+    protected $table = 'comments';
+
+    protected $fillable = ['post_id', 'user_id', 'content', 'parent_id'];
+
+    protected $casts = [
+        'parent_id' => 'integer',
+    ];
+
     public function post()
     {
         return $this->belongsTo(Post::class);
@@ -51,5 +59,11 @@ class Comment extends Model
     public function scopeTopLevel($query)
     {
         return $query->whereNull('parent_id');
+    }
+}
+    // ✅ Helper: is this a reply or top-level comment?
+    public function isReply(): bool
+    {
+        return !is_null($this->parent_id);
     }
 }

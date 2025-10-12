@@ -14,7 +14,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'location'
+        'location',
+        'avatar', // ✅ allows storing user profile pictures
     ];
 
     protected $hidden = [
@@ -31,18 +32,21 @@ class User extends Authenticatable
     }
 
     /**
-     * Relationships
+     * ✅ Relationships
      */
+    // A user can have many posts
     public function posts()
     {
         return $this->hasMany(Post::class);
     }
 
+    // A user can have many comments
     public function comments()
     {
         return $this->hasMany(Comment::class);
     }
 
+    // A user can have many likes/votes
     public function likes()
     {
         return $this->hasMany(PostLike::class);

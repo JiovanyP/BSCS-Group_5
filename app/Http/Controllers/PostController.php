@@ -8,11 +8,15 @@ use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
-    /**
-     * Show timeline with posts.
-     */
+    // Homepage (timeline) after login
     public function index()
     {
+        // If user is not logged in, redirect to login
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        // Load posts with relationships
         $posts = Post::with(['user', 'comments.user', 'comments.replies.user'])
             ->withCount([
                 'likes as upvotes_count'   => fn($q) => $q->where('vote_type', 'up'),
@@ -20,77 +24,65 @@ class PostController extends Controller
                 'comments'
             ])
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($post) {
+                $post->userVote = $post->likes()
+                    ->where('user_id', auth()->id())
+                    ->value('vote_type');
+                return $post;
+            });
 
-        return view('timeline', compact('posts'));
+        // Return homepage (timeline view)
+        return view('homepage', compact('posts'));
     }
 
-    /**
-     * Store a new post.
-     */
+    // Create new post
     public function store(Request $request)
     {
-        $request->validate([
-            'content' => 'required|max:500',
-        ]);
+        $request->validate(['content' => 'required|max:500']);
 
         Post::create([
             'user_id' => Auth::id(),
             'content' => $request->content,
         ]);
 
-        return redirect()->route('timeline')->with('success', 'Post created!');
+        return redirect()->route('homepage')->with('success', 'Post created!');
     }
 
-    /**
-     * Edit a post.
-     */
+    // Edit post
     public function edit(Post $post)
     {
         $this->authorize('update', $post);
         return view('posts.edit', compact('post'));
     }
 
-    /**
-     * Update a post.
-     */
+    // Update post
     public function update(Request $request, Post $post)
     {
         $this->authorize('update', $post);
-
-        $request->validate([
-            'content' => 'required|max:500',
-        ]);
-
-        $post->update([
-            'content' => $request->content,
-        ]);
-
-        return redirect()->route('timeline')->with('success', 'Post updated!');
+        $request->validate(['content' => 'required|max:500']);
+        $post->update(['content' => $request->content]);
+        return redirect()->route('homepage')->with('success', 'Post updated!');
     }
 
-    /**
-     * Delete a post.
-     */
+    // Delete post
     public function destroy(Post $post)
     {
         $this->authorize('delete', $post);
-
         $post->delete();
-
-        return redirect()->route('timeline')->with('success', 'Post deleted!');
+        return redirect()->route('homepage')->with('success', 'Post deleted!');
     }
 
-    /**
-     * Handle voting (upvote/downvote).
-     */
-    private function handleVote(Post $post, string $type)
+    // Handle upvotes/downvotes
+    public function vote(Request $request, Post $post)
     {
+        $request->validate(['vote' => 'required|in:upvote,downvote']);
         $user = auth()->user();
+        $type = $request->vote === 'upvote' ? 'up' : 'down';
+
         $like = $post->likes()->where('user_id', $user->id)->first();
 
         if ($like && $like->vote_type === $type) {
-            // Toggle off
             $like->delete();
             $status = 'removed';
             $userVote = 'none';
@@ -149,6 +141,10 @@ class PostController extends Controller
             'user'           => $comment->user->name,
             'parent_id'      => $comment->parent_id,
             'comments_count' => $post->comments()->count(),
+            'status' => $status,
+            'user_vote' => $userVote,
+            'upvotes_count' => $post->likes()->where('vote_type', 'up')->count(),
+            'downvotes_count' => $post->likes()->where('vote_type', 'down')->count(),
         ]);
     }
 }

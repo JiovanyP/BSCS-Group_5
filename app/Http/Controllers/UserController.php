@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Cookie;
 use App\Models\User;
 
 class UserController extends Controller
@@ -21,29 +22,54 @@ class UserController extends Controller
             'password' => ['required', 'min:8', 'max:200', 'confirmed'],
         ]);
 
+        // Hash password
         $incomingFields['password'] = bcrypt($incomingFields['password']);
+
+        // Create user
         $user = User::create($incomingFields);
 
+        // Reset session + log in new user
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
         Auth::login($user);
+        $request->session()->regenerate();
 
-        return redirect()->route('timeline')->with('success', 'You are successfully registered!');
+        // Force fresh cookie
+        Cookie::queue(Cookie::make(config('session.lifetime')));
+
+        // Redirect to HOMEPAGE instead of timeline
+        return redirect()->route('homepage')->with('success', 'Your account has been created and you are now logged in!');
     }
 
     /**
-     * Handle user login.
+     * Handle user login (email or username + password).
      */
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email'    => 'required|email',
+        // ✅ Debug: check if controller is reached
+        // dd('Login controller reached', $request->all());
+
+        // Validate input
+        $request->validate([
+            'email' => 'required',
             'password' => 'required',
         ]);
 
+        // Determine login field
+        $loginField = filter_var($request->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
+        $credentials = [
+            $loginField => $request->email,
+            'password' => $request->password,
+        ];
+
+        // Attempt login
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->route('timeline');
+            // Redirect to HOMEPAGE instead of timeline
+            return redirect()->route('homepage')->with('success', 'Welcome back!');
         }
 
+        // Failed login
         return back()->withErrors([
             'email' => 'Invalid login credentials.',
         ]);
@@ -57,8 +83,7 @@ class UserController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
-        return redirect()->route('home');
+        return redirect()->route('login')->with('success', 'You have been logged out.');
     }
 
     /**

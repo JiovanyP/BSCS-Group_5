@@ -1,296 +1,255 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>Timeline</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://maxcdn.icons8.com/fonts/line-awesome/1.1/css/line-awesome.min.css">
+  <meta charset="utf-8">
+  <title>Timeline</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://maxcdn.icons8.com/fonts/line-awesome/1.1/css/line-awesome.min.css">
 
-    <style>
-        body { margin-top:20px; background:#FFFFFF; color:#000000; }
-        .timeline { width:100%; position:relative; padding:1px 0; list-style:none; font-weight:500; }
-        .timeline .timeline-item { position:relative; float:left; clear:left; width:50%; margin-bottom:20px; }
-        .timeline .timeline-item>.timeline-event { position:relative; float:left; width:100%; }
-        .timeline .timeline-item>.timeline-point {
-            background:#CF0F47; border-color:#FFDEDE; right:-14px; width:12px; height:12px;
-            margin-top:-6px; margin-left:8px; margin-right:8px; position:absolute; z-index:100;
-            border-width:3px; border-style:solid; border-radius:100%; line-height:20px;
-            text-align:center; box-shadow:0 0 0 5px #f2f3f8;
-        }
-        .timeline:before { content:""; position:absolute; top:0; left:0; bottom:0; width:50%;
-            margin-left:2px; border-right:4px solid #000000; }
-        .timeline .timeline-label { position:relative; float:left; clear:left; width:100%;
-            margin:20px auto; text-align:center; }
-        .timeline .timeline-label .label {
-            background-color:#FF0B55; border-radius:35px; color:#fff; display:inline;
-            font-size:.85rem; font-weight:600; line-height:1; padding:.65rem 1.4rem;
-            text-align:center; vertical-align:baseline; white-space:nowrap;
-        }
-        .widget { background:#fff; border-radius:6px; border:1px solid #CF0F47;
-            margin-bottom:30px; box-shadow:0 2px 10px rgba(0,0,0,.05); }
-        .widget-header { background:#fff; padding:.85rem 1.4rem; position:relative; width:100%; }
-        .widget-body { padding:1.4rem; }
-        .widget-footer { background:#FFDEDE; padding:1rem 1.07rem; position:relative; }
-        .meta ul { list-style:none; padding:0; margin:0; display:flex; }
-        .meta ul li { margin-right:0.5rem; display:flex; align-items:center; }
-        .meta ul li a { font-size:1.1rem; transition:0.3s; }
-        .meta ul li a i.la-arrow-up,
-        .meta ul li a i.la-arrow-down { color:#000; cursor:pointer; }
-        .meta ul li a i.la-comment { color:#000000; }
-        .meta ul li a i.la-comment:hover { color:#CF0F47; }
+  <style>
+    body { margin-top:20px; background:#FFFFFF; color:#000000; font-family: Arial, sans-serif; }
+    .profile-header {
+      background: #000000;
+      color:#fff;
+      text-align:center;
+      padding:40px 20px;
+      border-radius:0 0 15px 15px;
+    }
+    .profile-header img {
+      width:120px;
+      height:120px;
+      border-radius:50%;
+      border:4px solid #FF0B55;
+      margin-bottom:15px;
+    }
+    .profile-header h3 { margin:0; font-weight:bold; }
+    .profile-nav { margin-top:20px; }
+    .profile-nav .btn {
+      margin:0 5px;
+      background-color:#CF0F47;
+      border:none;
+      color:#fff;
+      font-weight:600;
+    }
+    .profile-nav .btn:hover { background-color:#FF0B55; }
 
-        .voted-up i.la-arrow-up { color:#28a745 !important; }
-        .voted-down i.la-arrow-down { color:#dc3545 !important; }
+    .timeline { width:100%; position:relative; list-style:none; }
+    .timeline-label .label {
+      background:#FF0B55;
+      border-radius:35px;
+      color:#fff;
+      padding:.65rem 1.4rem;
+      font-weight:600;
+    }
 
-        .user-image img { width:40px; height:40px; margin-right:10px; border:2px solid #CF0F47; }
-        .time-right { font-size:0.85rem; color:#000000; margin-left:auto; margin-top:10px; }
+    .widget {
+      background:#fff;
+      border:1px solid #CF0F47;
+      border-radius:6px;
+      box-shadow:0 2px 10px rgba(0,0,0,.05);
+      margin-bottom:20px;
+    }
+    .widget-header { padding:.85rem 1.4rem; display:flex; align-items:center; }
+    .widget-body { padding:1.4rem; }
+    .widget-footer { background:#FFDEDE; padding:1rem; }
 
-        @media screen and (max-width:768px) {
-            .timeline .timeline-item { width:100%; margin-bottom:20px; }
-            .timeline:before { left:42px; width:0; }
-            .timeline .timeline-item>.timeline-point { transform:translateX(-50%); left:42px!important; margin-left:0; }
-            .timeline .timeline-label { transform:translateX(-50%); margin:0 0 20px 42px; }
-        }
-    </style>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    .meta ul { list-style:none; display:flex; padding:0; margin:0; }
+    .meta ul li { margin-right:.5rem; display:flex; align-items:center; }
+    .meta ul li a i.la { cursor:pointer; font-size:20px; }
+
+    .voted-up i.la-arrow-up { color:#28a745 !important; }
+    .voted-down i.la-arrow-down { color:#dc3545 !important; }
+
+    .comments-section { background:#f9f9f9; border-top:1px solid #eee; display:none; }
+  </style>
 </head>
 <body>
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-xl-10 col-12">
 
-            {{-- Post Form --}}
-            <div class="card mb-4">
-                <div class="card-body">
-                    <form action="{{ route('timeline.store') }}" method="POST">
-                        @csrf
-                        <textarea name="content" class="form-control mb-2" rows="3" placeholder="What's on your mind?" required></textarea>
-                        <button type="submit" class="btn btn-primary" style="background-color:#FF0B55; border:none;">Post</button>
-                    </form>
-                </div>
-            </div>
-
-            {{-- Show Errors --}}
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <div class="timeline timeline-line-solid">
-                @php $currentDate = null; @endphp
-
-                @forelse ($posts as $post)
-                    @if ($currentDate !== $post->created_at->toDateString())
-                        <span class="timeline-label">
-                            <span class="label">
-                                @if ($post->created_at->isToday())
-                                    Today
-                                @elseif ($post->created_at->isYesterday())
-                                    Yesterday
-                                @else
-                                    {{ $post->created_at->format('F j, Y') }}
-                                @endif
-                            </span>
-                        </span>
-                        @php $currentDate = $post->created_at->toDateString(); @endphp
-                    @endif
-
-                    <div class="timeline-item">
-                        <div class="timeline-point"></div>
-                        <div class="timeline-event">
-                            <div class="widget has-shadow">
-                                <div class="widget-header d-flex align-items-center">
-                                    <div class="user-image">
-                                        <img class="rounded-circle" src="{{ $post->user->avatar ?? 'https://bootdey.com/img/Content/avatar/avatar1.png' }}" alt="...">
-                                    </div>
-                                    <div class="d-flex flex-column mr-auto ml-2">
-                                        <div class="title">
-                                            <span class="username font-weight-bold">{{ $post->user->name }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="time-right">{{ $post->created_at->diffForHumans() }}</div>
-
-                                    {{-- Dropdown --}}
-                                    <div class="dropdown ml-2">
-                                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                                            <i class="la la-ellipsis-h"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right">
-                                            @if (auth()->id() === $post->user_id)
-                                                <a class="dropdown-item" href="{{ route('posts.edit', $post->id) }}">
-                                                    <i class="la la-edit"></i> Edit Post
-                                                </a>
-                                                <form action="{{ route('posts.destroy', $post->id) }}" method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item text-danger">
-                                                        <i class="la la-trash"></i> Delete Post
-                                                    </button>
-                                                </form>
-                                            @endif
-                                            <a class="dropdown-item" href="#"><i class="la la-bell-slash"></i> Disable Notifications</a>
-                                            <a class="dropdown-item" href="#"><i class="la la-question-circle"></i> FAQ</a>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="widget-body">
-                                    <p>{{ $post->content }}</p>
-                                </div>
-
-                                <div class="widget-footer d-flex align-items-center">
-                                    <div class="col no-padding d-flex justify-content-start">
-                                        <div class="meta">
-                                            <ul>
-                                                <li>
-                                                    <a href="#" class="upvote-btn {{ $post->userVote === 'upvote' ? 'voted-up' : '' }}" data-id="{{ $post->id }}">
-                                                        <i class="la la-arrow-up"></i>
-                                                    </a>
-                                                    <span class="mx-1 font-weight-bold text-success upvote-count" id="upvote-count-{{ $post->id }}">
-                                                        {{ $post->upvotes_count ?? 0 }}
-                                                    </span>
-
-                                                    <a href="#" class="downvote-btn {{ $post->userVote === 'downvote' ? 'voted-down' : '' }}" data-id="{{ $post->id }}">
-                                                        <i class="la la-arrow-down"></i>
-                                                    </a>
-                                                    <span class="mx-1 font-weight-bold text-danger downvote-count" id="downvote-count-{{ $post->id }}">
-                                                        {{ $post->downvotes_count ?? 0 }}
-                                                    </span>
-                                                </li>
-                                                <li>
-                                                    <a href="#" class="comment-btn toggle-comments" data-id="{{ $post->id }}">
-                                                        <i class="la la-comment"></i>
-                                                        <span class="numb">{{ $post->comments_count ?? 0 }}</span>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- ✅ Comments hidden by default --}}
-                                <div class="widget-footer comments-section" id="comments-section-{{ $post->id }}" style="display:none;">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control comment-input" placeholder="Write a comment...">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-sm comment-send" data-id="{{ $post->id }}" style="background-color:#FF0B55; color:#fff; border:none;">Send</button>
-                                        </div>
-                                    </div>
-
-                                    <div class="comments-list mt-2">
-                                        @foreach ($post->comments as $comment)
-                                            <div class="comment mb-2" id="comment-{{ $comment->id }}">
-                                                <strong>{{ $comment->user->name }}:</strong> {{ $comment->content }}
-                                                <a href="#" class="reply-btn ml-2 small text-primary" data-id="{{ $comment->id }}">Reply</a>
-                                                <div class="replies ml-4 mt-1">
-                                                    @foreach ($comment->replies as $reply)
-                                                        <div class="reply mb-1" id="comment-{{ $reply->id }}">
-                                                            <strong>{{ $reply->user->name }}:</strong> {{ $reply->content }}
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                @empty
-                    <p class="text-center text-muted">No posts yet.</p>
-                @endforelse
-            </div>
-        </div>
-    </div>
+<div class="profile-header">
+  <img src="{{ Auth::user()->avatar ?? 'https://bootdey.com/img/Content/avatar/avatar1.png' }}" alt="Avatar">
+  <h3>{{ Auth::user()->name }}</h3>
+  <div class="profile-nav">
+    <a href="{{ route('timeline') }}" class="btn">Timeline</a>
+    <a href="{{ url('/about') }}" class="btn">About</a>
+  </div>
 </div>
 
-{{-- ✅ Load JS dependencies --}}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-xl-10 col-12">
 
-{{-- ✅ Custom Script --}}
+      {{-- Post Form --}}
+      <div class="card mb-4">
+        <div class="card-body">
+          <form action="{{ route('timeline.store') }}" method="POST">
+            @csrf
+            <textarea name="content" class="form-control mb-2" rows="3" placeholder="What's on your mind?" required></textarea>
+            <button type="submit" class="btn btn-primary" style="background-color:#FF0B55; border:none;">Post</button>
+          </form>
+        </div>
+      </div>
+
+      {{-- Show Errors --}}
+      @if ($errors->any())
+        <div class="alert alert-danger">
+          <ul class="mb-0">
+            @foreach ($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+        </div>
+      @endif
+
+      {{-- Timeline --}}
+      <div class="timeline">
+        @php $currentDate = null; @endphp
+        @forelse ($posts as $post)
+          @if ($currentDate !== $post->created_at->toDateString())
+            <div class="timeline-label text-center mb-3">
+              <span class="label">
+                {{ $post->created_at->isToday() ? 'Today' : ($post->created_at->isYesterday() ? 'Yesterday' : $post->created_at->format('F j, Y')) }}
+              </span>
+            </div>
+            @php $currentDate = $post->created_at->toDateString(); @endphp
+          @endif
+
+          <div class="widget">
+            <div class="widget-header">
+              <img src="{{ $post->user->avatar ?? 'https://bootdey.com/img/Content/avatar/avatar1.png' }}" class="rounded-circle" width="40" height="40">
+              <div class="ml-2">
+                <strong>{{ $post->user->name }}</strong>
+                <div class="small text-muted">{{ $post->created_at->diffForHumans() }}</div>
+              </div>
+              @if (auth()->id() === $post->user_id)
+                <div class="dropdown ml-auto">
+                  <a href="#" class="dropdown-toggle text-dark" data-toggle="dropdown"><i class="la la-ellipsis-h"></i></a>
+                  <div class="dropdown-menu dropdown-menu-right">
+                    <a class="dropdown-item" href="{{ route('posts.edit', $post->id) }}"><i class="la la-edit"></i> Edit Post</a>
+                    <form action="{{ route('posts.destroy', $post->id) }}" method="POST">
+                      @csrf
+                      @method('DELETE')
+                      <button type="submit" class="dropdown-item text-danger"><i class="la la-trash"></i> Delete Post</button>
+                    </form>
+                  </div>
+                </div>
+              @endif
+            </div>
+
+            <div class="widget-body">
+              <p>{{ $post->content }}</p>
+            </div>
+
+            <div class="widget-footer">
+              <div class="meta">
+                <ul>
+                  <li>
+                    <a class="upvote-btn {{ $post->userVote === 'upvote' ? 'voted-up' : '' }}" data-id="{{ $post->id }}">
+                      <i class="la la-arrow-up"></i>
+                    </a>
+                    <span id="upvote-count-{{ $post->id }}">{{ $post->upvotes_count ?? 0 }}</span>
+                  </li>
+                  <li>
+                    <a class="downvote-btn {{ $post->userVote === 'downvote' ? 'voted-down' : '' }}" data-id="{{ $post->id }}">
+                      <i class="la la-arrow-down"></i>
+                    </a>
+                    <span id="downvote-count-{{ $post->id }}">{{ $post->downvotes_count ?? 0 }}</span>
+                  </li>
+                  <li>
+                    <a class="toggle-comments" data-id="{{ $post->id }}">
+                      <i class="la la-comment"></i>
+                      <span>{{ $post->comments_count ?? 0 }}</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {{-- Comments --}}
+            <div class="comments-section p-3" id="comments-section-{{ $post->id }}">
+              <div class="comments-list mb-2">
+                @foreach ($post->comments as $comment)
+                  <div class="comment mb-2 d-flex">
+                    <img src="{{ $comment->user->avatar ?? 'https://bootdey.com/img/Content/avatar/avatar2.png' }}" class="rounded-circle mr-2" width="30" height="30">
+                    <div>
+                      <strong>{{ $comment->user->name }}</strong>: {{ $comment->content }}
+                    </div>
+                  </div>
+                @endforeach
+              </div>
+              <div class="input-group">
+                <input type="text" class="form-control comment-input" placeholder="Write a comment...">
+                <div class="input-group-append">
+                  <button class="btn btn-sm btn-danger comment-send" data-id="{{ $post->id }}">Send</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        @empty
+          <p class="text-center text-muted">No posts yet.</p>
+        @endforelse
+      </div>
+    </div>
+  </div>
+</div>
+
+{{-- ✅ Scripts --}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
 <script>
 $(document).ready(function(){
-    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-    // Toggle comments section
-    $(document).on('click', '.toggle-comments', function(e){
-        e.preventDefault();
-        let postId = $(this).data('id');
-        $("#comments-section-" + postId).slideToggle("fast");
+  // Toggle comments
+  $(document).on('click', '.toggle-comments', function(e){
+    e.preventDefault();
+    let postId = $(this).data('id');
+    $('#comments-section-' + postId).slideToggle('fast');
+  });
+
+  // Upvote
+  $(document).on('click', '.upvote-btn', function(e){
+    e.preventDefault();
+    let postId = $(this).data('id');
+    $.post(`/posts/${postId}/upvote`, {}, function(data){
+      $(`#upvote-count-${postId}`).text(data.upvotes_count);
+      $(`#downvote-count-${postId}`).text(data.downvotes_count);
+      $(`.upvote-btn[data-id="${postId}"]`).addClass('voted-up');
+      $(`.downvote-btn[data-id="${postId}"]`).removeClass('voted-down');
     });
+  });
 
-    // Upvote
-    $(document).on('click', '.upvote-btn', function(e){
-        e.preventDefault();
-        let btn = $(this);
-        let postId = btn.data('id');
-        $.post(`/posts/${postId}/upvote`, {}, function(res){
-            $('#upvote-count-' + postId).text(res.upvotes_count);
-            $('#downvote-count-' + postId).text(res.downvotes_count);
-            btn.addClass('voted-up');
-            btn.closest('li').find('.downvote-btn').removeClass('voted-down');
-        });
+  // Downvote
+  $(document).on('click', '.downvote-btn', function(e){
+    e.preventDefault();
+    let postId = $(this).data('id');
+    $.post(`/posts/${postId}/downvote`, {}, function(data){
+      $(`#upvote-count-${postId}`).text(data.upvotes_count);
+      $(`#downvote-count-${postId}`).text(data.downvotes_count);
+      $(`.downvote-btn[data-id="${postId}"]`).addClass('voted-down');
+      $(`.upvote-btn[data-id="${postId}"]`).removeClass('voted-up');
     });
+  });
 
-    // Downvote
-    $(document).on('click', '.downvote-btn', function(e){
-        e.preventDefault();
-        let btn = $(this);
-        let postId = btn.data('id');
-        $.post(`/posts/${postId}/downvote`, {}, function(res){
-            $('#upvote-count-' + postId).text(res.upvotes_count);
-            $('#downvote-count-' + postId).text(res.downvotes_count);
-            btn.addClass('voted-down');
-            btn.closest('li').find('.upvote-btn').removeClass('voted-up');
-        });
+  // Send comment
+  $(document).on('click', '.comment-send', function(){
+    let btn = $(this);
+    let postId = btn.data('id');
+    let input = btn.closest('.input-group').find('.comment-input');
+    let content = input.val();
+    if(!content.trim()) return;
+
+    $.post(`/posts/${postId}/comment`, { content: content }, function(data){
+      let newComment = `<div class="comment mb-2 d-flex">
+        <img src="${data.avatar}" class="rounded-circle mr-2" width="30" height="30">
+        <div><strong>${data.user}</strong>: ${data.comment}</div>
+      </div>`;
+      $(`#comments-section-${postId} .comments-list`).append(newComment);
+      input.val('');
     });
-
-    // Comment send
-    $(document).on('click', '.comment-send', function(){
-        let btn = $(this);
-        let postId = btn.data('id');
-        let input = btn.closest('.input-group').find('.comment-input');
-        let content = input.val();
-        let parentId = input.data('parent') || null;
-        if(content.trim() === '') return;
-
-        $.post(`/posts/${postId}/comment`, { content: content, parent_id: parentId }, function(res){
-            input.val('').removeAttr('data-parent');
-            if(res.parent_id){
-                $(`#comment-${res.parent_id} .replies`).append(
-                    `<div class="reply mb-1" id="comment-${res.id}">
-                        <strong>${res.user}:</strong> ${res.comment}
-                    </div>`
-                );
-            } else {
-                btn.closest('.comments-section').find('.comments-list').append(
-                    `<div class="comment mb-2" id="comment-${res.id}">
-                        <strong>${res.user}:</strong> ${res.comment}
-                        <a href="#" class="reply-btn ml-2 small text-primary" data-id="${res.id}">Reply</a>
-                        <div class="replies ml-4 mt-1"></div>
-                    </div>`
-                );
-            }
-            btn.closest('.widget').find('.comment-btn .numb').text(res.comments_count);
-        });
-    });
-
-    // Reply button
-    $(document).on('click', '.reply-btn', function(e){
-        e.preventDefault();
-        let parentId = $(this).data('id');
-        let input = $(this).closest('.widget').find('.comment-input');
-        input.focus().attr('data-parent', parentId);
-    });
+  });
 });
 </script>
 </body>

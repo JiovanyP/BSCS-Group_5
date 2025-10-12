@@ -9,7 +9,13 @@ class Post extends Model
 {
     use HasFactory;
 
+    protected $table = 'posts';
+
     protected $fillable = ['user_id', 'content'];
+
+    protected $casts = [
+        'user_id' => 'integer',
+    ];
 
     /**
      * Post belongs to a user.
@@ -20,7 +26,7 @@ class Post extends Model
     }
 
     /**
-     * Post has many votes (likes table renamed conceptually).
+     * Post has many votes (PostLike model).
      */
     public function likes()
     {
@@ -50,7 +56,7 @@ class Post extends Model
     {
         return $this->hasMany(Comment::class)
                     ->whereNull('parent_id')
-                    ->with(['user', 'replies']);
+                    ->with(['user', 'replies.user']); // Recursive eager loading
     }
 
     /**
