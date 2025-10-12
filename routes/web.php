@@ -53,7 +53,6 @@ Route::middleware('guest')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
-
     // Logout
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 
@@ -103,6 +102,13 @@ Route::middleware('auth')->group(function () {
     Route::view('/verify', 'verify')->name('verify');
     Route::view('/history', 'history')->name('history');
     Route::view('/account', 'account')->name('account');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Homepage (Alternative to Dashboard)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/homepage', [PostController::class, 'index'])->name('homepage');
 });
 
 /*
@@ -127,5 +133,6 @@ Route::get('/auth/google/callback', function () {
     // Log in user
     Auth::login($user);
 
+    // Redirect to timeline (from main)
     return redirect()->route('timeline');
 });
