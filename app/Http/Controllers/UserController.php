@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Cookie;
 use App\Models\User;
+use App\Models\Post;
 
 class UserController extends Controller
 {
@@ -37,8 +38,8 @@ class UserController extends Controller
         // Force fresh cookie
         Cookie::queue(Cookie::make(config('session.lifetime')));
 
-        // Redirect to HOMEPAGE instead of timeline
-        return redirect()->route('homepage')->with('success', 'Your account has been created and you are now logged in!');
+        // Redirect to homepage
+        return redirect()->route('home')->with('success', 'Your account has been created and you are now logged in!');
     }
 
     /**
@@ -46,30 +47,22 @@ class UserController extends Controller
      */
     public function login(Request $request)
     {
-        // ✅ Debug: check if controller is reached
-        // dd('Login controller reached', $request->all());
-
-        // Validate input
         $request->validate([
-            'email' => 'required',
+            'email'    => 'required',
             'password' => 'required',
         ]);
 
-        // Determine login field
         $loginField = filter_var($request->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
         $credentials = [
             $loginField => $request->email,
-            'password' => $request->password,
+            'password'  => $request->password,
         ];
 
-        // Attempt login
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            // Redirect to HOMEPAGE instead of timeline
-            return redirect()->route('homepage')->with('success', 'Welcome back!');
+            return redirect()->route('home')->with('success', 'Welcome back!');
         }
 
-        // Failed login
         return back()->withErrors([
             'email' => 'Invalid login credentials.',
         ]);
@@ -83,11 +76,12 @@ class UserController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('login')->with('success', 'You have been logged out.');
     }
 
     /**
-     * Update user profile (optional).
+     * Update user profile.
      */
     public function update(Request $request, User $user)
     {
@@ -108,5 +102,14 @@ class UserController extends Controller
         $user->update($data);
 
         return redirect()->back()->with('success', 'Profile updated successfully.');
+    }
+
+    /**
+     * Show timeline page.
+     */
+    public function timeline()
+    {
+        $posts = Post::with('user', 'comments.user')->latest()->get();
+        return view('timeline', compact('posts'));
     }
 }
