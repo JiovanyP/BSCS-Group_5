@@ -9,9 +9,9 @@ class PostLike extends Model
 {
     use HasFactory;
 
-    protected $table = 'post_likes'; // ✅ make sure your DB table is named correctly
+    protected $table = 'post_likes'; // Ensure table name matches your database
 
-    protected $fillable = ['user_id', 'post_id', 'vote_type'];
+    protected $fillable = ['post_id', 'user_id', 'vote_type'];
 
     /**
      * A like belongs to a post.

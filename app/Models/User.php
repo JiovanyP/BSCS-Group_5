@@ -15,7 +15,7 @@ class User extends Authenticatable
         'email',
         'password',
         'location',
-        'avatar', // ✅ add avatar so you can display profile pictures
+        'avatar', // ✅ allows storing user profile pictures
     ];
 
     protected $hidden = [
@@ -34,7 +34,6 @@ class User extends Authenticatable
     /**
      * ✅ Relationships
      */
-
     // A user can have many posts
     public function posts()
     {

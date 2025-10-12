@@ -87,6 +87,7 @@ class PostController extends Controller
             $status = 'removed';
             $userVote = 'none';
         } else {
+            // Update or create vote
             $post->likes()->updateOrCreate(
                 ['user_id' => $user->id],
                 ['vote_type' => $type]
@@ -96,6 +97,50 @@ class PostController extends Controller
         }
 
         return response()->json([
+            'status'           => $status,
+            'user_vote'        => $userVote,
+            'upvotes_count'    => $post->likes()->where('vote_type', 'up')->count(),
+            'downvotes_count'  => $post->likes()->where('vote_type', 'down')->count(),
+        ]);
+    }
+
+    /**
+     * Upvote a post.
+     */
+    public function upvote(Post $post)
+    {
+        return $this->handleVote($post, 'up');
+    }
+
+    /**
+     * Downvote a post.
+     */
+    public function downvote(Post $post)
+    {
+        return $this->handleVote($post, 'down');
+    }
+
+    /**
+     * Add a comment or reply to a post.
+     */
+    public function comment(Request $request, Post $post)
+    {
+        $request->validate([
+            'content' => 'required|string|max:500',
+        ]);
+
+        $comment = $post->comments()->create([
+            'user_id'   => auth()->id(),
+            'content'   => $request->content,
+            'parent_id' => $request->parent_id,
+        ]);
+
+        return response()->json([
+            'id'             => $comment->id,
+            'comment'        => $comment->content,
+            'user'           => $comment->user->name,
+            'parent_id'      => $comment->parent_id,
+            'comments_count' => $post->comments()->count(),
             'status' => $status,
             'user_vote' => $userVote,
             'upvotes_count' => $post->likes()->where('vote_type', 'up')->count(),

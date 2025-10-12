@@ -70,9 +70,11 @@
       flex: 1;
       border-bottom: 1px solid #ccc;
     }
+
     .divider:not(:empty)::before {
       margin-right: 0.75em;
     }
+
     .divider:not(:empty)::after {
       margin-left: 0.75em;
     }
@@ -142,7 +144,7 @@
         </div>
       @endif
 
-      <input type="email" name="email" placeholder="Email" class="input-field" 
+      <input type="text" name="email" placeholder="Email or Username" class="input-field"
              value="{{ old('email') }}" required>
 
       <input type="password" name="password" placeholder="Password" class="input-field" required>
@@ -154,8 +156,8 @@
     <a href="#" class="link">Forgot password?</a>
     <a href="{{ route('register') }}" class="link">New here? Sign Up</a>
     <a href="{{ url('/') }}" class="link" style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-  ← Back to Home
-</a>
+      ← Back to Home
+    </a>
   </div>
 </body>
 </html>
