@@ -11,14 +11,17 @@ class Post extends Model
 
     protected $table = 'posts';
 
-    protected $fillable = ['user_id', 'content'];
+    protected $fillable = [
+        'user_id',
+        'content',
+    ];
 
     protected $casts = [
         'user_id' => 'integer',
     ];
 
     /**
-     * Post belongs to a user.
+     * A post belongs to a user.
      */
     public function user()
     {
@@ -26,7 +29,7 @@ class Post extends Model
     }
 
     /**
-     * Post has many votes (PostLike model).
+     * A post can have many votes (likes).
      */
     public function likes()
     {
@@ -34,7 +37,7 @@ class Post extends Model
     }
 
     /**
-     * Post upvotes only.
+     * Get only upvotes.
      */
     public function upvotes()
     {
@@ -42,7 +45,7 @@ class Post extends Model
     }
 
     /**
-     * Post downvotes only.
+     * Get only downvotes.
      */
     public function downvotes()
     {
@@ -50,20 +53,37 @@ class Post extends Model
     }
 
     /**
-     * Post has many top-level comments.
+     * A post can have many comments (top-level only).
      */
     public function comments()
     {
         return $this->hasMany(Comment::class)
                     ->whereNull('parent_id')
-                    ->with(['user', 'replies.user']); // Recursive eager loading
+                    ->with(['user', 'replies.user']); // Load user + nested replies
     }
 
     /**
-     * Score = upvotes - downvotes (Reddit-style).
+     * Get the total number of comments (including replies).
+     */
+    public function getTotalCommentsCountAttribute()
+    {
+        // Include all comments, even nested ones
+        return Comment::where('post_id', $this->id)->count();
+    }
+
+    /**
+     * Get the post score (upvotes - downvotes).
      */
     public function getScoreAttribute()
     {
         return $this->upvotes()->count() - $this->downvotes()->count();
+    }
+
+    /**
+     * Check if a specific user has voted on this post.
+     */
+    public function userVote($userId)
+    {
+        return $this->likes()->where('user_id', $userId)->value('vote_type');
     }
 }

@@ -8,96 +8,79 @@ use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
-    // Homepage (timeline) after login
+    /**
+     * Display timeline with posts, votes, and comments.
+     */
     public function index()
     {
-        // If user is not logged in, redirect to login
         if (!Auth::check()) {
             return redirect()->route('login');
         }
 
-        // Load posts with relationships
         $posts = Post::with(['user', 'comments.user', 'comments.replies.user'])
             ->withCount([
                 'likes as upvotes_count'   => fn($q) => $q->where('vote_type', 'up'),
                 'likes as downvotes_count' => fn($q) => $q->where('vote_type', 'down'),
-                'comments'
+                'comments as total_comments_count'
             ])
             ->latest()
             ->get()
             ->map(function ($post) {
-                $post->userVote = $post->likes()
-                    ->where('user_id', auth()->id())
-                    ->value('vote_type');
+                $post->user_vote = $post->likes()
+                    ->where('user_id', Auth::id())
+                    ->value('vote_type') ?? 'none';
                 return $post;
             });
 
-        // Return homepage (timeline view)
-        return view('homepage', compact('posts'));
+        return view('timeline', compact('posts'));
     }
 
-    // Create new post
+    /**
+     * Store a new post.
+     */
     public function store(Request $request)
     {
-        $request->validate(['content' => 'required|max:500']);
+        $request->validate([
+            'content' => 'required|max:500',
+        ]);
 
         Post::create([
             'user_id' => Auth::id(),
             'content' => $request->content,
         ]);
 
-        return redirect()->route('homepage')->with('success', 'Post created!');
+        return redirect()->route('timeline')->with('success', 'Post created successfully!');
     }
 
-    // Edit post
-    public function edit(Post $post)
+    /**
+     * Shared voting logic for upvotes/downvotes.
+     */
+    protected function handleVote(Post $post, string $type)
     {
-        $this->authorize('update', $post);
-        return view('posts.edit', compact('post'));
-    }
+        $user = Auth::user();
 
-    // Update post
-    public function update(Request $request, Post $post)
-    {
-        $this->authorize('update', $post);
-        $request->validate(['content' => 'required|max:500']);
-        $post->update(['content' => $request->content]);
-        return redirect()->route('homepage')->with('success', 'Post updated!');
-    }
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
 
-    // Delete post
-    public function destroy(Post $post)
-    {
-        $this->authorize('delete', $post);
-        $post->delete();
-        return redirect()->route('homepage')->with('success', 'Post deleted!');
-    }
+        $type = $type === 'up' ? 'up' : 'down';
+        $existingVote = $post->likes()->where('user_id', $user->id)->first();
 
-    // Handle upvotes/downvotes
-    public function vote(Request $request, Post $post)
-    {
-        $request->validate(['vote' => 'required|in:upvote,downvote']);
-        $user = auth()->user();
-        $type = $request->vote === 'upvote' ? 'up' : 'down';
-
-        $like = $post->likes()->where('user_id', $user->id)->first();
-
-        if ($like && $like->vote_type === $type) {
-            $like->delete();
-            $status = 'removed';
+        if ($existingVote && $existingVote->vote_type === $type) {
+            // Toggle off if same vote clicked again
+            $existingVote->delete();
             $userVote = 'none';
         } else {
-            // Update or create vote
+            // Create or switch vote
             $post->likes()->updateOrCreate(
                 ['user_id' => $user->id],
                 ['vote_type' => $type]
             );
-            $status = $type === 'up' ? 'upvoted' : 'downvoted';
             $userVote = $type;
         }
 
         return response()->json([
-            'status'           => $status,
+            'status'           => 'success',
             'user_vote'        => $userVote,
             'upvotes_count'    => $post->likes()->where('vote_type', 'up')->count(),
             'downvotes_count'  => $post->likes()->where('vote_type', 'down')->count(),
@@ -105,7 +88,7 @@ class PostController extends Controller
     }
 
     /**
-     * Upvote a post.
+     * Handle upvote action.
      */
     public function upvote(Post $post)
     {
@@ -113,7 +96,7 @@ class PostController extends Controller
     }
 
     /**
-     * Downvote a post.
+     * Handle downvote action.
      */
     public function downvote(Post $post)
     {
@@ -121,7 +104,7 @@ class PostController extends Controller
     }
 
     /**
-     * Add a comment or reply to a post.
+     * Add a comment to a post.
      */
     public function comment(Request $request, Post $post)
     {
@@ -130,21 +113,17 @@ class PostController extends Controller
         ]);
 
         $comment = $post->comments()->create([
-            'user_id'   => auth()->id(),
+            'user_id'   => Auth::id(),
             'content'   => $request->content,
             'parent_id' => $request->parent_id,
         ]);
 
         return response()->json([
-            'id'             => $comment->id,
-            'comment'        => $comment->content,
-            'user'           => $comment->user->name,
-            'parent_id'      => $comment->parent_id,
-            'comments_count' => $post->comments()->count(),
-            'status' => $status,
-            'user_vote' => $userVote,
-            'upvotes_count' => $post->likes()->where('vote_type', 'up')->count(),
-            'downvotes_count' => $post->likes()->where('vote_type', 'down')->count(),
+            'id'              => $comment->id,
+            'comment'         => $comment->content,
+            'user'            => $comment->user->name,
+            'avatar'          => $comment->user->avatar ?? 'https://bootdey.com/img/Content/avatar/avatar2.png',
+            'comments_count'  => $post->comments()->count(),
         ]);
     }
 }

@@ -9,11 +9,6 @@ class Comment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['post_id', 'user_id', 'content', 'parent_id'];
-
-    /**
-     * A comment belongs to a post.
-     */
     protected $table = 'comments';
 
     protected $fillable = ['post_id', 'user_id', 'content', 'parent_id'];
@@ -22,6 +17,9 @@ class Comment extends Model
         'parent_id' => 'integer',
     ];
 
+    /**
+     * A comment belongs to a post.
+     */
     public function post()
     {
         return $this->belongsTo(Post::class);
@@ -60,8 +58,10 @@ class Comment extends Model
     {
         return $query->whereNull('parent_id');
     }
-}
-    // ✅ Helper: is this a reply or top-level comment?
+
+    /**
+     * ✅ Helper: Determine if this comment is a reply or top-level.
+     */
     public function isReply(): bool
     {
         return !is_null($this->parent_id);
