@@ -9,8 +9,18 @@ use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
-// Landing page (public)
+/*
+|--------------------------------------------------------------------------
+| Public Routes (Available to everyone)
+|--------------------------------------------------------------------------
+*/
+
+// Landing page - accessible to all
 Route::get('/', function () {
+    // If user is already logged in, redirect to dashboard
+    if (Auth::check()) {
+        return redirect()->route('dashboard');
+    }
     return view('welcome');
 })->name('welcome');
 
@@ -19,7 +29,7 @@ Route::view('/contact', 'contact')->name('contact');
 
 /*
 |--------------------------------------------------------------------------
-| Guest-only Routes (Login / Register)
+| Guest-only Routes (Only for non-logged in users)
 |--------------------------------------------------------------------------
 */
 Route::middleware('guest')->group(function () {
@@ -34,9 +44,37 @@ Route::middleware('guest')->group(function () {
     // AJAX Validation
     Route::post('/check-email', [UserController::class, 'checkEmail'])->name('check.email');
     Route::post('/check-username', [UserController::class, 'checkUsername'])->name('check.username');
+
+    // ✅ Google OAuth - MOVED INSIDE GUEST GROUP
+    Route::get('/auth/google', function () {
+        return Socialite::driver('google')->redirect();
+    })->name('google.login');
+
+    Route::get('/auth/google/callback', function () {
+        $googleUser = Socialite::driver('google')->user();
+
+        // Find or create user
+        $user = User::firstOrCreate(
+            ['email' => $googleUser->getEmail()],
+            [
+                'name'     => $googleUser->getName(),
+                'password' => bcrypt(str()->random(16)),
+            ]
+        );
+
+        // Log in user
+        Auth::login($user);
+
+        // Redirect to dashboard
+        return redirect()->route('dashboard')->with('success', 'Logged in with Google!');
+    });
 });
 
-// Protected routes (logged in users only)
+/*
+|--------------------------------------------------------------------------
+| Protected Routes (Only for logged in users)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
     // Dashboard - main page after login
     Route::get('/dashboard', [PostController::class, 'index'])->name('dashboard');
@@ -44,52 +82,7 @@ Route::middleware('auth')->group(function () {
     // Accident report routes
     Route::get('/report-accident', [AccidentReportController::class, 'create'])->name('accidents.create');
     Route::post('/report-accident', [AccidentReportController::class, 'store'])->name('accidents.store');
-});
-
-// ✅ Google OAuth
-Route::get('/auth/google', function () {
-    return Socialite::driver('google')->redirect();
-})->name('google.login');
-
-Route::get('/auth/google/callback', function () {
-    $googleUser = Socialite::driver('google')->user();
-
-    // Find or create user
-    $user = User::firstOrCreate(
-        ['email' => $googleUser->getEmail()],
-        [
-            'name'     => $googleUser->getName(),
-            'password' => bcrypt(str()->random(16)),
-        ]
-    );
-
-    // Log in user
-    Auth::login($user);
-
-    // Redirect to dashboard
-    return redirect()->route('dashboard')->with('success', 'Logged in with Google!');
-});
-
-// Protected routes (logged in users only)
-Route::middleware('auth')->group(function () {
-    // Homepage - main page after login
-    Route::get('/homepage', [PostController::class, 'index'])->name('homepage');
     
-    // Accident report routes
-    Route::get('/report-accident', [AccidentReportController::class, 'create'])->name('accidents.create');
-    Route::post('/report-accident', [AccidentReportController::class, 'store'])->name('accidents.store');
-    
-    // ✅ COMMENTED OUT - Create these controllers later
-    // Route::get('/report', [ReportController::class, 'index'])->name('report');
-    // Route::get('/verify', [VerificationController::class, 'index'])->name('verify');
-    // Route::get('/history', [HistoryController::class, 'index'])->name('history');
-    // Route::get('/account', [AccountController::class, 'index'])->name('account');
+    // Logout
+    Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 });
-
-// Logout
-Route::post('/logout', [UserController::class, 'logout'])->name('logout');
-
-// Contact page (public)
-Route::get('/contact', function () {
-    return view('contact');
-})->name('contact');
