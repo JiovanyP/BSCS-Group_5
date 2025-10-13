@@ -1,75 +1,93 @@
 <?php
 
-use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\AccidentReportController;
+use App\Http\Controllers\ProfileController;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
-// Public routes
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Public, guest-only, and authenticated routes live here (web middleware).
+|
+*/
+
+/*
+|--------------------------------------------------------------------------
+| Public Routes (available to everyone)
+|--------------------------------------------------------------------------
+*/
 Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect()->route('dashboard');
+    }
     return view('welcome');
 })->name('welcome');
 
-Route::get('/test-session', function () {
-    session(['test' => 'Session is working!']);
-    return session('test');
-});
+Route::view('/contact', 'contact')->name('contact');
 
+/*
+|--------------------------------------------------------------------------
+| Guest-only Routes (non-authenticated users)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('guest')->group(function () {
-    Route::get('/login', function () {
-        return view('login');
-    })->name('login');
+    // Login
+    Route::get('/login', fn() => view('login'))->name('login');
+    Route::post('/login', [UserController::class, 'login'])->name('login.post');
 
-    Route::get('/register', function () {
-        return view('register');
-    })->name('register');
+    // Register
+    Route::get('/register', fn() => view('register'))->name('register');
+    Route::post('/register', [UserController::class, 'register'])->name('register.post');
 
-    // Google OAuth routes
-    Route::get('/auth/google', function () {
-        return Socialite::driver('google')->redirect();
-    })->name('google.login');
+    // Optional AJAX validation endpoints
+    Route::post('/check-email', [UserController::class, 'checkEmail'])->name('check.email');
+    Route::post('/check-username', [UserController::class, 'checkUsername'])->name('check.username');
+
+    // Google OAuth (web)
+    Route::get('/auth/google', fn() => Socialite::driver('google')->redirect())->name('google.login');
 
     Route::get('/auth/google/callback', function () {
         $googleUser = Socialite::driver('google')->user();
 
-        // Find or create user
         $user = User::firstOrCreate(
             ['email' => $googleUser->getEmail()],
             [
-                'name' => $googleUser->getName(),
+                'name'     => $googleUser->getName(),
                 'password' => bcrypt(str()->random(16)),
             ]
         );
 
-        // Log them in
         Auth::login($user);
 
-        // Regenerate session to prevent session fixation
-        request()->session()->regenerate();
-
-        // Redirect to homepage
-        return redirect()->route('homepage');
-    });
+        return redirect()->route('dashboard')->with('success', 'Logged in with Google!');
+    })->name('google.callback');
 });
 
-// Authentication routes
-Route::post('/register', [UserController::class, 'register']);
-Route::post('/login', [UserController::class, 'login']);
-Route::post('/logout', [UserController::class, 'logout']);
-
-// Protected routes
+/*
+|--------------------------------------------------------------------------
+| Authenticated Routes (logged-in users)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [PostController::class, 'index'])->name('dashboard');
 
-    Route::get('/timeline', [App\Http\Controllers\PostController::class, 'index'])->name('timeline');
-    Route::post('/timeline', [App\Http\Controllers\PostController::class, 'store'])->name('timeline.store');
-    Route::patch('/profile/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('profile.update');
-    Route::get('/posts/{post}/edit', [App\Http\Controllers\PostController::class, 'edit'])->name('posts.edit');
-    Route::patch('/posts/{post}', [App\Http\Controllers\PostController::class, 'update'])->name('posts.update');
-    Route::delete('/posts/{post}', [App\Http\Controllers\PostController::class, 'destroy'])->name('posts.destroy');
+    Route::get('/timeline', [PostController::class, 'index'])->name('timeline');
+    Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
 
-    Route::get('/newsfeed', [App\Http\Controllers\PostController::class, 'newsfeed'])->name('newsfeed');
+    // Accident reports
+    Route::get('/report-accident', [AccidentReportController::class, 'create'])->name('accidents.create');
+    Route::post('/report-accident', [AccidentReportController::class, 'store'])->name('accidents.store');
+
+    // Profile
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+
+    // Logout
+    Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 });
