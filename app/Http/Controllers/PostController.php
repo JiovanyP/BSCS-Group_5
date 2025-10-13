@@ -9,19 +9,34 @@ use Illuminate\Support\Facades\Auth;
 class PostController extends Controller
 {
     /**
-     * Display a listing of posts with user details.
+     * Display timeline with posts, votes, and comments.
      */
     public function index()
     {
-        $posts = Post::with(['user:id,name,avatar'])
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $posts = Post::with(['user', 'comments.user', 'comments.replies.user'])
+            ->withCount([
+                'likes as upvotes_count'   => fn($q) => $q->where('vote_type', 'up'),
+                'likes as downvotes_count' => fn($q) => $q->where('vote_type', 'down'),
+                'comments as total_comments_count'
+            ])
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($post) {
+                $post->user_vote = $post->likes()
+                    ->where('user_id', Auth::id())
+                    ->value('vote_type') ?? 'none';
+                return $post;
+            });
 
         return view('dashboard', compact('posts'));
     }
 
     /**
-     * Store a newly created post.
+     * Store a new post.
      */
     public function store(Request $request)
     {
