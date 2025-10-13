@@ -452,6 +452,12 @@
 
 <body>
 
+    @auth
+        <div style="background: yellow; padding: 10px; text-align: center;">
+            <strong>You are logged in as: {{ Auth::user()->name }}</strong>
+        </div>
+    @endauth
+
     <div id="loading-bar-container">
     <div id="loading-bar"></div>
     </div>
@@ -462,8 +468,22 @@
             <div class="nav-links" id="navLinks">
                 <i class="fa fa-times" onclick="hideMenu()"></i>
                 <ul>
-                    <li><a href="{{ route('login') }}">Log In</a></li>
-                    <li><a href="{{ route('register') }}">Register</a></li>
+                    @auth
+                        <!-- Show these links if user is logged in -->
+                        <li><a href="{{ route('homepage') }}">Dashboard</a></li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+                                @csrf
+                                <button type="submit" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; font-weight: 500; font-family: 'Poppins', sans-serif; padding: 8px 16px;">
+                                    Log Out
+                                </button>
+                            </form>
+                        </li>
+                    @else
+                        <!-- Show these links if user is NOT logged in -->
+                        <li><a href="{{ route('login') }}">Log In</a></li>
+                        <li><a href="{{ route('register') }}">Register</a></li>
+                    @endauth
                 </ul>
             </div>
             <i class="fa fa-bars" onclick="showMenu()"></i>
@@ -472,6 +492,23 @@
         <div class="text-box">
             <h1>Welcome to Publ!</h1>
             <p>A crowdsourced platform for reporting incidents and verifying their authenticity through community collaboration.</p>
+            
+            @auth
+                <!-- Show these links if user is logged in -->
+                <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                <li>
+                    <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+                        @csrf
+                        <button type="submit" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; font-weight: 500; font-family: 'Poppins', sans-serif; padding: 8px 16px;">
+                            Log Out
+                        </button>
+                    </form>
+                </li>
+            @else
+                <!-- Show these links if user is NOT logged in -->
+                <li><a href="{{ route('login') }}">Log In</a></li>
+                <li><a href="{{ route('register') }}">Register</a></li>
+            @endauth
         </div>
     </section>
 

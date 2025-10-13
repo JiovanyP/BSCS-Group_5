@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cookie;
 use App\Models\User;
 
 class UserController extends Controller
@@ -17,6 +16,7 @@ class UserController extends Controller
         $incomingFields = $request->validate([
             'name' => ['required', 'max:100'],
             'email' => ['required', 'email', 'max:100', 'unique:users,email'],
+            'location' => ['required', 'string', 'max:255'],
             'password' => ['required', 'min:8', 'max:200', 'confirmed'],
         ]);
 
@@ -32,11 +32,8 @@ class UserController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        // Force fresh cookie
-        Cookie::queue(Cookie::make(config('session.lifetime')));
-
-        // Redirect to HOMEPAGE instead of timeline
-        return redirect()->route('homepage')->with('success', 'Your account has been created and you are now logged in!');
+        // Redirect to DASHBOARD
+        return redirect()->route('dashboard')->with('success', 'Your account has been created and you are now logged in!');
     }
 
     /**
@@ -44,9 +41,6 @@ class UserController extends Controller
      */
     public function login(Request $request)
     {
-        // ✅ Debug: check if controller is reached
-        // dd('Login controller reached', $request->all());
-
         // Validate input
         $request->validate([
             'email' => 'required',
@@ -63,8 +57,7 @@ class UserController extends Controller
         // Attempt login
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            // Redirect to HOMEPAGE instead of timeline
-            return redirect()->route('homepage')->with('success', 'Welcome back!');
+            return redirect()->route('dashboard')->with('success', 'Welcome back!');
         }
 
         // Failed login

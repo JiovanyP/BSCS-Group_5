@@ -8,12 +8,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AccidentReportController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
-
 // Landing page (public)
 Route::get('/', function () {
     return view('welcome');
@@ -38,6 +32,16 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [UserController::class, 'register'])->name('register.post');
 });
 
+// Protected routes (logged in users only)
+Route::middleware('auth')->group(function () {
+    // Dashboard - main page after login
+    Route::get('/dashboard', [PostController::class, 'index'])->name('dashboard');
+    
+    // Accident report routes
+    Route::get('/report-accident', [AccidentReportController::class, 'create'])->name('accidents.create');
+    Route::post('/report-accident', [AccidentReportController::class, 'store'])->name('accidents.store');
+});
+
 // ✅ Google OAuth
 Route::get('/auth/google', function () {
     return Socialite::driver('google')->redirect();
@@ -58,30 +62,24 @@ Route::get('/auth/google/callback', function () {
     // Log them in
     Auth::login($user);
 
-    // Redirect to homepage
-    return redirect()->route('homepage');
+    // Redirect to dashboard
+    return redirect()->route('dashboard')->with('success', 'Logged in with Google!');
 });
 
 // Protected routes (logged in users only)
 Route::middleware('auth')->group(function () {
-    // REMOVED DASHBOARD ROUTE - Using homepage instead
-    
     // Homepage - main page after login
     Route::get('/homepage', [PostController::class, 'index'])->name('homepage');
-    
-    // Timeline post creation
-    // Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
     
     // Accident report routes
     Route::get('/report-accident', [AccidentReportController::class, 'create'])->name('accidents.create');
     Route::post('/report-accident', [AccidentReportController::class, 'store'])->name('accidents.store');
     
-    // Other protected routes (replace YourController with actual controller)
-    Route::get('/report', [ReportController::class, 'index'])->name('report');
-    Route::get('/verify', [VerificationController::class, 'index'])->name('verify');
-    Route::get('/history', [HistoryController::class, 'index'])->name('history');
-    Route::get('/account', [AccountController::class, 'index'])->name('account');
-    Route::get('/account', [AccountController::class, 'index'])->name('account');
+    // ✅ COMMENTED OUT - Create these controllers later
+    // Route::get('/report', [ReportController::class, 'index'])->name('report');
+    // Route::get('/verify', [VerificationController::class, 'index'])->name('verify');
+    // Route::get('/history', [HistoryController::class, 'index'])->name('history');
+    // Route::get('/account', [AccountController::class, 'index'])->name('account');
 });
 
 // Logout
@@ -91,15 +89,3 @@ Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 Route::get('/contact', function () {
     return view('contact');
 })->name('contact');
-
-// // Login page
-// Route::get('/login', function () {
-//     dd('Login page reached'); // This will show a debug message
-//     return view('login');
-// })->name('login');
-
-// // Register page
-// Route::get('/register', function () {
-//     dd('Register page reached'); // This will show a debug message
-//     return view('register');
-// })->name('register');

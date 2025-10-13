@@ -17,7 +17,7 @@ class PostController extends Controller
             ->latest()
             ->get();
 
-        return view('homepage', compact('posts'));
+        return view('dashboard', compact('posts'));
     }
 
     /**
@@ -31,11 +31,11 @@ class PostController extends Controller
 
         Post::create([
             'user_id' => Auth::id(),
-            'content' => $request->content,
+            'content' => $request->input('content'),
         ]);
 
         return redirect()
-            ->route('homepage')
+            ->route('dashboard')
             ->with('success', 'Post created!');
     }
 }
