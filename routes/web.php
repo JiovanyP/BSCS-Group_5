@@ -1,51 +1,31 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\PostController;
-use App\Http\Controllers\AccidentReportController;
-use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Route;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
-/*
-|--------------------------------------------------------------------------
-| Public Routes (Available to everyone)
-|--------------------------------------------------------------------------
-*/
-
-// Landing page - accessible to all
+// Public routes
 Route::get('/', function () {
-    // If user is already logged in, redirect to dashboard
-    if (Auth::check()) {
-        return redirect()->route('dashboard');
-    }
     return view('welcome');
 })->name('welcome');
 
-// Contact page
-Route::view('/contact', 'contact')->name('contact');
+Route::get('/test-session', function () {
+    session(['test' => 'Session is working!']);
+    return session('test');
+});
 
-/*
-|--------------------------------------------------------------------------
-| Guest-only Routes (Only for non-logged in users)
-|--------------------------------------------------------------------------
-*/
 Route::middleware('guest')->group(function () {
-    // Login
-    Route::get('/login', fn() => view('login'))->name('login');
-    Route::post('/login', [UserController::class, 'login'])->name('login.post');
+    Route::get('/login', function () {
+        return view('login');
+    })->name('login');
 
-    // Register
-    Route::get('/register', fn() => view('register'))->name('register');
-    Route::post('/register', [UserController::class, 'register'])->name('register.post');
+    Route::get('/register', function () {
+        return view('register');
+    })->name('register');
 
-    // AJAX Validation
-    Route::post('/check-email', [UserController::class, 'checkEmail'])->name('check.email');
-    Route::post('/check-username', [UserController::class, 'checkUsername'])->name('check.username');
-
-    // ✅ Google OAuth - MOVED INSIDE GUEST GROUP
+    // Google OAuth routes
     Route::get('/auth/google', function () {
         return Socialite::driver('google')->redirect();
     })->name('google.login');
@@ -57,32 +37,39 @@ Route::middleware('guest')->group(function () {
         $user = User::firstOrCreate(
             ['email' => $googleUser->getEmail()],
             [
-                'name'     => $googleUser->getName(),
+                'name' => $googleUser->getName(),
                 'password' => bcrypt(str()->random(16)),
             ]
         );
 
-        // Log in user
+        // Log them in
         Auth::login($user);
 
-        // Redirect to dashboard
-        return redirect()->route('dashboard')->with('success', 'Logged in with Google!');
+        // Regenerate session to prevent session fixation
+        request()->session()->regenerate();
+
+        // Redirect to homepage
+        return redirect()->route('homepage');
     });
 });
 
-/*
-|--------------------------------------------------------------------------
-| Protected Routes (Only for logged in users)
-|--------------------------------------------------------------------------
-*/
+// Authentication routes
+Route::post('/register', [UserController::class, 'register']);
+Route::post('/login', [UserController::class, 'login']);
+Route::post('/logout', [UserController::class, 'logout']);
+
+// Protected routes
 Route::middleware('auth')->group(function () {
-    // Dashboard - main page after login
-    Route::get('/dashboard', [PostController::class, 'index'])->name('dashboard');
-    
-    // Accident report routes
-    Route::get('/report-accident', [AccidentReportController::class, 'create'])->name('accidents.create');
-    Route::post('/report-accident', [AccidentReportController::class, 'store'])->name('accidents.store');
-    
-    // Logout
-    Route::post('/logout', [UserController::class, 'logout'])->name('logout');
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    Route::get('/timeline', [App\Http\Controllers\PostController::class, 'index'])->name('timeline');
+    Route::post('/timeline', [App\Http\Controllers\PostController::class, 'store'])->name('timeline.store');
+    Route::patch('/profile/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('profile.update');
+    Route::get('/posts/{post}/edit', [App\Http\Controllers\PostController::class, 'edit'])->name('posts.edit');
+    Route::patch('/posts/{post}', [App\Http\Controllers\PostController::class, 'update'])->name('posts.update');
+    Route::delete('/posts/{post}', [App\Http\Controllers\PostController::class, 'destroy'])->name('posts.destroy');
+
+    Route::get('/newsfeed', [App\Http\Controllers\PostController::class, 'newsfeed'])->name('newsfeed');
 });

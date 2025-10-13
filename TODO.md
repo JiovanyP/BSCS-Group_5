@@ -1,8 +1,9 @@
-# TODO: Fix Logout Functionality
+# TODO: Create Newsfeed Route and View
 
-## Tasks
-- [x] Modify the logout method in `app/Http/Controllers/UserController.php` to add cache control headers to prevent browser caching issues after logout, ensuring the user is routed to the login page and must log in again.
-
-## Completed
-- [x] Analyze current logout implementation
-- [x] Confirm plan with user
+## Steps to Complete:
+- [x] Create resources/views/newsfeed.blade.php: Adapt the provided HTML to display dynamic posts in a timeline/newsfeed layout using Blade templating.
+- [x] Update app/Http/Controllers/PostController.php: Add newsfeed() method to fetch posts with relationships and pass to the view.
+- [x] Update routes/web.php: Add GET /newsfeed route pointing to PostController@newsfeed, protected by auth middleware.
+- [x] Test the new route by running the application and verifying the newsfeed displays posts correctly.
+- [x] Fix routing to timeline and add a button in the dashboard for the timeline.
+- [x] Add image upload functionality to posts.

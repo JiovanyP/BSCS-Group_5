@@ -31,7 +31,7 @@ body{margin-top:20px;}
           <ul id="g-account-menu" class="dropdown-menu" role="menu">
             <li><a href="#">My Profile</a></li>
             <li>
-                <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+                <form method="POST" action="/logout" style="display: inline;">
                     @csrf
                     <button type="submit" style="background: none; border: none; color: inherit; cursor: pointer; padding: 0;">
                         <i class="glyphicon glyphicon-lock"></i> Logout
@@ -127,13 +127,13 @@ body{margin-top:20px;}
                 <hr>
               
                 <div class="btn-group btn-group-justified">
-                  <a href="#" class="btn btn-info col-sm-3">
-                    <i class="glyphicon glyphicon-plus"></i><br>
-                    Service
+                  <a href="{{ route('timeline') }}" class="btn btn-info col-sm-3">
+                    <i class="glyphicon glyphicon-time"></i><br>
+                    Timeline
                   </a>
-                  <a href="#" class="btn btn-info col-sm-3">
-                    <i class="glyphicon glyphicon-cloud"></i><br>
-                    Cloud
+                  <a href="{{ route('newsfeed') }}" class="btn btn-info col-sm-3">
+                    <i class="glyphicon glyphicon-list"></i><br>
+                    Newsfeed
                   </a>
                   <a href="#" class="btn btn-info col-sm-3">
                     <i class="glyphicon glyphicon-cog"></i><br>
@@ -143,7 +143,7 @@ body{margin-top:20px;}
                     <i class="glyphicon glyphicon-question-sign"></i><br>
                     Help
                   </a>
-               </div>    
+               </div>
 			</div><!--/col-span-6-->
        </div><!--/row-->
   	</div><!--/col-span-9-->

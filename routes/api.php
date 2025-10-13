@@ -38,29 +38,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [UserController::class, 'register'])->name('register.post');
 });
 
-// ✅ Google OAuth
-Route::get('/auth/google', function () {
-    return Socialite::driver('google')->redirect();
-})->name('google.login');
 
-Route::get('/auth/google/callback', function () {
-    $googleUser = Socialite::driver('google')->user();
-
-    // Find or create user
-    $user = User::firstOrCreate(
-        ['email' => $googleUser->getEmail()],
-        [
-            'name' => $googleUser->getName(),
-            'password' => bcrypt(str()->random(16)),
-        ]
-    );
-
-    // Log them in
-    Auth::login($user);
-
-    // Redirect to homepage
-    return redirect()->route('homepage');
-});
 
 // Protected routes (logged in users only)
 Route::middleware('auth')->group(function () {
@@ -70,7 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/homepage', [PostController::class, 'index'])->name('homepage');
     
     // Timeline post creation
-    // Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
+    Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
     
     // Accident report routes
     Route::get('/report-accident', [AccidentReportController::class, 'create'])->name('accidents.create');

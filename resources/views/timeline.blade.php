@@ -132,9 +132,8 @@
 <body>
 
 <div class="profile-header">
-  <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+  <form action="{{ route('profile.update', Auth::user()) }}" method="POST" enctype="multipart/form-data">
     @csrf
-    @method('PATCH')
     <div class="profile-pic-wrapper">
       {{-- Profile Picture --}}
       <img src="{{ Auth::user()->avatar ?? 'https://bootdey.com/img/Content/avatar/avatar1.png' }}" 
@@ -158,9 +157,10 @@
       {{-- Post Form --}}
       <div class="card mb-4">
         <div class="card-body">
-          <form action="{{ route('timeline.store') }}" method="POST">
+          <form action="{{ route('timeline.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <textarea name="content" class="form-control mb-2" rows="3" placeholder="What's on your mind?" required></textarea>
+            <input type="file" name="image" class="form-control mb-2" accept="image/*">
             <button type="submit" class="btn btn-primary" style="background-color:#FF0B55; border:none;">Post</button>
           </form>
         </div>
@@ -217,6 +217,9 @@
 
             <div class="widget-body">
               <p>{{ $post->content }}</p>
+              @if($post->image)
+                <img src="{{ asset('storage/' . $post->image) }}" alt="Post Image" class="img-fluid mt-2">
+              @endif
             </div>
 
             <div class="widget-footer">
