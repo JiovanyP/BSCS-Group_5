@@ -1,18 +1,20 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PubL</title>
-    
+    <title>Publ</title>
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         * {
             margin: 0;
@@ -30,7 +32,7 @@
         .header {
             min-height: 100vh;
             width: 100%;
-            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://www.usm.edu.ph/wp-content/uploads/2019/01/USM_Administration_Building-1024x682.png);
+            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('assets/img/landingbg.png');
             background-position: center;
             background-size: cover;
             position: relative;
@@ -96,13 +98,14 @@
         .text-box {
             width: 100%;
             color: #fff;
-            text-align: center;
+            text-align: left; /* left-align the text */
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 0 20px;
+            justify-content: center; /* keep it vertically centered */
+            align-items: flex-start; /* align to left */
+            padding: 0 80px; /* add more left padding so it's not glued to the edge */
+            max-width: 600px; /* optional: keep text from stretching too wide */
         }
 
         .text-box h2 {
@@ -114,12 +117,12 @@
         }
 
         .text-box h1 {
-            font-size: 100px;
+            font-size: 80px;
             /* font-weight: 1500; */
             color: #FF0B55;
             margin-bottom: 20px;
             letter-spacing: 2px;
-            line-height: 1.2;
+            line-height: 1;
         }
 
         .text-box p {
@@ -439,49 +442,39 @@
             <div class="nav-links" id="navLinks">
                 <i class="fa fa-times" onclick="hideMenu()"></i>
                 <ul>
-                    @auth
-                        <!-- Show these links if user is logged in -->
-                        <li><a href="{{ route('homepage') }}">Dashboard</a></li>
+                    @guest
+                        <li><a href="{{ route('login') }}">Log In</a></li>
+                        <li><a href="{{ route('register') }}">Register</a></li>
+                    @else
+                        <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
                         <li>
-                            <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+                            <form method="POST" action="{{ url('/logout') }}">
                                 @csrf
-                                <button type="submit" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; font-weight: 500; font-family: 'Poppins', sans-serif; padding: 8px 16px;">
+                                <button type="submit" style="background: none; border: none; color: #fff; cursor: pointer;">
                                     Log Out
                                 </button>
                             </form>
                         </li>
-                    @else
-                        <!-- Show these links if user is NOT logged in -->
-                        <li><a href="{{ route('login') }}">Log In</a></li>
-                        <li><a href="{{ route('register') }}">Register</a></li>
-                    @endauth
+                    @endguest
                 </ul>
             </div>
             <i class="fa fa-bars" onclick="showMenu()"></i>
         </nav>
 
         <div class="text-box">
-            <h2><b>Welcome to</b></h2>
-            <h1>PubL</h1>
-            <h1>(Change Picture)</h1>
+            <h1>Welcome to Publ!</h1>
             <p>A crowdsourced platform for reporting incidents and verifying their authenticity through community collaboration.</p>
-            
-            @auth
-                <!-- Show these links if user is logged in -->
-                <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                <li>
-                    <form method="POST" action="{{ route('logout') }}" style="display: inline;">
-                        @csrf
-                        <button type="submit" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; font-weight: 500; font-family: 'Poppins', sans-serif; padding: 8px 16px;">
-                            Log Out
-                        </button>
-                    </form>
-                </li>
-            @else
-                <!-- Show these links if user is NOT logged in -->
-                <li><a href="{{ route('login') }}">Log In</a></li>
-                <li><a href="{{ route('register') }}">Register</a></li>
-            @endauth
+
+            <div class="auth-buttons">
+                @auth
+                    <!-- Show dashboard button if user is logged in -->
+                    <a href="{{ route('dashboard') }}">Go to Dashboard</a>
+                @else
+                    <!-- Show auth buttons if user is NOT logged in -->
+                    <a href="{{ route('login') }}">Log In</a>
+                    <a href="{{ route('register') }}">Register</a>
+                @endauth
+            </div>
         </div>
     </section>
 
@@ -502,8 +495,8 @@
             </div>
 
             <div class="services-col">
-                <h3>Authority Response Tracking</h3>
-                <p>Monitor how authorities respond to reported incidents and track resolution progress in real-time.</p>
+                <h3>Enhance Public Awareness</h3>
+                <p>Allow for broader information dissimination and enhance public awareness on incidents.</p>
             </div>
         </div>
     </section>
@@ -511,8 +504,8 @@
     <!-----------How it Works----------->
     <section class="how-it-works">
         <div class="services">
-            <h1 class="section-title">How PubL Works</h1>
-            <p class="section-description">Our process ensures that reported incidents are efficiently verified and addressed by the appropriate authorities.</p>
+            <h1 class="section-title">How Publ Works</h1>
+            <p class="section-description">Our process ensures that reported incidents are efficiently verified and dissiminated.</p>
 
             <div class="steps-row">
                 <div class="step-col">
