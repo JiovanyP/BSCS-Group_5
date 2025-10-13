@@ -9,21 +9,10 @@ use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
-/*
-|--------------------------------------------------------------------------
-| Profile Update
-|--------------------------------------------------------------------------
-*/
-Route::patch('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
-
-/*
-|--------------------------------------------------------------------------
-| Public Routes
-|--------------------------------------------------------------------------
-*/
-
-// Landing page
-Route::get('/', fn() => view('home'))->name('home');
+// Landing page (public)
+Route::get('/', function () {
+    return view('welcome');
+})->name('welcome');
 
 // Contact page
 Route::view('/contact', 'contact')->name('contact');
@@ -47,76 +36,20 @@ Route::middleware('guest')->group(function () {
     Route::post('/check-username', [UserController::class, 'checkUsername'])->name('check.username');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Authenticated Routes
-|--------------------------------------------------------------------------
-*/
+// Protected routes (logged in users only)
 Route::middleware('auth')->group(function () {
-    // Logout
-    Route::post('/logout', [UserController::class, 'logout'])->name('logout');
-
-    // Dashboard
-    Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Timeline (Posts Feed)
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/timeline', [PostController::class, 'index'])->name('timeline');
-    Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Post Interactions (Upvote / Downvote / Comment)
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('posts')->group(function () {
-        Route::post('/{post}/upvote', [PostController::class, 'upvote'])->name('posts.upvote');
-        Route::post('/{post}/downvote', [PostController::class, 'downvote'])->name('posts.downvote');
-        Route::post('/{post}/comment', [PostController::class, 'comment'])->name('posts.comment');
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Post CRUD (Edit / Delete)
-    |--------------------------------------------------------------------------
-    */
-    Route::resource('posts', PostController::class)->except(['index', 'store']);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Accident Reports
-    |--------------------------------------------------------------------------
-    */
+    // Dashboard - main page after login
+    Route::get('/dashboard', [PostController::class, 'index'])->name('dashboard');
+    
+    // Accident report routes
     Route::get('/report-accident', [AccidentReportController::class, 'create'])->name('accidents.create');
     Route::post('/report-accident', [AccidentReportController::class, 'store'])->name('accidents.store');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Additional Pages
-    |--------------------------------------------------------------------------
-    */
-    Route::view('/report', 'report')->name('report');
-    Route::view('/verify', 'verify')->name('verify');
-    Route::view('/history', 'history')->name('history');
-    Route::view('/account', 'account')->name('account');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Homepage (Alternative to Dashboard)
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/homepage', [PostController::class, 'index'])->name('homepage');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Google OAuth
-|--------------------------------------------------------------------------
-*/
-Route::get('/auth/google', fn() => Socialite::driver('google')->redirect())->name('google.login');
+// ✅ Google OAuth
+Route::get('/auth/google', function () {
+    return Socialite::driver('google')->redirect();
+})->name('google.login');
 
 Route::get('/auth/google/callback', function () {
     $googleUser = Socialite::driver('google')->user();
@@ -133,6 +66,30 @@ Route::get('/auth/google/callback', function () {
     // Log in user
     Auth::login($user);
 
-    // Redirect to timeline (from main)
-    return redirect()->route('timeline');
+    // Redirect to dashboard
+    return redirect()->route('dashboard')->with('success', 'Logged in with Google!');
 });
+
+// Protected routes (logged in users only)
+Route::middleware('auth')->group(function () {
+    // Homepage - main page after login
+    Route::get('/homepage', [PostController::class, 'index'])->name('homepage');
+    
+    // Accident report routes
+    Route::get('/report-accident', [AccidentReportController::class, 'create'])->name('accidents.create');
+    Route::post('/report-accident', [AccidentReportController::class, 'store'])->name('accidents.store');
+    
+    // ✅ COMMENTED OUT - Create these controllers later
+    // Route::get('/report', [ReportController::class, 'index'])->name('report');
+    // Route::get('/verify', [VerificationController::class, 'index'])->name('verify');
+    // Route::get('/history', [HistoryController::class, 'index'])->name('history');
+    // Route::get('/account', [AccountController::class, 'index'])->name('account');
+});
+
+// Logout
+Route::post('/logout', [UserController::class, 'logout'])->name('logout');
+
+// Contact page (public)
+Route::get('/contact', function () {
+    return view('contact');
+})->name('contact');

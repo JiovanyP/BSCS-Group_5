@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Cookie;
 use App\Models\User;
 use App\Models\Post;
 
@@ -17,9 +15,9 @@ class UserController extends Controller
     public function register(Request $request)
     {
         $incomingFields = $request->validate([
-            'name'     => ['required', 'min:1', 'max:100', Rule::unique('users', 'name')],
-            'email'    => ['required', 'email', Rule::unique('users', 'email')],
-            'location' => ['required', 'min:1', 'max:100'],
+            'name' => ['required', 'max:100'],
+            'email' => ['required', 'email', 'max:100', 'unique:users,email'],
+            'location' => ['required', 'string', 'max:255'],
             'password' => ['required', 'min:8', 'max:200', 'confirmed'],
         ]);
 
@@ -35,11 +33,8 @@ class UserController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        // Force fresh cookie
-        Cookie::queue(Cookie::make(config('session.lifetime')));
-
-        // Redirect to homepage
-        return redirect()->route('home')->with('success', 'Your account has been created and you are now logged in!');
+        // Redirect to DASHBOARD
+        return redirect()->route('dashboard')->with('success', 'Your account has been created and you are now logged in!');
     }
 
     /**
@@ -47,6 +42,7 @@ class UserController extends Controller
      */
     public function login(Request $request)
     {
+        // Validate input
         $request->validate([
             'email'    => 'required',
             'password' => 'required',
@@ -60,7 +56,7 @@ class UserController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->route('home')->with('success', 'Welcome back!');
+            return redirect()->route('dashboard')->with('success', 'Welcome back!');
         }
 
         return back()->withErrors([

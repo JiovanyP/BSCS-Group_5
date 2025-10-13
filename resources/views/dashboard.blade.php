@@ -4,12 +4,11 @@
     <meta charset="utf-8">
     <!--  This file has been downloaded from bootdey.com @bootdey on twitter -->
     <!--  All snippets are MIT license http://bootdey.com/license -->
-    <title>Bootstrap 3 Control Panel admin dashboard - Bootdey.com</title>
+    <title>Publ Feed</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.1/css/bootstrap.min.css" rel="stylesheet">
     <style type="text/css">
     	
-				                
 body{margin-top:20px;}				              
     </style>
 </head>
@@ -30,8 +29,8 @@ body{margin-top:20px;}
           <a class="dropdown-toggle" role="button" data-toggle="dropdown" href="#">
             <i class="glyphicon glyphicon-user"></i> {{ Auth::user()->name }} <span class="caret"></span></a>
           <ul id="g-account-menu" class="dropdown-menu" role="menu">
-            <li><a href="{{ route('timeline') }}">My Profile</a></li>
-            <li><a href="{{ route('logout') }}"><i class="glyphicon glyphicon-lock"></i> Logout</a></li>
+            <li><a href="#">My Profile</a></li>
+            <li><a href="{{ route('login') }}"><i class="glyphicon glyphicon-lock"></i> Logout</a></li>
           </ul>
         </li>
       </ul>

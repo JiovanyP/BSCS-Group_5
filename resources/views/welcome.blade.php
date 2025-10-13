@@ -422,15 +422,39 @@
 </head>
 
 <body>
+
+    @auth
+        <div style="background: yellow; padding: 10px; text-align: center;">
+            <strong>You are logged in as: {{ Auth::user()->name }}</strong>
+        </div>
+    @endauth
+
+    <div id="loading-bar-container">
+    <div id="loading-bar"></div>
+    </div>
+
     <section class="header">
         <nav>
             <h1 class="logo">PubL</h1>
             <div class="nav-links" id="navLinks">
                 <i class="fa fa-times" onclick="hideMenu()"></i>
                 <ul>
-                    <li><a href="{{ url('/') }}">HOME</a></li>
-                    <li><a href="{{ route('login') }}">LOGIN</a></li>
-                    <li><a href="{{ route('register') }}">REGISTER</a></li>
+                    @auth
+                        <!-- Show these links if user is logged in -->
+                        <li><a href="{{ route('homepage') }}">Dashboard</a></li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+                                @csrf
+                                <button type="submit" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; font-weight: 500; font-family: 'Poppins', sans-serif; padding: 8px 16px;">
+                                    Log Out
+                                </button>
+                            </form>
+                        </li>
+                    @else
+                        <!-- Show these links if user is NOT logged in -->
+                        <li><a href="{{ route('login') }}">Log In</a></li>
+                        <li><a href="{{ route('register') }}">Register</a></li>
+                    @endauth
                 </ul>
             </div>
             <i class="fa fa-bars" onclick="showMenu()"></i>
@@ -442,10 +466,22 @@
             <h1>(Change Picture)</h1>
             <p>A crowdsourced platform for reporting incidents and verifying their authenticity through community collaboration.</p>
             
-            <div class="auth-buttons">
-                <a href="{{ url('/login') }}" onclick="event.preventDefault(); window.location.href = this.href + '?t=' + new Date().getTime(); return false;">LOGIN</a>
-                <a href="{{ url('/register') }}" onclick="event.preventDefault(); window.location.href = this.href + '?t=' + new Date().getTime(); return false;">REGISTER</a>
-            </div>
+            @auth
+                <!-- Show these links if user is logged in -->
+                <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                <li>
+                    <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+                        @csrf
+                        <button type="submit" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; font-weight: 500; font-family: 'Poppins', sans-serif; padding: 8px 16px;">
+                            Log Out
+                        </button>
+                    </form>
+                </li>
+            @else
+                <!-- Show these links if user is NOT logged in -->
+                <li><a href="{{ route('login') }}">Log In</a></li>
+                <li><a href="{{ route('register') }}">Register</a></li>
+            @endauth
         </div>
     </section>
 

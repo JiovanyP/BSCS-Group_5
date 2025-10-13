@@ -13,11 +13,15 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'password',
         'location',
-        'avatar', // ✅ allows storing user profile pictures
+        'password',
     ];
-
+    
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
     protected $hidden = [
         'password',
         'remember_token',
