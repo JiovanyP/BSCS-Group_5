@@ -30,7 +30,14 @@ body{margin-top:20px;}
             <i class="glyphicon glyphicon-user"></i> {{ Auth::user()->name }} <span class="caret"></span></a>
           <ul id="g-account-menu" class="dropdown-menu" role="menu">
             <li><a href="#">My Profile</a></li>
-            <li><a href="{{ route('login') }}"><i class="glyphicon glyphicon-lock"></i> Logout</a></li>
+            <li>
+                <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+                    @csrf
+                    <button type="submit" style="background: none; border: none; color: inherit; cursor: pointer; padding: 0;">
+                        <i class="glyphicon glyphicon-lock"></i> Logout
+                    </button>
+                </form>
+            </li>
           </ul>
         </li>
       </ul>
