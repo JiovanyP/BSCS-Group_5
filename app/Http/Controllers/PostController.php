@@ -5,17 +5,15 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Post;
 use App\Models\Comment;
-use App\Models\PostLike;
 use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
     /**
-     * Show dashboard (optional).
+     * Show dashboard.
      */
     public function index()
     {
-        // Use pagination instead of loading all posts
         $posts = Post::with(['user', 'comments', 'likes'])
             ->latest()
             ->paginate(10);
@@ -24,7 +22,7 @@ class PostController extends Controller
     }
 
     /**
-     * Show timeline page.
+     * Show timeline.
      */
     public function timeline()
     {
@@ -36,33 +34,37 @@ class PostController extends Controller
     }
 
     /**
-     * Store a new post.
+     * Store new post (with optional image).
      */
     public function store(Request $request)
     {
         $request->validate([
             'content' => 'required|string|max:500',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('posts', 'public');
+        }
 
         Post::create([
             'user_id' => Auth::id(),
             'content' => $request->content,
+            'image' => $imagePath,
         ]);
 
         return redirect()->route('timeline')->with('success', 'Post created successfully!');
     }
 
     /**
-     * Handle upvote/downvote
+     * Vote on post.
      */
     public function vote(Request $request, $id)
     {
-        $request->validate([
-            'vote' => 'required|in:up,down',
-        ]);
+        $request->validate(['vote' => 'required|in:up,down']);
 
         $post = Post::findOrFail($id);
-
         $post->likes()->updateOrCreate(
             ['user_id' => Auth::id()],
             ['vote_type' => $request->vote]
@@ -77,13 +79,11 @@ class PostController extends Controller
     }
 
     /**
-     * Add comment or reply
+     * Add comment.
      */
     public function addComment(Request $request, $id)
     {
-        $request->validate([
-            'content' => 'required|string|max:300',
-        ]);
+        $request->validate(['content' => 'required|string|max:300']);
 
         $comment = Comment::create([
             'user_id' => Auth::id(),
@@ -121,11 +121,20 @@ class PostController extends Controller
 
         $request->validate([
             'content' => 'required|string|max:500',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $post->update(['content' => $request->content]);
+        $imagePath = $post->image;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('posts', 'public');
+        }
 
-        return redirect()->route('timeline')->with('success', 'Post updated successfully.');
+        $post->update([
+            'content' => $request->input('content'),
+            'image' => $imagePath,
+        ]);
+
+        return redirect()->route('timeline')->with('success', 'Post updated!');
     }
 
     /**
@@ -133,13 +142,9 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        // Only allow the owner to delete
-        if ($post->user_id !== Auth::id()) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
+        $this->authorize('delete', $post);
         $post->delete();
 
-        return response()->json(['success' => true]);
+        return redirect()->route('timeline')->with('success', 'Post deleted!');
     }
 }

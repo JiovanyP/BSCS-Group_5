@@ -11,21 +11,31 @@ use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
-| Public Routes
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Public, guest-only, and authenticated routes live here (web middleware).
+|
+*/
+
+/*
+|--------------------------------------------------------------------------
+| Public Routes (available to everyone)
 |--------------------------------------------------------------------------
 */
 
-// 🏠 Landing page
 Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect()->route('dashboard');
+    }
     return view('welcome');
 })->name('welcome');
 
-// 📞 Contact page
 Route::view('/contact', 'contact')->name('contact');
 
 /*
 |--------------------------------------------------------------------------
-| Guest Routes
+| Guest-only Routes (non-authenticated users)
 |--------------------------------------------------------------------------
 */
 Route::middleware('guest')->group(function () {
@@ -39,27 +49,46 @@ Route::middleware('guest')->group(function () {
     // ⚙️ AJAX validation
     Route::post('/check-email', [UserController::class, 'checkEmail'])->name('check.email');
     Route::post('/check-username', [UserController::class, 'checkUsername'])->name('check.username');
+
+    // 🌐 Google OAuth
+    Route::get('/auth/google', fn() => Socialite::driver('google')->redirect())->name('google.login');
+
+    Route::get('/auth/google/callback', function () {
+        $googleUser = Socialite::driver('google')->user();
+
+        $user = User::firstOrCreate(
+            ['email' => $googleUser->getEmail()],
+            [
+                'name'     => $googleUser->getName(),
+                'password' => bcrypt(str()->random(16)),
+            ]
+        );
+
+        Auth::login($user);
+
+        return redirect()->route('dashboard')->with('success', 'Logged in with Google!');
+    })->name('google.callback');
 });
 
 /*
 |--------------------------------------------------------------------------
-| Authenticated Routes
+| Authenticated Routes (logged-in users)
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
 
-    // 📊 Dashboard (Statistics)
+    // 📊 Dashboard
     Route::get('/dashboard', [PostController::class, 'index'])->name('dashboard');
 
-    // 🧍 Timeline (User Posts)
+    // 🧍 Timeline
     Route::get('/timeline', [PostController::class, 'timeline'])->name('timeline');
-    Route::post('/timeline/store', [PostController::class, 'store'])->name('timeline.store');
+    Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
 
-    // ⚡ Upvote, Downvote, Comments (AJAX)
+    // ⚡ Votes and Comments (AJAX)
     Route::post('/posts/{id}/vote', [PostController::class, 'vote'])->name('posts.vote');
     Route::post('/posts/{id}/comments', [PostController::class, 'addComment'])->name('posts.comment');
 
-    // ✏️ Post Edit / Update / Delete
+    // ✏️ Post CRUD
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
@@ -68,32 +97,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/report-accident', [AccidentReportController::class, 'create'])->name('accidents.create');
     Route::post('/report-accident', [AccidentReportController::class, 'store'])->name('accidents.store');
 
-    // 👤 Profile Update
+    // 👤 Profile
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::patch('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 
     // 🚪 Logout
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');
-});
-
-/*
-|--------------------------------------------------------------------------
-| Google OAuth
-|--------------------------------------------------------------------------
-*/
-Route::get('/auth/google', fn() => Socialite::driver('google')->redirect())->name('google.login');
-
-Route::get('/auth/google/callback', function () {
-    $googleUser = Socialite::driver('google')->user();
-
-    $user = User::firstOrCreate(
-        ['email' => $googleUser->getEmail()],
-        [
-            'name' => $googleUser->getName(),
-            'password' => bcrypt(str()->random(16)),
-        ]
-    );
-
-    Auth::login($user);
-
-    return redirect()->route('dashboard')->with('success', 'Logged in with Google!');
 });
