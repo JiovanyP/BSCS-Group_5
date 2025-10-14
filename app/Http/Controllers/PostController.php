@@ -32,34 +32,7 @@ class PostController extends Controller
                 return $post;
             });
 
-        return view('timeline', compact('posts'));
-    }
-
-    /**
-     * Display newsfeed with posts, votes, and comments.
-     */
-    public function newsfeed()
-    {
-        if (!Auth::check()) {
-            return redirect()->route('login');
-        }
-
-        $posts = Post::with(['user', 'comments.user', 'comments.replies.user'])
-            ->withCount([
-                'likes as upvotes_count'   => fn($q) => $q->where('vote_type', 'up'),
-                'likes as downvotes_count' => fn($q) => $q->where('vote_type', 'down'),
-                'comments as total_comments_count'
-            ])
-            ->latest()
-            ->get()
-            ->map(function ($post) {
-                $post->user_vote = $post->likes()
-                    ->where('user_id', Auth::id())
-                    ->value('vote_type') ?? 'none';
-                return $post;
-            });
-
-        return view('newsfeed', compact('posts'));
+        return view('dashboard', compact('posts'));
     }
 
     /**
@@ -80,11 +53,10 @@ class PostController extends Controller
         Post::create([
             'user_id' => Auth::id(),
             'content' => $request->input('content'),
-            'image' => $imagePath,
         ]);
 
         return redirect()
-            ->route('timeline')
+            ->route('dashboard')
             ->with('success', 'Post created!');
     }
 
