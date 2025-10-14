@@ -31,6 +31,7 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
+// Contact (single definition)
 Route::view('/contact', 'contact')->name('contact');
 
 /*
@@ -50,7 +51,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/check-email', [UserController::class, 'checkEmail'])->name('check.email');
     Route::post('/check-username', [UserController::class, 'checkUsername'])->name('check.username');
 
-    // 🌐 Google OAuth
+    // 🌐 Google OAuth (guest only)
     Route::get('/auth/google', fn() => Socialite::driver('google')->redirect())->name('google.login');
 
     Route::get('/auth/google/callback', function () {
@@ -100,6 +101,11 @@ Route::middleware('auth')->group(function () {
     // 👤 Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::patch('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+
+    // 🔔 Notifications page (view-only for now)
+    Route::get('/notifications', function () {
+        return view('notifications');
+    })->name('notifications');
 
     // 🚪 Logout
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');

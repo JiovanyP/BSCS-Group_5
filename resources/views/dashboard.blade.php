@@ -50,7 +50,9 @@
       <a href="#"><strong><i class="glyphicon glyphicon-briefcase"></i> Toolbox</strong></a>
       <hr>
       <ul class="nav nav-pills nav-stacked">
-        <li><a href="#"><i class="glyphicon glyphicon-flash"></i> Alerts</a></li>
+        <!-- Notifications link added -->
+        <li><a href="{{ route('notifications') }}"><i class="glyphicon glyphicon-flash"></i> Notifications</a></li>
+
         <li><a href="#"><i class="glyphicon glyphicon-link"></i> Links</a></li>
         <li><a href="#"><i class="glyphicon glyphicon-list-alt"></i> Reports</a></li>
         <li><a href="#"><i class="glyphicon glyphicon-book"></i> Books</a></li>
@@ -104,7 +106,7 @@
           </ul>
           <hr>
           <p>
-            This is a responsive dashboard layout using <a href="https://www.getbootstrap.com">Bootstrap 3</a>. 
+            This is a responsive dashboard layout using <a href="https://www.getbootstrap.com">Bootstrap 3</a>.
             You can use this template as a base to build something more unique.
           </p>
           <hr>
