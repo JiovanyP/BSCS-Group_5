@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Auth;
 | Public Routes (available to everyone)
 |--------------------------------------------------------------------------
 */
+
 Route::get('/', function () {
     if (Auth::check()) {
         return redirect()->route('dashboard');
@@ -38,19 +39,18 @@ Route::view('/contact', 'contact')->name('contact');
 |--------------------------------------------------------------------------
 */
 Route::middleware('guest')->group(function () {
-    // Login
+    // 🔐 Authentication
     Route::get('/login', fn() => view('login'))->name('login');
     Route::post('/login', [UserController::class, 'login'])->name('login.post');
 
-    // Register
     Route::get('/register', fn() => view('register'))->name('register');
     Route::post('/register', [UserController::class, 'register'])->name('register.post');
 
-    // Optional AJAX validation endpoints
+    // ⚙️ AJAX validation
     Route::post('/check-email', [UserController::class, 'checkEmail'])->name('check.email');
     Route::post('/check-username', [UserController::class, 'checkUsername'])->name('check.username');
 
-    // Google OAuth (web)
+    // 🌐 Google OAuth
     Route::get('/auth/google', fn() => Socialite::driver('google')->redirect())->name('google.login');
 
     Route::get('/auth/google/callback', function () {
@@ -76,18 +76,31 @@ Route::middleware('guest')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
+
+    // 📊 Dashboard
     Route::get('/dashboard', [PostController::class, 'index'])->name('dashboard');
 
-    Route::get('/timeline', [PostController::class, 'index'])->name('timeline');
+    // 🧍 Timeline
+    Route::get('/timeline', [PostController::class, 'timeline'])->name('timeline');
     Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
 
-    // Accident reports
+    // ⚡ Votes and Comments (AJAX)
+    Route::post('/posts/{id}/vote', [PostController::class, 'vote'])->name('posts.vote');
+    Route::post('/posts/{id}/comments', [PostController::class, 'addComment'])->name('posts.comment');
+
+    // ✏️ Post CRUD
+    Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
+    Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+
+    // 🚗 Accident Reports
     Route::get('/report-accident', [AccidentReportController::class, 'create'])->name('accidents.create');
     Route::post('/report-accident', [AccidentReportController::class, 'store'])->name('accidents.store');
 
-    // Profile
+    // 👤 Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::patch('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 
-    // Logout
+    // 🚪 Logout
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 });

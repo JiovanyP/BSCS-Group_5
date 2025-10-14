@@ -11,59 +11,73 @@ class Comment extends Model
 
     protected $table = 'comments';
 
-    protected $fillable = ['post_id', 'user_id', 'content', 'parent_id'];
+    protected $fillable = [
+        'post_id',
+        'user_id',
+        'content',
+        'parent_id',
+    ];
 
     protected $casts = [
+        'post_id' => 'integer',
+        'user_id' => 'integer',
         'parent_id' => 'integer',
     ];
 
-    /**
-     * A comment belongs to a post.
-     */
-    public function post()
-    {
-        return $this->belongsTo(Post::class);
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
 
-    /**
-     * A comment belongs to a user.
-     */
+    // Comment belongs to a user
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Replies (children).
-     */
+    // Comment belongs to a post
+    public function post()
+    {
+        return $this->belongsTo(Post::class);
+    }
+
+    // Replies (children) - eager-load recursively
     public function replies()
     {
         return $this->hasMany(Comment::class, 'parent_id')
-                    ->with(['user', 'replies']); 
-        // ✅ Recursive eager load for nested replies
+                    ->with(['user', 'replies']);
     }
 
-    /**
-     * Parent comment (for replies).
-     */
+    // Parent comment
     public function parent()
     {
         return $this->belongsTo(Comment::class, 'parent_id');
     }
 
-    /**
-     * Scope: Only top-level comments.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes & Helpers
+    |--------------------------------------------------------------------------
+    */
+
+    // Only top-level comments
     public function scopeTopLevel($query)
     {
         return $query->whereNull('parent_id');
     }
 
-    /**
-     * ✅ Helper: Determine if this comment is a reply or top-level.
-     */
+    // Check if comment is a reply
     public function isReply(): bool
     {
         return !is_null($this->parent_id);
+    }
+
+    // Count all nested replies
+    public function allRepliesCount(): int
+    {
+        return $this->replies()->withCount('replies')->get()->sum(function ($r) {
+            return 1 + $r->replies_count;
+        });
     }
 }
