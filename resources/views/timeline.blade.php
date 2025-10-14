@@ -12,18 +12,44 @@
 body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; padding:0; }
 
 /* Profile Header */
-.profile-header { background: #FFDEDE; text-align:center; padding:80px 20px 40px; border-radius:0 0 15px 15px; position: relative; }
+.profile-header { 
+    background: #FF0B55; 
+    text-align:center; 
+    padding:80px 20px 40px; 
+    border-radius:0 0 15px 15px; 
+    position: relative; 
+}
 .profile-pic-wrapper { position: relative; display: inline-block; }
-.profile-header img { width:120px; height:120px; border-radius:50%; border:4px solid #FF0B55; object-fit: cover; transition: 0.3s ease; }
-.camera-overlay { position:absolute; bottom:5px; right:5px; width:35px; height:35px; background:#FF0B55; border:2px solid #fff; display:flex; align-items:center; justify-content:center; color:#fff; opacity:0; transition:0.3s ease; cursor:pointer; }
+.profile-header img { width:120px; height:120px; border-radius:50%; border:4px solid #fff; object-fit: cover; transition: 0.3s ease; }
+.camera-overlay { position:absolute; bottom:5px; right:5px; width:35px; height:35px; background:#fff; border:2px solid #fff; display:flex; align-items:center; justify-content:center; color:#FF0B55; opacity:0; transition:0.3s ease; cursor:pointer; border-radius:50%; }
 .camera-overlay i { font-size:18px; }
 .profile-pic-wrapper:hover .camera-overlay { opacity:1; }
 .profile-pic-wrapper:hover img { filter:brightness(0.9); }
-.profile-header h3 { margin:0; font-weight:bold; }
+.profile-header h3 { margin:0; font-weight:bold; color:white; }
+
+/* Exit Button */
+.btn-outline-light {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    border: 2px solid #fff;
+    color: #fff;
+    background: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s ease;
+}
+.btn-outline-light:hover {
+    background: #fff;
+    color: #FF0B55;
+    border-color: #fff;
+}
 
 /* Timeline & Widgets */
 .timeline { list-style:none; width:100%; }
-.timeline-label { border-bottom:1px solid #CF0F47; padding:10px 0; margin-bottom:15px; }
+.timeline-label { border-bottom:1px solid #CF0F47; padding:10px 0; margin-bottom:15px; color:white; }
 .widget { background:#fff; border:1px solid #CF0F47; border-radius:6px; box-shadow:0 2px 10px rgba(0,0,0,.05); margin-bottom:20px; }
 .widget-header { padding:.85rem 1.4rem; display:flex; align-items:center; }
 .widget-body { padding:1.4rem; }
@@ -42,12 +68,16 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
 
 {{-- Profile Header --}}
 <div class="profile-header">
-    <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+    <!-- EXIT BUTTON -->
+    <a href="{{ route('dashboard') }}" class="btn btn-outline-light">
+        <i class="la la-sign-out"></i> Exit
+    </a>
+
+    <form id="avatarForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PATCH')
         <div class="profile-pic-wrapper">
-            <img src="{{ Auth::user()->avatar ?? 'https://bootdey.com/img/Content/avatar/avatar1.png' }}" 
-                 alt="Avatar" id="avatarPreview">
+            <img src="{{ Auth::user()->avatar_url }}" alt="Avatar" id="avatarPreview">
             <div class="camera-overlay" onclick="document.getElementById('avatarInput').click();">
                 <i class="la la-camera"></i>
             </div>
@@ -92,7 +122,7 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
                     {{-- Post Widget --}}
                     <div class="widget" id="post-{{ $post->id }}">
                         <div class="widget-header">
-                            <img src="{{ $post->user->avatar ?? 'https://bootdey.com/img/Content/avatar/avatar1.png' }}" class="rounded-circle" width="40" height="40">
+                            <img src="{{ $post->user->avatar_url }}" class="rounded-circle" width="40" height="40" style="object-fit:cover;">
                             <div class="ml-2">
                                 <strong>{{ $post->user->name }}</strong>
                                 <div class="small text-muted">{{ $post->created_at->diffForHumans() }}</div>
@@ -143,13 +173,13 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
                             <div class="comments-list mb-2">
                                 @foreach($post->comments as $comment)
                                     <div class="comment mb-2 d-flex" id="comment-{{ $comment->id }}">
-                                        <img src="{{ $comment->user->avatar ?? 'https://bootdey.com/img/Content/avatar/avatar1.png' }}" class="rounded-circle mr-2" width="30" height="30">
+                                        <img src="{{ $comment->user->avatar_url }}" class="rounded-circle mr-2" width="30" height="30" style="object-fit:cover;">
                                         <div>
                                             <strong>{{ $comment->user->name }}</strong>: {{ $comment->content }}
                                             <div class="replies ml-4 mt-1">
                                                 @foreach($comment->replies as $reply)
                                                     <div class="comment mb-1 d-flex" id="comment-{{ $reply->id }}">
-                                                        <img src="{{ $reply->user->avatar ?? 'https://bootdey.com/img/Content/avatar/avatar1.png' }}" class="rounded-circle mr-2" width="25" height="25">
+                                                        <img src="{{ $reply->user->avatar_url }}" class="rounded-circle mr-2" width="25" height="25" style="object-fit:cover;">
                                                         <div><strong>{{ $reply->user->name }}</strong>: {{ $reply->content }}</div>
                                                     </div>
                                                 @endforeach
@@ -179,22 +209,6 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
 <script>
 $(document).ready(function(){
     $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-
-    // Avatar upload live
-    $('#avatarInput').on('change', function(){
-        let formData = new FormData($('#avatarForm')[0]);
-        $.ajax({
-            url: $('#avatarForm').attr('action'),
-            type: 'POST',
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function(res){
-                $('#avatarPreview').attr('src', res.avatar_url);
-            },
-            error: function(){ alert('Avatar updated successfully'); }
-        });
-    });
 
     // Delete Post
     $(document).on('click', '.delete-post-btn', function(e){
@@ -245,7 +259,7 @@ $(document).ready(function(){
         $.post(`/posts/${postId}/comment`, data, function(res){
             let commentHTML = `
                 <div class="comment mb-2 d-flex" id="comment-${res.id}">
-                    <img src="${res.avatar}" class="rounded-circle mr-2" width="30" height="30">
+                    <img src="${res.avatar}" class="rounded-circle mr-2" width="30" height="30" style="object-fit:cover;">
                     <div>
                         <strong>${res.user}</strong>: ${res.comment}
                         ${res.parent_id?'':`<a href="#" class="reply-btn ml-2 small text-primary" data-id="${res.id}">Reply</a>`}
