@@ -29,7 +29,7 @@ body{margin-top:20px;}
           <a class="dropdown-toggle" role="button" data-toggle="dropdown" href="#">
             <i class="glyphicon glyphicon-user"></i> {{ Auth::user()->name }} <span class="caret"></span></a>
           <ul id="g-account-menu" class="dropdown-menu" role="menu">
-            <li><a href="#">My Profile</a></li>
+            <li><a href="{{ route('timeline') }}">My Profile</a></li>
             <li><a href="{{ route('login') }}"><i class="glyphicon glyphicon-lock"></i> Logout</a></li>
           </ul>
         </li>
