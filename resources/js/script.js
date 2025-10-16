@@ -61,3 +61,38 @@ $(document).ready(function () {
         $(`#comments-section-${postId}`).slideToggle('fast');
     });
 });
+// === EDIT POST (Open modal & update via AJAX) ===
+$(document).on('click', '.edit-post-btn', function(e){
+    e.preventDefault();
+    const postId = $(this).data('id');
+    const currentContent = $(`#post-${postId} .widget-body p`).text().trim();
+
+    // Fill modal
+    $('#editPostContent').val(currentContent);
+    $('#editPostForm').attr('data-id', postId);
+    $('#editPostModal').modal('show');
+});
+
+// Submit edited post
+$('#editPostForm').on('submit', function(e){
+    e.preventDefault();
+
+    const postId = $(this).attr('data-id');
+    const formData = $(this).serialize();
+
+    $.ajax({
+        url: `/posts/${postId}`,
+        type: 'PATCH',
+        data: formData,
+        success: function(res) {
+            if (res.success) {
+                // Update content on the page
+                $(`#post-${postId} .widget-body p`).text(res.content);
+                $('#editPostModal').modal('hide');
+            }
+        },
+        error: function(xhr) {
+            alert('Error updating post.');
+        }
+    });
+});
