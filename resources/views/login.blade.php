@@ -9,16 +9,25 @@
     :root {
       --accent: #CF0F47;
       --accent-2: #FF0B55;
-      --bg1: #000000;
       --card-bg: #ffffff;
       --muted: #666;
     }
 
-    html,body { height:100%; margin:0; font-family: "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+    html,body {
+      height:100%;
+      margin:0;            
+      background-color: #fff;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
     body {
-      background: linear-gradient(135deg, var(--bg1), var(--accent), var(--accent-2));
-      background-size: 400% 400%;
-      display:flex; align-items:center; justify-content:center; min-height:100vh;
+      background-color: #FF0B55; /* ✅ Solid background color only */
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
     }
 
     .login-container {
@@ -45,50 +54,144 @@
     }
 
     .social-btn {
-      display:flex; gap:12px; align-items:center; justify-content:center;
-      width:100%; padding:10px 12px; border-radius:10px; border:1px solid #ddd; background:#fff;
-      text-decoration:none; color:#111; font-weight:600; box-sizing:border-box;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:center;
+      width:100%;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #ddd;
+      background:#fff;
+      text-decoration:none;
+      color:#111;
+      font-weight:600;
+      box-sizing:border-box;
     }
-    .social-btn img { height:20px; width:20px; display:block; }
+
+    .social-btn img {
+      height:20px;
+      width:20px;
+      display:block;
+    }
 
     .or {
       margin: 18px 0;
-      display:flex; align-items:center; gap:10px; color:var(--muted); font-size:13px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:var(--muted);
+      font-size:16px; /* ✅ Increased text size */
+      font-weight:600;
     }
-    .or::before, .or::after { content:""; flex:1; height:1px; background:#eee; display:block; }
+
+    .or::before,
+    .or::after {
+      content:"";
+      flex:1;
+      height:1px;
+      background:#eee;
+      display:block;
+    }
 
     form { width:100%; margin-top:6px; text-align:left; }
 
     label { display:block; font-size:13px; color:#444; margin-bottom:6px; }
-    input[type="text"], input[type="password"], input[type="email"] {
-      width:100%; padding:12px 12px; border-radius:10px; border:1px solid #ddd;
-      margin-bottom:12px; box-sizing:border-box; font-size:14px; background:#fbfbfb;
+
+    input[type="text"],
+    input[type="password"],
+    input[type="email"] {
+      width:100%;
+      padding:12px 12px;
+      border-radius:10px;
+      border:1px solid #ddd;
+      margin-bottom:12px;
+      box-sizing:border-box;
+      font-size:14px;
+      background:#fbfbfb;
     }
 
     .row { display:flex; gap:10px; align-items:center; }
-    .remember { display:flex; align-items:center; gap:8px; font-size:13px; color:#555; }
+
+    .remember {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:13px;
+      color:#555;
+    }
 
     .btn {
-      display:inline-block; width:100%; padding:12px 14px; border-radius:10px; border:0;
-      background:var(--accent); color:#fff; font-weight:700; cursor:pointer; font-size:15px;
+      display:inline-block;
+      width:100%;
+      padding:12px 14px;
+      border-radius:10px;
+      border:0;
+      background:var(--accent);
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+      font-size:15px;
+      transition: background 0.2s ease-in-out;
     }
-    .btn:hover { background:var(--accent-2); }
 
-    .links { margin-top:12px; display:flex; justify-content:space-between; font-size:13px; }
-    .links a { color:var(--accent); text-decoration:none; }
-    .links a:hover { text-decoration:underline; }
+    .btn:hover {
+      background:var(--accent-2);
+    }
+
+    .links {
+      margin-top:12px;
+      display:flex;
+      justify-content:space-between;
+      font-size:13px;
+    }
+
+    .links a {
+      color:var(--accent);
+      text-decoration:none;
+    }
+
+    .links a:hover {
+      text-decoration:underline;
+    }
 
     .error-box {
-      background:#fff0f0; border:1px solid #ffd0d0; color:#a00000; padding:10px 12px; border-radius:8px;
-      margin-bottom:12px; font-size:13px; text-align:left;
+      background:#fff0f0;
+      border:1px solid #ffd0d0;
+      color:#a00000;
+      padding:10px 12px;
+      border-radius:8px;
+      margin-bottom:12px;
+      font-size:13px;
+      text-align:left;
     }
 
     .success-box {
-      background:#f1fff1; border:1px solid #cfeecf; color:#0a7a0a; padding:10px 12px; border-radius:8px;
-      margin-bottom:12px; font-size:13px; text-align:left;
+      background:#f1fff1;
+      border:1px solid #cfeecf;
+      color:#0a7a0a;
+      padding:10px 12px;
+      border-radius:8px;
+      margin-bottom:12px;
+      font-size:13px;
+      text-align:left;
     }
 
-    footer.small { margin-top:18px; color:#888; font-size:12px; }
+    footer.small {
+      margin-top:18px;
+      color:#888;
+      font-size:12px;
+    }
+
+    .forgot-link {
+      font-size: 13px;
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .forgot-link:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -119,7 +222,7 @@
       <span>Continue with Google</span>
     </a>
 
-    <div class="or" aria-hidden="true">OR</div>
+    <div class="or" aria-hidden="true">or</div>
 
     <!-- Login Form -->
     <form method="POST" action="{{ route('login.post') }}" novalidate>
@@ -138,7 +241,7 @@
         </label>
 
         <div style="margin-left:auto;">
-          <a href="#" onclick="alert('Password reset flow not implemented'); return false;" style="color:var(--accent); text-decoration:none;">Forgot password?</a>
+          <a class="forgot-link" href="{{ route('password.request') }}">Forgot password?</a>
         </div>
       </div>
 
@@ -153,7 +256,6 @@
     <footer class="small">By continuing you agree to our <a href="#" style="color:var(--accent)">Terms</a> and <a href="#" style="color:var(--accent)">Privacy</a>.</footer>
   </main>
 
-  <!-- optional small client-side snippet to improve UX -->
   <script>
     (function(){
       try {
@@ -166,7 +268,7 @@
             btn.textContent = 'Signing in...';
           }
         });
-      } catch(e) { /* ignore */ }
+      } catch(e) {}
     })();
   </script>
 </body>
