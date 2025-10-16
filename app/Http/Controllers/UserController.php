@@ -44,7 +44,7 @@ class UserController extends Controller
             config('session.same_site', 'lax')
         ));
 
-        return redirect()->route('dashboard')
+        return redirect()->route('timeline')
             ->with('success', 'Account created and logged in!');
     }
 
@@ -79,7 +79,7 @@ class UserController extends Controller
                 config('session.same_site', 'lax')
             ));
 
-            return redirect()->route('dashboard')->with('success', 'Welcome back!');
+            return redirect()->route('timeline')->with('success', 'Welcome back!');
         }
 
         return back()->withErrors([

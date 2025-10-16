@@ -98,7 +98,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [PostController::class, 'index'])->name('dashboard');
 
     // 🧍 Timeline
-    Route::get('/timeline', [PostController::class, 'timeline'])->name('timeline');
+    Route::get('/timeline', [PostController::class, 'timeline'])->name('timeline'); // ✅ consistent route name
     Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
 
     // ⚡ Votes and Comments (AJAX)

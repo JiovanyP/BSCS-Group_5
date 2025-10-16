@@ -253,7 +253,7 @@
       <a href="{{ url('/') }}">Back to home</a>
     </div>
 
-    <footer class="small">By continuing you agree to our <a href="#" style="color:var(--accent)">Terms</a> and <a href="#" style="color:var(--accent)">Privacy</a>.</footer>
+    <footer class="small">By continuing, you agree to our <a href="#" style="color:var(--accent)">Terms</a> and <a href="#" style="color:var(--accent)">Privacy</a>.</footer>
   </main>
 
   <script>

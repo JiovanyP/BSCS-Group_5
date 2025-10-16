@@ -13,11 +13,20 @@
       --muted: #666;
     }
 
-    html,body { height:100%; margin:0; font-family: "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
     body {
-      background: linear-gradient(135deg, var(--bg1), var(--accent), var(--accent-2));
-      background-size: 400% 400%;
-      display:flex; align-items:center; justify-content:center; min-height:100vh;
+      background-color: var(--accent-2); /* Solid pink background */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
     }
 
     .register-container {
@@ -43,12 +52,18 @@
       font-size: 13px;
     }
 
-    form { width:100%; margin-top:6px; text-align:left; }
+    form { width: 100%; margin-top: 6px; text-align: left; }
 
-    label { display:block; font-size:13px; color:#444; margin-bottom:6px; }
+    label { display: block; font-size: 13px; color: #444; margin-bottom: 6px; }
     input[type="text"], input[type="password"], input[type="email"] {
-      width:100%; padding:12px 12px; border-radius:10px; border:1px solid #ddd;
-      margin-bottom:12px; box-sizing:border-box; font-size:14px; background:#fbfbfb;
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+      font-size: 14px;
+      background: #fbfbfb;
     }
 
     input:focus {
@@ -59,27 +74,56 @@
     }
 
     .btn {
-      display:inline-block; width:100%; padding:12px 14px; border-radius:10px; border:0;
-      background:var(--accent); color:#fff; font-weight:700; cursor:pointer; font-size:15px;
-      transition:0.25s;
+      display: inline-block;
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 0;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 15px;
+      transition: 0.25s;
     }
-    .btn:hover { background:var(--accent-2); }
+    .btn:hover { background: var(--accent-2); }
 
-    .links { margin-top:12px; display:flex; justify-content:space-between; font-size:13px; }
-    .links a { color:var(--accent); text-decoration:none; }
-    .links a:hover { text-decoration:underline; }
+    .links {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+    .links a { color: var(--accent); text-decoration: none; }
+    .links a:hover { text-decoration: underline; }
 
     .error-box {
-      background:#fff0f0; border:1px solid #ffd0d0; color:#a00000; padding:10px 12px; border-radius:8px;
-      margin-bottom:12px; font-size:13px; text-align:left;
+      background: #fff0f0;
+      border: 1px solid #ffd0d0;
+      color: #a00000;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      text-align: left;
     }
 
     .success-box {
-      background:#f1fff1; border:1px solid #cfeecf; color:#0a7a0a; padding:10px 12px; border-radius:8px;
-      margin-bottom:12px; font-size:13px; text-align:left;
+      background: #f1fff1;
+      border: 1px solid #cfeecf;
+      color: #0a7a0a;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      text-align: left;
     }
 
-    footer.small { margin-top:18px; color:#888; font-size:12px; }
+    footer.small {
+      margin-top: 18px;
+      color: #888;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
@@ -104,7 +148,6 @@
       </div>
     @endif
 
-    <!-- Registration Form -->
     <form method="POST" action="{{ route('register.post') }}" novalidate>
       @csrf
 
@@ -132,11 +175,12 @@
     </div>
 
     <footer class="small">
-      By registering, you agree to our <a href="#" style="color:var(--accent)">Terms</a> and <a href="#" style="color:var(--accent)">Privacy Policy</a>.
+      By registering, you agree to our
+      <a href="#" style="color:var(--accent)">Terms</a> and
+      <a href="#" style="color:var(--accent)">Privacy Policy</a>.
     </footer>
   </main>
 
-  <!-- Optional submit UX -->
   <script>
     (function(){
       try {

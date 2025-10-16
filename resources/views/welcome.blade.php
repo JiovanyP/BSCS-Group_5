@@ -113,6 +113,7 @@
             font-weight: 400;
             margin-bottom: 10px;
             letter-spacing: 1.5px;
+            line-height: 2px;
             color: white;
         }
 
@@ -462,7 +463,7 @@
         </nav>
 
         <div class="text-box">
-            <h1>Welcome to Publ!</h1>
+            <h1>Report with Publ.</h1>
             <p>A crowdsourced platform for reporting incidents and verifying their authenticity through community collaboration.</p>
 
             <div class="auth-buttons">
@@ -472,7 +473,7 @@
                 @else
                     <!-- Show auth buttons if user is NOT logged in -->
                     <a href="{{ route('login') }}">Log In</a>
-                    <a href="{{ route('register') }}">Register</a>
+                    <a href="{{ route('register') }}">Get Started</a>
                 @endauth
             </div>
         </div>
@@ -554,7 +555,7 @@
             <div>
                 <h2>Our Mission</h2>
                 <p>
-                    At PubL, our mission is to create safer communities by enabling transparent incident reporting and verification. 
+                    At Publ., our mission is to create safer communities by enabling transparent incident reporting and verification. 
                     We believe in the power of collective awareness and responsible authority engagement to address community concerns effectively.
                 </p>
             </div>
@@ -570,7 +571,7 @@
         </div>
 
         <div class="footer-bottom">
-            <p>&copy; 2025 PubL. All rights reserved.</p>
+            <p>&copy; 2025 Publ. All rights reserved.</p>
         </div>
     </footer>
 
