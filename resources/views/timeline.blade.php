@@ -62,6 +62,15 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
 .comments-section { background:#f9f9f9; border-top:1px solid #eee; display:none; padding:0.5rem 1rem; }
 .replies { margin-left:1.5rem; margin-top:0.5rem; }
 .comment-input { width:100%; }
+
+/* Media Preview */
+#mediaPreview { display:none; text-align:center; }
+#mediaPreview img, #mediaPreview video { max-height:300px; border-radius:10px; }
+#removePreview { 
+    position:absolute; top:-10px; right:-10px; 
+    border-radius:50%; width:25px; height:25px; 
+    line-height:1; font-weight:bold;
+}
 </style>
 </head>
 <body>
@@ -87,7 +96,6 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
     <h3>{{ strtoupper(Auth::user()->name) }}</h3>
 </div>
 
-
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-xl-10 col-12">
@@ -95,10 +103,26 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
             {{-- Post Form --}}
             <div class="card mb-4">
                 <div class="card-body">
-                    <form action="{{ route('timeline.store') }}" method="POST">
+                    <form action="{{ route('timeline.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
-                        <textarea name="content" class="form-control mb-2" rows="3" placeholder="What's on your mind?" required></textarea>
-                        <button type="submit" class="btn btn-primary" style="background-color:#FF0B55; border:none;">Post</button>
+                        <textarea name="content" class="form-control mb-2" rows="3" placeholder="What's on your mind?"></textarea>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <label class="mb-0 mr-3" style="font-size:14px;">Attach</label>
+                                <input type="file" id="mediaInput" name="image" accept="image/*,video/*,image/gif" class="form-control-file">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="background-color:#FF0B55; border:none;">Post</button>
+                        </div>
+
+                        <!-- Media Preview -->
+                        <div id="mediaPreview" class="mt-3 position-relative">
+                            <button type="button" id="removePreview" class="btn btn-sm btn-danger">×</button>
+                            <img id="previewImage" src="#" alt="Preview" class="img-fluid rounded" style="display:none;">
+                            <video id="previewVideo" controls class="w-100 rounded" style="display:none;">
+                                <source id="previewVideoSource" src="#">
+                            </video>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -107,7 +131,6 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
             <div class="timeline">
                 @php $currentDate = null; @endphp
                 @forelse ($posts as $post)
-                    {{-- Day Separator --}}
                     @if ($currentDate !== $post->created_at->toDateString())
                         <div class="timeline-label text-center mb-3">
                             <span class="label">
@@ -119,7 +142,6 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
 
                     @php $userVote = $post->userVote(auth()->id()); @endphp
 
-                    {{-- Post Widget --}}
                     <div class="widget" id="post-{{ $post->id }}">
                         <div class="widget-header">
                             <img src="{{ $post->user->avatar_url }}" class="rounded-circle" width="40" height="40" style="object-fit:cover;">
@@ -145,6 +167,18 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
 
                         <div class="widget-body">
                             <p>{{ $post->content }}</p>
+                            @if($post->image)
+                                @if($post->media_type === 'image' || $post->media_type === 'gif')
+                                    <img src="{{ asset('storage/' . $post->image) }}" alt="Post Media" class="img-fluid rounded mt-2">
+                                @elseif($post->media_type === 'video')
+                                    <video controls class="w-100 rounded mt-2">
+                                        <source src="{{ asset('storage/' . $post->image) }}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                @else
+                                    <img src="{{ asset('storage/' . $post->image) }}" alt="Post Media" class="img-fluid rounded mt-2">
+                                @endif
+                            @endif
                         </div>
 
                         <div class="widget-footer">
@@ -200,6 +234,7 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
                     <p class="text-center text-muted">No posts yet.</p>
                 @endforelse
             </div>
+            <div class="d-flex justify-content-center mt-3">{{ $posts->links() }}</div>
         </div>
     </div>
 </div>
@@ -207,57 +242,76 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-$(document).ready(function(){
+$(function(){
     $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-    // Delete Post
-    $(document).on('click', '.delete-post-btn', function(e){
+    // === MEDIA PREVIEW ===
+    $('#mediaInput').on('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const fileType = file.type;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            if (fileType.startsWith('image/')) {
+                $('#previewImage').attr('src', e.target.result).show();
+                $('#previewVideo').hide();
+            } else if (fileType.startsWith('video/')) {
+                $('#previewVideoSource').attr('src', e.target.result);
+                $('#previewVideo')[0].load();
+                $('#previewVideo').show();
+                $('#previewImage').hide();
+            }
+            $('#mediaPreview').show();
+        };
+        reader.readAsDataURL(file);
+    });
+    $('#removePreview').on('click', function(){
+        $('#mediaPreview').hide();
+        $('#previewImage,#previewVideo').hide();
+        $('#mediaInput').val('');
+    });
+
+    // === DELETE POST ===
+    $(document).on('click','.delete-post-btn',function(e){
         e.preventDefault();
         if(!confirm('Are you sure?')) return;
-        let postId = $(this).data('id');
-        let card = $(this).closest('.widget');
-        $.ajax({
-            url: `/posts/${postId}`,
-            type: 'DELETE',
-            success: function(){ card.remove(); },
-            error: function(){ alert('Failed to delete post'); }
-        });
+        const postId=$(this).data('id');
+        const card=$(this).closest('.widget');
+        $.ajax({url:`/posts/${postId}`,type:'DELETE',success:()=>card.remove(),error:()=>alert('Failed to delete post')});
     });
 
-    // Toggle Comments
-    $(document).on('click', '.toggle-comments', function(e){
+    // === TOGGLE COMMENTS ===
+    $(document).on('click','.toggle-comments',function(e){
         e.preventDefault();
-        let postId = $(this).data('id');
-        $(`#comments-section-${postId}`).slideToggle('fast');
+        const id=$(this).data('id');
+        $(`#comments-section-${id}`).slideToggle('fast');
     });
 
-    // Upvote / Downvote
-    $(document).on('click', '.upvote-btn, .downvote-btn', function(e){
+    // === UPVOTE / DOWNVOTE ===
+    $(document).on('click','.upvote-btn,.downvote-btn',function(e){
         e.preventDefault();
-        let postId = $(this).data('id');
-        let vote = $(this).hasClass('upvote-btn')?'up':'down';
-        $.post(`/posts/${postId}/vote`, { vote: vote }, function(res){
-            $(`#upvote-count-${postId}`).text(res.upvotes_count);
-            $(`#downvote-count-${postId}`).text(res.downvotes_count);
-            $(`.upvote-btn[data-id="${postId}"]`).toggleClass('voted-up', res.user_vote==='up');
-            $(`.downvote-btn[data-id="${postId}"]`).toggleClass('voted-down', res.user_vote==='down');
-        }).fail(function(){ alert('Failed to vote'); });
+        const id=$(this).data('id');
+        const vote=$(this).hasClass('upvote-btn')?'up':'down';
+        $.post(`/posts/${id}/vote`,{vote:vote},res=>{
+            $(`#upvote-count-${id}`).text(res.upvotes_count);
+            $(`#downvote-count-${id}`).text(res.downvotes_count);
+            $(`.upvote-btn[data-id="${id}"]`).toggleClass('voted-up',res.user_vote==='up');
+            $(`.downvote-btn[data-id="${id}"]`).toggleClass('voted-down',res.user_vote==='down');
+        }).fail(()=>alert('Failed to vote'));
     });
 
-    // Add Comment / Reply
-    $(document).on('click', '.comment-send', function(){
-        let btn = $(this);
-        let postId = btn.data('id');
-        let input = btn.closest('.input-group').find('.comment-input');
-        let content = input.val().trim();
+    // === COMMENTS ===
+    $(document).on('click','.comment-send',function(){
+        const btn=$(this);
+        const id=btn.data('id');
+        const input=btn.closest('.input-group').find('.comment-input');
+        const content=input.val().trim();
         if(!content) return;
-
-        let data = { content: content };
-        let parentId = input.data('parent');
-        if(parentId) data.parent_id = parentId;
-
-        $.post(`/posts/${postId}/comment`, data, function(res){
-            let commentHTML = `
+        const data={content:content};
+        const parentId=input.data('parent');
+        if(parentId) data.parent_id=parentId;
+        $.post(`/posts/${id}/comments`,data,res=>{
+            const html=`
                 <div class="comment mb-2 d-flex" id="comment-${res.id}">
                     <img src="${res.avatar}" class="rounded-circle mr-2" width="30" height="30" style="object-fit:cover;">
                     <div>
@@ -267,21 +321,21 @@ $(document).ready(function(){
                     </div>
                 </div>`;
             if(res.parent_id){
-                $(`#comment-${res.parent_id} .replies`).append(commentHTML);
+                $(`#comment-${res.parent_id} .replies`).append(html);
             } else {
-                $(`#comments-section-${postId} .comments-list`).append(commentHTML);
+                $(`#comments-section-${id} .comments-list`).append(html);
             }
             input.val('').removeAttr('data-parent');
-            $(`#comment-count-${postId}`).text(res.comments_count);
-        }).fail(function(){ alert('Failed to add comment'); });
+            $(`#comment-count-${id}`).text(res.comments_count);
+        }).fail(()=>alert('Failed to add comment'));
     });
 
-    // Reply button
-    $(document).on('click', '.reply-btn', function(e){
+    // === REPLY ===
+    $(document).on('click','.reply-btn',function(e){
         e.preventDefault();
-        let parentId = $(this).data('id');
-        let input = $(this).closest('.comments-section').find('.comment-input');
-        input.focus().attr('data-parent', parentId);
+        const parent=$(this).data('id');
+        const input=$(this).closest('.comments-section').find('.comment-input');
+        input.focus().attr('data-parent',parent);
     });
 });
 </script>

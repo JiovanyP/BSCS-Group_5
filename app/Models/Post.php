@@ -5,6 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use App\Models\User;
+use App\Models\Comment;
+use App\Models\PostLike;
 
 class Post extends Model
 {
@@ -12,10 +16,15 @@ class Post extends Model
 
     protected $table = 'posts';
 
+    /**
+     * Make image & media_type fillable so controller can save them.
+     */
     protected $fillable = [
         'user_id',
         'content',
         'views',
+        'image',
+        'media_type',
     ];
 
     protected $casts = [
@@ -24,9 +33,9 @@ class Post extends Model
     ];
 
     /*
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     | Relationships
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     */
 
     // Each post belongs to one user
@@ -62,9 +71,9 @@ class Post extends Model
     }
 
     /*
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     | Accessors
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     */
 
     // Total number of comments (including replies)
@@ -92,10 +101,29 @@ class Post extends Model
         return $this->views ?? 0;
     }
 
+    /**
+     * Public URL for the post media (image/video/gif).
+     * Use this in blade: $post->image_url
+     */
+    public function getImageUrlAttribute()
+    {
+        if (!$this->image) {
+            return null; // no media attached
+        }
+
+        // If file exists in public storage, return storage path
+        if (Storage::disk('public')->exists($this->image)) {
+            return asset('storage/' . $this->image);
+        }
+
+        // Fallback: if we stored absolute/other path, try returning it directly
+        return $this->image;
+    }
+
     /*
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     | Utility Methods
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     */
 
     // Check if current user owns this post
@@ -112,12 +140,18 @@ class Post extends Model
         return $this->likes()->where('user_id', $userId)->value('vote_type') ?? 'none';
     }
 
-    // Delete related comments and likes when deleting a post
+    // Automatically delete related comments, likes and media file when deleting a post
     protected static function booted()
     {
         static::deleting(function ($post) {
+            // delete related comments and likes (keeps current behaviour)
             $post->comments()->delete();
             $post->likes()->delete();
+
+            // delete stored media file if it exists in public disk
+            if ($post->image && Storage::disk('public')->exists($post->image)) {
+                Storage::disk('public')->delete($post->image);
+            }
         });
     }
 }

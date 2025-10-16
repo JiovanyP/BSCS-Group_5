@@ -34,31 +34,49 @@ class PostController extends Controller
     }
 
     /**
-     * Store new post (with optional image).
+     * Store new post (with optional image/video/gif).
      */
     public function store(Request $request)
     {
+        // ✅ Validation
         $request->validate([
-            'content' => 'required|string|max:500',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'content' => 'nullable|string|max:1000',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi|max:20480',
         ]);
 
         $imagePath = null;
+        $mediaType = null;
+
+        // ✅ Handle file upload
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('posts', 'public');
+            $file = $request->file('image');
+            $extension = strtolower($file->getClientOriginalExtension());
+
+            if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
+                $mediaType = 'image';
+            } elseif ($extension === 'gif') {
+                $mediaType = 'gif';
+            } elseif (in_array($extension, ['mp4', 'mov', 'avi'])) {
+                $mediaType = 'video';
+            }
+
+            // Store file to storage/app/public/posts
+            $imagePath = $file->store('posts', 'public');
         }
 
+        // ✅ Create the post record
         Post::create([
             'user_id' => Auth::id(),
             'content' => $request->content,
             'image' => $imagePath,
+            'media_type' => $mediaType,
         ]);
 
         return redirect()->route('timeline')->with('success', 'Post created successfully!');
     }
 
     /**
-     * Vote on post.
+     * Vote on a post.
      */
     public function vote(Request $request, $id)
     {
@@ -79,7 +97,7 @@ class PostController extends Controller
     }
 
     /**
-     * Add comment.
+     * Add a comment.
      */
     public function addComment(Request $request, $id)
     {
@@ -104,7 +122,7 @@ class PostController extends Controller
     }
 
     /**
-     * Edit post.
+     * Edit a post.
      */
     public function edit(Post $post)
     {
@@ -113,32 +131,46 @@ class PostController extends Controller
     }
 
     /**
-     * Update post.
+     * Update a post.
      */
     public function update(Request $request, Post $post)
     {
         $this->authorize('update', $post);
 
         $request->validate([
-            'content' => 'required|string|max:500',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'content' => 'required|string|max:1000',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi|max:20480',
         ]);
 
         $imagePath = $post->image;
+        $mediaType = $post->media_type;
+
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('posts', 'public');
+            $file = $request->file('image');
+            $extension = strtolower($file->getClientOriginalExtension());
+
+            if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
+                $mediaType = 'image';
+            } elseif ($extension === 'gif') {
+                $mediaType = 'gif';
+            } elseif (in_array($extension, ['mp4', 'mov', 'avi'])) {
+                $mediaType = 'video';
+            }
+
+            $imagePath = $file->store('posts', 'public');
         }
 
         $post->update([
             'content' => $request->input('content'),
             'image' => $imagePath,
+            'media_type' => $mediaType,
         ]);
 
         return redirect()->route('timeline')->with('success', 'Post updated!');
     }
 
     /**
-     * Delete post.
+     * Delete a post.
      */
     public function destroy(Post $post)
     {
