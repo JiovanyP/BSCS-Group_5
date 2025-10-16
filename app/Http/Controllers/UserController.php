@@ -32,6 +32,7 @@ class UserController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        // Queue session cookie manually
         Cookie::queue(Cookie::make(
             config('session.cookie'),
             $request->session()->getId(),
@@ -88,7 +89,7 @@ class UserController extends Controller
     }
 
     /**
-     * Logout.
+     * Logout user and redirect to the public homepage (welcome).
      */
     public function logout(Request $request)
     {
@@ -98,7 +99,8 @@ class UserController extends Controller
         $request->session()->regenerateToken();
         Cookie::queue(Cookie::forget(config('session.cookie')));
 
-        return redirect()->route('login')->with('success', 'Logged out successfully.');
+        // 👇 Redirect to the homepage (welcome)
+        return redirect()->route('welcome')->with('success', 'You have been logged out successfully.');
     }
 
     /**
@@ -133,13 +135,18 @@ class UserController extends Controller
         return view('timeline', compact('posts'));
     }
 
-    // Optional AJAX helpers
+    /**
+     * AJAX helper — check if email exists.
+     */
     public function checkEmail(Request $request)
     {
         $exists = User::where('email', $request->email)->exists();
         return response()->json(['exists' => $exists]);
     }
 
+    /**
+     * AJAX helper — check if username exists.
+     */
     public function checkUsername(Request $request)
     {
         $exists = User::where('name', $request->name)->exists();
