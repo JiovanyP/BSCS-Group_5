@@ -12,15 +12,9 @@
 body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; padding:0; }
 
 /* Profile Header */
-.profile-header { 
-    background: #FF0B55; 
-    text-align:center; 
-    padding:80px 20px 40px; 
-    border-radius:0 0 15px 15px; 
-    position: relative; 
-}
+.profile-header { background:#FF0B55; text-align:center; padding:80px 20px 40px; border-radius:0 0 15px 15px; position:relative; }
 .profile-pic-wrapper { position: relative; display: inline-block; }
-.profile-header img { width:120px; height:120px; border-radius:50%; border:4px solid #fff; object-fit: cover; transition: 0.3s ease; }
+.profile-header img { width:120px; height:120px; border-radius:50%; border:4px solid #fff; object-fit: cover; transition:0.3s ease; }
 .camera-overlay { position:absolute; bottom:5px; right:5px; width:35px; height:35px; background:#fff; border:2px solid #fff; display:flex; align-items:center; justify-content:center; color:#FF0B55; opacity:0; transition:0.3s ease; cursor:pointer; border-radius:50%; }
 .camera-overlay i { font-size:18px; }
 .profile-pic-wrapper:hover .camera-overlay { opacity:1; }
@@ -28,24 +22,8 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
 .profile-header h3 { margin:0; font-weight:bold; color:white; }
 
 /* Exit Button */
-.btn-outline-light {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    border: 2px solid #fff;
-    color: #fff;
-    background: none;
-    border-radius: 6px;
-    padding: 6px 14px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: 0.3s ease;
-}
-.btn-outline-light:hover {
-    background: #fff;
-    color: #FF0B55;
-    border-color: #fff;
-}
+.btn-outline-light { position:absolute; top:20px; right:20px; border:2px solid #fff; color:#fff; background:none; border-radius:6px; padding:6px 14px; text-decoration:none; font-weight:bold; transition:0.3s ease; }
+.btn-outline-light:hover { background:#fff; color:#FF0B55; border-color:#fff; }
 
 /* Timeline & Widgets */
 .timeline { list-style:none; width:100%; }
@@ -66,30 +44,20 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
 /* Media Preview */
 #mediaPreview { display:none; text-align:center; }
 #mediaPreview img, #mediaPreview video { max-height:300px; border-radius:10px; }
-#removePreview { 
-    position:absolute; top:-10px; right:-10px; 
-    border-radius:50%; width:25px; height:25px; 
-    line-height:1; font-weight:bold;
-}
+#removePreview { position:absolute; top:-10px; right:-10px; border-radius:50%; width:25px; height:25px; line-height:1; font-weight:bold; }
 </style>
 </head>
 <body>
 
 {{-- Profile Header --}}
 <div class="profile-header">
-    <!-- EXIT BUTTON -->
-    <a href="{{ route('dashboard') }}" class="btn btn-outline-light">
-        <i class="la la-sign-out"></i> Exit
-    </a>
+    <a href="{{ route('dashboard') }}" class="btn btn-outline-light"><i class="la la-sign-out"></i> Exit</a>
 
     <form id="avatarForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        @method('PATCH')
+        @csrf @method('PATCH')
         <div class="profile-pic-wrapper">
             <img src="{{ Auth::user()->avatar_url }}" alt="Avatar" id="avatarPreview">
-            <div class="camera-overlay" onclick="document.getElementById('avatarInput').click();">
-                <i class="la la-camera"></i>
-            </div>
+            <div class="camera-overlay" onclick="document.getElementById('avatarInput').click();"><i class="la la-camera"></i></div>
         </div>
         <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display:none;" onchange="this.form.submit()">
     </form>
@@ -115,7 +83,6 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
                             <button type="submit" class="btn btn-primary" style="background-color:#FF0B55; border:none;">Post</button>
                         </div>
 
-                        <!-- Media Preview -->
                         <div id="mediaPreview" class="mt-3 position-relative">
                             <button type="button" id="removePreview" class="btn btn-sm btn-danger">×</button>
                             <img id="previewImage" src="#" alt="Preview" class="img-fluid rounded" style="display:none;">
@@ -154,10 +121,9 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
                             <div class="ml-auto dropdown">
                                 <a href="#" class="text-dark" data-toggle="dropdown"><i class="la la-ellipsis-h"></i></a>
                                 <div class="dropdown-menu dropdown-menu-right">
-                                    <a class="dropdown-item" href="{{ route('posts.edit', $post->id) }}"><i class="la la-edit"></i> Edit Post</a>
+                                    <a class="dropdown-item edit-post-btn" href="#" data-id="{{ $post->id }}"><i class="la la-edit"></i> Edit Post</a>
                                     <form action="{{ route('posts.destroy', $post->id) }}" method="POST" class="delete-post-form">
-                                        @csrf
-                                        @method('DELETE')
+                                        @csrf @method('DELETE')
                                         <button type="submit" class="dropdown-item text-danger delete-post-btn" data-id="{{ $post->id }}"><i class="la la-trash"></i> Delete Post</button>
                                     </form>
                                 </div>
@@ -169,14 +135,9 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
                             <p>{{ $post->content }}</p>
                             @if($post->image)
                                 @if($post->media_type === 'image' || $post->media_type === 'gif')
-                                    <img src="{{ asset('storage/' . $post->image) }}" alt="Post Media" class="img-fluid rounded mt-2">
+                                    <img src="{{ asset('storage/' . $post->image) }}" class="img-fluid rounded mt-2">
                                 @elseif($post->media_type === 'video')
-                                    <video controls class="w-100 rounded mt-2">
-                                        <source src="{{ asset('storage/' . $post->image) }}" type="video/mp4">
-                                        Your browser does not support the video tag.
-                                    </video>
-                                @else
-                                    <img src="{{ asset('storage/' . $post->image) }}" alt="Post Media" class="img-fluid rounded mt-2">
+                                    <video controls class="w-100 rounded mt-2"><source src="{{ asset('storage/' . $post->image) }}" type="video/mp4"></video>
                                 @endif
                             @endif
                         </div>
@@ -184,20 +145,9 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
                         <div class="widget-footer">
                             <div class="meta">
                                 <ul>
-                                    <li>
-                                        <a href="#" class="upvote-btn {{ $userVote==='up'?'voted-up':'' }}" data-id="{{ $post->id }}"><i class="la la-arrow-up"></i></a>
-                                        <span id="upvote-count-{{ $post->id }}">{{ $post->upvotes()->count() }}</span>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="downvote-btn {{ $userVote==='down'?'voted-down':'' }}" data-id="{{ $post->id }}"><i class="la la-arrow-down"></i></a>
-                                        <span id="downvote-count-{{ $post->id }}">{{ $post->downvotes()->count() }}</span>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="toggle-comments" data-id="{{ $post->id }}">
-                                            <i class="la la-comment"></i>
-                                            <span id="comment-count-{{ $post->id }}">{{ $post->total_comments_count }}</span>
-                                        </a>
-                                    </li>
+                                    <li><a href="#" class="upvote-btn {{ $userVote==='up'?'voted-up':'' }}" data-id="{{ $post->id }}"><i class="la la-arrow-up"></i></a><span id="upvote-count-{{ $post->id }}">{{ $post->upvotes()->count() }}</span></li>
+                                    <li><a href="#" class="downvote-btn {{ $userVote==='down'?'voted-down':'' }}" data-id="{{ $post->id }}"><i class="la la-arrow-down"></i></a><span id="downvote-count-{{ $post->id }}">{{ $post->downvotes()->count() }}</span></li>
+                                    <li><a href="#" class="toggle-comments" data-id="{{ $post->id }}"><i class="la la-comment"></i><span id="comment-count-{{ $post->id }}">{{ $post->total_comments_count }}</span></a></li>
                                 </ul>
                             </div>
                         </div>
@@ -224,9 +174,7 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
                             </div>
                             <div class="input-group mb-2">
                                 <input type="text" class="form-control comment-input" placeholder="Write a comment...">
-                                <div class="input-group-append">
-                                    <button class="btn btn-sm btn-danger comment-send" data-id="{{ $post->id }}">Send</button>
-                                </div>
+                                <div class="input-group-append"><button class="btn btn-sm btn-danger comment-send" data-id="{{ $post->id }}">Send</button></div>
                             </div>
                         </div>
                     </div>
@@ -239,36 +187,41 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
     </div>
 </div>
 
+<!-- JS Section -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 $(function(){
     $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-    // === MEDIA PREVIEW ===
-    $('#mediaInput').on('change', function(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const fileType = file.type;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            if (fileType.startsWith('image/')) {
-                $('#previewImage').attr('src', e.target.result).show();
-                $('#previewVideo').hide();
-            } else if (fileType.startsWith('video/')) {
-                $('#previewVideoSource').attr('src', e.target.result);
-                $('#previewVideo')[0].load();
-                $('#previewVideo').show();
-                $('#previewImage').hide();
-            }
-            $('#mediaPreview').show();
-        };
-        reader.readAsDataURL(file);
+    // === EDIT POST (Open modal & update via AJAX) ===
+    $(document).on('click', '.edit-post-btn', function(e){
+        e.preventDefault();
+        const postId = $(this).data('id');
+        const currentContent = $(`#post-${postId} .widget-body p`).text().trim();
+        $('#editPostContent').val(currentContent);
+        $('#editPostForm').attr('data-id', postId);
+        $('#editPostModal').modal('show');
     });
-    $('#removePreview').on('click', function(){
-        $('#mediaPreview').hide();
-        $('#previewImage,#previewVideo').hide();
-        $('#mediaInput').val('');
+
+    $('#editPostForm').on('submit', function(e){
+        e.preventDefault();
+        const postId = $(this).attr('data-id');
+        const formData = $(this).serialize();
+        $.ajax({
+            url: `/posts/${postId}`,
+            type: 'PATCH',
+            data: formData,
+            success: function(res) {
+                if (res.success) {
+                    $(`#post-${postId} .widget-body p`).text(res.content);
+                    $('#editPostModal').modal('hide');
+                }
+            },
+            error: function() {
+                alert('Error updating post.');
+            }
+        });
     });
 
     // === DELETE POST ===
@@ -287,7 +240,7 @@ $(function(){
         $(`#comments-section-${id}`).slideToggle('fast');
     });
 
-    // === UPVOTE / DOWNVOTE ===
+    // === VOTES ===
     $(document).on('click','.upvote-btn,.downvote-btn',function(e){
         e.preventDefault();
         const id=$(this).data('id');
@@ -299,45 +252,29 @@ $(function(){
             $(`.downvote-btn[data-id="${id}"]`).toggleClass('voted-down',res.user_vote==='down');
         }).fail(()=>alert('Failed to vote'));
     });
-
-    // === COMMENTS ===
-    $(document).on('click','.comment-send',function(){
-        const btn=$(this);
-        const id=btn.data('id');
-        const input=btn.closest('.input-group').find('.comment-input');
-        const content=input.val().trim();
-        if(!content) return;
-        const data={content:content};
-        const parentId=input.data('parent');
-        if(parentId) data.parent_id=parentId;
-        $.post(`/posts/${id}/comments`,data,res=>{
-            const html=`
-                <div class="comment mb-2 d-flex" id="comment-${res.id}">
-                    <img src="${res.avatar}" class="rounded-circle mr-2" width="30" height="30" style="object-fit:cover;">
-                    <div>
-                        <strong>${res.user}</strong>: ${res.comment}
-                        ${res.parent_id?'':`<a href="#" class="reply-btn ml-2 small text-primary" data-id="${res.id}">Reply</a>`}
-                        <div class="replies ml-4 mt-1"></div>
-                    </div>
-                </div>`;
-            if(res.parent_id){
-                $(`#comment-${res.parent_id} .replies`).append(html);
-            } else {
-                $(`#comments-section-${id} .comments-list`).append(html);
-            }
-            input.val('').removeAttr('data-parent');
-            $(`#comment-count-${id}`).text(res.comments_count);
-        }).fail(()=>alert('Failed to add comment'));
-    });
-
-    // === REPLY ===
-    $(document).on('click','.reply-btn',function(e){
-        e.preventDefault();
-        const parent=$(this).data('id');
-        const input=$(this).closest('.comments-section').find('.comment-input');
-        input.focus().attr('data-parent',parent);
-    });
 });
 </script>
+
+<!-- Edit Post Modal -->
+<div class="modal fade" id="editPostModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <form id="editPostForm" method="POST">
+        @csrf @method('PATCH')
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Post</h5>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <textarea name="content" id="editPostContent" class="form-control" rows="4"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="background-color:#FF0B55; border:none;">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 </body>
 </html>

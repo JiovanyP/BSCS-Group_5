@@ -108,7 +108,7 @@ Route::middleware('auth')->group(function () {
 
     // ✏️ Post CRUD
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
-    Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
+    Route::patch('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
 
     // 🚗 Accident Reports
