@@ -9,75 +9,190 @@
 <link rel="stylesheet" href="https://maxcdn.icons8.com/fonts/line-awesome/1.1/css/line-awesome.min.css">
 
 <style>
-body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; padding:0; }
+/* === Base === */
+body {
+    background-color: #f5f7f8;
+    color: #1a1a1a;
+    font-family: "Inter", Arial, sans-serif;
+    margin: 0;
+}
 
-/* Profile Header */
-.profile-header { 
-    background: #FF0B55; 
-    text-align:center; 
-    padding:80px 20px 40px; 
-    border-radius:0 0 15px 15px; 
-    position: relative; 
+/* === Profile Header === */
+.profile-header {
+    background: #FF0B55;
+    text-align: center;
+    padding: 80px 20px 40px;
+    border-radius: 0 0 20px 20px;
+    color: white;
+    position: relative;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+.profile-header h3 {
+    font-weight: 700;
+    letter-spacing: 1px;
 }
 .profile-pic-wrapper { position: relative; display: inline-block; }
-.profile-header img { width:120px; height:120px; border-radius:50%; border:4px solid #fff; object-fit: cover; transition: 0.3s ease; }
-.camera-overlay { position:absolute; bottom:5px; right:5px; width:35px; height:35px; background:#fff; border:2px solid #fff; display:flex; align-items:center; justify-content:center; color:#FF0B55; opacity:0; transition:0.3s ease; cursor:pointer; border-radius:50%; }
-.camera-overlay i { font-size:18px; }
-.profile-pic-wrapper:hover .camera-overlay { opacity:1; }
-.profile-pic-wrapper:hover img { filter:brightness(0.9); }
-.profile-header h3 { margin:0; font-weight:bold; color:white; }
+.profile-header img {
+    width: 120px; height: 120px;
+    border-radius: 50%; border: 4px solid #fff;
+    object-fit: cover; transition: 0.3s ease;
+}
+.camera-overlay {
+    position: absolute; bottom: 5px; right: 5px;
+    width: 35px; height: 35px;
+    background: #fff; color: #FF0B55;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; opacity: 0; transition: 0.3s;
+    cursor: pointer; border: 2px solid #fff;
+}
+.profile-pic-wrapper:hover img { filter: brightness(0.9); }
+.profile-pic-wrapper:hover .camera-overlay { opacity: 1; }
 
-/* Exit Button */
+/* Exit button */
 .btn-outline-light {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    border: 2px solid #fff;
-    color: #fff;
-    background: none;
-    border-radius: 6px;
-    padding: 6px 14px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: 0.3s ease;
+    position: absolute; top: 20px; right: 20px;
+    border: 2px solid #fff; color: #fff;
+    background: none; border-radius: 6px;
+    padding: 6px 14px; text-decoration: none;
+    font-weight: bold; transition: 0.3s ease;
 }
 .btn-outline-light:hover {
     background: #fff;
     color: #FF0B55;
-    border-color: #fff;
 }
 
-/* Timeline & Widgets */
-.timeline { list-style:none; width:100%; }
-.timeline-label { border-bottom:1px solid #CF0F47; padding:10px 0; margin-bottom:15px; color:white; }
-.widget { background:#fff; border:1px solid #CF0F47; border-radius:6px; box-shadow:0 2px 10px rgba(0,0,0,.05); margin-bottom:20px; }
-.widget-header { padding:.85rem 1.4rem; display:flex; align-items:center; }
-.widget-body { padding:1.4rem; }
-.widget-footer { background:#FFDEDE; padding:1rem; }
-.meta ul { list-style:none; display:flex; padding:0; margin:0; }
-.meta ul li { margin-right:.8rem; display:flex; align-items:center; }
-.meta ul li a i.la { cursor:pointer; font-size:20px; }
-.voted-up i.la-arrow-up { color:#28a745 !important; }
-.voted-down i.la-arrow-down { color:#dc3545 !important; }
-.comments-section { background:#f9f9f9; border-top:1px solid #eee; display:none; padding:0.5rem 1rem; }
-.replies { margin-left:1.5rem; margin-top:0.5rem; }
-.comment-input { width:100%; }
-
-/* Media Preview */
-#mediaPreview { display:none; text-align:center; }
-#mediaPreview img, #mediaPreview video { max-height:300px; border-radius:10px; }
-#removePreview { 
-    position:absolute; top:-10px; right:-10px; 
-    border-radius:50%; width:25px; height:25px; 
-    line-height:1; font-weight:bold;
+/* === Post Form === */
+.card.post-form {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.05);
 }
+.card.post-form textarea {
+    border: none;
+    resize: none;
+    font-size: 15px;
+}
+.card.post-form textarea:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* === Reddit-like Post Card === */
+.post-card {
+    display: flex;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    transition: 0.2s ease;
+}
+.post-card:hover {
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+}
+.vote-column {
+    width: 60px;
+    text-align: center;
+    padding: 1rem 0.5rem;
+    border-right: 1px solid #eee;
+    background: #fafafa;
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+.vote-column i.la {
+    font-size: 22px;
+    cursor: pointer;
+    display: block;
+    margin: 6px auto;
+    color: #888;
+}
+.vote-column .voted-up i.la-arrow-up { color: #28a745; }
+.vote-column .voted-down i.la-arrow-down { color: #dc3545; }
+.vote-count { font-weight: bold; color: #333; }
+
+.post-content {
+    flex: 1;
+    padding: 1rem 1.5rem;
+}
+.post-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.post-header .user-info {
+    display: flex;
+    align-items: center;
+}
+.post-header .user-info img {
+    width: 38px; height: 38px;
+    border-radius: 50%; object-fit: cover;
+}
+.post-header .user-info strong {
+    margin-left: 10px;
+    font-size: 15px;
+}
+.post-body {
+    margin-top: 0.7rem;
+}
+.post-body img, .post-body video {
+    border-radius: 10px;
+    margin-top: 10px;
+    max-width: 100%;
+}
+
+/* === Post Footer === */
+.post-footer {
+    border-top: 1px solid #eee;
+    padding-top: 8px;
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+}
+.post-footer a {
+    color: #555;
+    text-decoration: none;
+}
+.post-footer a:hover { color: #FF0B55; }
+
+/* === Comments === */
+.comments-section {
+    display: none;
+    background: #f8f9fa;
+    border-top: 1px solid #eee;
+    padding: 1rem 1.5rem;
+    border-radius: 0 0 12px 12px;
+}
+.comment { margin-bottom: 8px; }
+.comment img {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+.comment-input { width: 100%; font-size: 14px; }
+
+/* === Misc === */
+.timeline-label {
+    text-align: center;
+    font-weight: bold;
+    color: #555;
+    margin: 25px 0 10px;
+    position: relative;
+}
+.timeline-label::before, .timeline-label::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: #ccc;
+}
+.timeline-label::before { left: 0; }
+.timeline-label::after { right: 0; }
 </style>
 </head>
 <body>
 
-{{-- Profile Header --}}
+{{-- PROFILE HEADER --}}
 <div class="profile-header">
-    <!-- EXIT BUTTON -->
     <a href="{{ route('dashboard') }}" class="btn btn-outline-light">
         <i class="la la-sign-out"></i> Exit
     </a>
@@ -98,142 +213,109 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
 
 <div class="container mt-4">
     <div class="row justify-content-center">
-        <div class="col-xl-10 col-12">
+        <div class="col-xl-8 col-lg-10 col-12">
 
             {{-- Post Form --}}
-            <div class="card mb-4">
+            <div class="card post-form mb-4">
                 <div class="card-body">
                     <form action="{{ route('timeline.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
-                        <textarea name="content" class="form-control mb-2" rows="3" placeholder="What's on your mind?"></textarea>
+                        <textarea name="content" class="form-control mb-2" rows="3" placeholder="Create a post..."></textarea>
 
                         <div class="d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center">
-                                <label class="mb-0 mr-3" style="font-size:14px;">Attach</label>
-                                <input type="file" id="mediaInput" name="image" accept="image/*,video/*,image/gif" class="form-control-file">
+                            <div>
+                                <input type="file" id="mediaInput" name="image" accept="image/*,video/*,image/gif">
                             </div>
-                            <button type="submit" class="btn btn-primary" style="background-color:#FF0B55; border:none;">Post</button>
-                        </div>
-
-                        <!-- Media Preview -->
-                        <div id="mediaPreview" class="mt-3 position-relative">
-                            <button type="button" id="removePreview" class="btn btn-sm btn-danger">×</button>
-                            <img id="previewImage" src="#" alt="Preview" class="img-fluid rounded" style="display:none;">
-                            <video id="previewVideo" controls class="w-100 rounded" style="display:none;">
-                                <source id="previewVideoSource" src="#">
-                            </video>
+                            <button type="submit" class="btn btn-danger" style="background:#FF0B55; border:none;">Post</button>
                         </div>
                     </form>
                 </div>
             </div>
 
             {{-- Timeline --}}
-            <div class="timeline">
-                @php $currentDate = null; @endphp
-                @forelse ($posts as $post)
-                    @if ($currentDate !== $post->created_at->toDateString())
-                        <div class="timeline-label text-center mb-3">
-                            <span class="label">
-                                {{ $post->created_at->isToday() ? 'Today' : ($post->created_at->isYesterday() ? 'Yesterday' : $post->created_at->format('F j, Y')) }}
-                            </span>
-                        </div>
-                        @php $currentDate = $post->created_at->toDateString(); @endphp
-                    @endif
+            @php $currentDate = null; @endphp
+            @forelse ($posts as $post)
+                @if ($currentDate !== $post->created_at->toDateString())
+                    <div class="timeline-label">
+                        {{ $post->created_at->isToday() ? 'Today' : ($post->created_at->isYesterday() ? 'Yesterday' : $post->created_at->format('F j, Y')) }}
+                    </div>
+                    @php $currentDate = $post->created_at->toDateString(); @endphp
+                @endif
 
-                    @php $userVote = $post->userVote(auth()->id()); @endphp
+                @php $userVote = $post->userVote(auth()->id()); @endphp
 
-                    <div class="widget" id="post-{{ $post->id }}">
-                        <div class="widget-header">
-                            <img src="{{ $post->user->avatar_url }}" class="rounded-circle" width="40" height="40" style="object-fit:cover;">
-                            <div class="ml-2">
+                <div class="post-card" id="post-{{ $post->id }}">
+                    {{-- VOTE COLUMN --}}
+                    <div class="vote-column">
+                        <a href="#" class="upvote-btn {{ $userVote==='up'?'voted-up':'' }}" data-id="{{ $post->id }}"><i class="la la-arrow-up"></i></a>
+                        <div class="vote-count" id="upvote-count-{{ $post->id }}">{{ $post->upvotes()->count() - $post->downvotes()->count() }}</div>
+                        <a href="#" class="downvote-btn {{ $userVote==='down'?'voted-down':'' }}" data-id="{{ $post->id }}"><i class="la la-arrow-down"></i></a>
+                    </div>
+
+                    {{-- CONTENT COLUMN --}}
+                    <div class="post-content">
+                        <div class="post-header">
+                            <div class="user-info">
+                                <img src="{{ $post->user->avatar_url }}">
                                 <strong>{{ $post->user->name }}</strong>
-                                <div class="small text-muted">{{ $post->created_at->diffForHumans() }}</div>
+                                <small class="text-muted ml-2">{{ $post->created_at->diffForHumans() }}</small>
                             </div>
-
                             @if(auth()->id() === $post->user_id)
-                            <div class="ml-auto dropdown">
-                                <a href="#" class="text-dark" data-toggle="dropdown"><i class="la la-ellipsis-h"></i></a>
+                            <div class="dropdown">
+                                <a href="#" class="text-muted" data-toggle="dropdown"><i class="la la-ellipsis-h"></i></a>
                                 <div class="dropdown-menu dropdown-menu-right">
-                                    <a class="dropdown-item" href="{{ route('posts.edit', $post->id) }}"><i class="la la-edit"></i> Edit Post</a>
+                                    <a class="dropdown-item" href="{{ route('posts.edit', $post->id) }}"><i class="la la-edit"></i> Edit</a>
                                     <form action="{{ route('posts.destroy', $post->id) }}" method="POST" class="delete-post-form">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="dropdown-item text-danger delete-post-btn" data-id="{{ $post->id }}"><i class="la la-trash"></i> Delete Post</button>
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="dropdown-item text-danger delete-post-btn" data-id="{{ $post->id }}"><i class="la la-trash"></i> Delete</button>
                                     </form>
                                 </div>
                             </div>
                             @endif
                         </div>
 
-                        <div class="widget-body">
+                        <div class="post-body">
                             <p>{{ $post->content }}</p>
                             @if($post->image)
                                 @if($post->media_type === 'image' || $post->media_type === 'gif')
-                                    <img src="{{ asset('storage/' . $post->image) }}" alt="Post Media" class="img-fluid rounded mt-2">
+                                    <img src="{{ asset('storage/' . $post->image) }}" alt="Post Media">
                                 @elseif($post->media_type === 'video')
-                                    <video controls class="w-100 rounded mt-2">
+                                    <video controls>
                                         <source src="{{ asset('storage/' . $post->image) }}" type="video/mp4">
-                                        Your browser does not support the video tag.
                                     </video>
-                                @else
-                                    <img src="{{ asset('storage/' . $post->image) }}" alt="Post Media" class="img-fluid rounded mt-2">
                                 @endif
                             @endif
                         </div>
 
-                        <div class="widget-footer">
-                            <div class="meta">
-                                <ul>
-                                    <li>
-                                        <a href="#" class="upvote-btn {{ $userVote==='up'?'voted-up':'' }}" data-id="{{ $post->id }}"><i class="la la-arrow-up"></i></a>
-                                        <span id="upvote-count-{{ $post->id }}">{{ $post->upvotes()->count() }}</span>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="downvote-btn {{ $userVote==='down'?'voted-down':'' }}" data-id="{{ $post->id }}"><i class="la la-arrow-down"></i></a>
-                                        <span id="downvote-count-{{ $post->id }}">{{ $post->downvotes()->count() }}</span>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="toggle-comments" data-id="{{ $post->id }}">
-                                            <i class="la la-comment"></i>
-                                            <span id="comment-count-{{ $post->id }}">{{ $post->total_comments_count }}</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
+                        <div class="post-footer mt-2">
+                            <a href="#" class="toggle-comments" data-id="{{ $post->id }}"><i class="la la-comment"></i> {{ $post->total_comments_count }} Comments</a>
                         </div>
 
                         {{-- Comments --}}
                         <div class="comments-section" id="comments-section-{{ $post->id }}">
                             <div class="comments-list mb-2">
                                 @foreach($post->comments as $comment)
-                                    <div class="comment mb-2 d-flex" id="comment-{{ $comment->id }}">
-                                        <img src="{{ $comment->user->avatar_url }}" class="rounded-circle mr-2" width="30" height="30" style="object-fit:cover;">
+                                    <div class="comment d-flex align-items-start">
+                                        <img src="{{ $comment->user->avatar_url }}">
                                         <div>
-                                            <strong>{{ $comment->user->name }}</strong>: {{ $comment->content }}
-                                            <div class="replies ml-4 mt-1">
-                                                @foreach($comment->replies as $reply)
-                                                    <div class="comment mb-1 d-flex" id="comment-{{ $reply->id }}">
-                                                        <img src="{{ $reply->user->avatar_url }}" class="rounded-circle mr-2" width="25" height="25" style="object-fit:cover;">
-                                                        <div><strong>{{ $reply->user->name }}</strong>: {{ $reply->content }}</div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
+                                            <strong>{{ $comment->user->name }}</strong> {{ $comment->content }}
                                         </div>
                                     </div>
                                 @endforeach
                             </div>
-                            <div class="input-group mb-2">
-                                <input type="text" class="form-control comment-input" placeholder="Write a comment...">
+                            <div class="input-group mt-2">
+                                <input type="text" class="form-control comment-input" placeholder="Add a comment...">
                                 <div class="input-group-append">
                                     <button class="btn btn-sm btn-danger comment-send" data-id="{{ $post->id }}">Send</button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                @empty
-                    <p class="text-center text-muted">No posts yet.</p>
-                @endforelse
-            </div>
+                </div>
+            @empty
+                <p class="text-center text-muted">No posts yet.</p>
+            @endforelse
+
             <div class="d-flex justify-content-center mt-3">{{ $posts->links() }}</div>
         </div>
     </div>
@@ -245,97 +327,38 @@ body { background:#fff; color:#000; font-family: Arial, sans-serif; margin:0; pa
 $(function(){
     $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-    // === MEDIA PREVIEW ===
-    $('#mediaInput').on('change', function(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const fileType = file.type;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            if (fileType.startsWith('image/')) {
-                $('#previewImage').attr('src', e.target.result).show();
-                $('#previewVideo').hide();
-            } else if (fileType.startsWith('video/')) {
-                $('#previewVideoSource').attr('src', e.target.result);
-                $('#previewVideo')[0].load();
-                $('#previewVideo').show();
-                $('#previewImage').hide();
-            }
-            $('#mediaPreview').show();
-        };
-        reader.readAsDataURL(file);
-    });
-    $('#removePreview').on('click', function(){
-        $('#mediaPreview').hide();
-        $('#previewImage,#previewVideo').hide();
-        $('#mediaInput').val('');
-    });
-
-    // === DELETE POST ===
-    $(document).on('click','.delete-post-btn',function(e){
-        e.preventDefault();
-        if(!confirm('Are you sure?')) return;
-        const postId=$(this).data('id');
-        const card=$(this).closest('.widget');
-        $.ajax({url:`/posts/${postId}`,type:'DELETE',success:()=>card.remove(),error:()=>alert('Failed to delete post')});
-    });
-
-    // === TOGGLE COMMENTS ===
     $(document).on('click','.toggle-comments',function(e){
         e.preventDefault();
         const id=$(this).data('id');
         $(`#comments-section-${id}`).slideToggle('fast');
     });
 
-    // === UPVOTE / DOWNVOTE ===
     $(document).on('click','.upvote-btn,.downvote-btn',function(e){
         e.preventDefault();
         const id=$(this).data('id');
         const vote=$(this).hasClass('upvote-btn')?'up':'down';
         $.post(`/posts/${id}/vote`,{vote:vote},res=>{
-            $(`#upvote-count-${id}`).text(res.upvotes_count);
-            $(`#downvote-count-${id}`).text(res.downvotes_count);
+            $(`#upvote-count-${id}`).text(res.upvotes_count - res.downvotes_count);
             $(`.upvote-btn[data-id="${id}"]`).toggleClass('voted-up',res.user_vote==='up');
             $(`.downvote-btn[data-id="${id}"]`).toggleClass('voted-down',res.user_vote==='down');
         }).fail(()=>alert('Failed to vote'));
     });
 
-    // === COMMENTS ===
     $(document).on('click','.comment-send',function(){
         const btn=$(this);
         const id=btn.data('id');
         const input=btn.closest('.input-group').find('.comment-input');
         const content=input.val().trim();
         if(!content) return;
-        const data={content:content};
-        const parentId=input.data('parent');
-        if(parentId) data.parent_id=parentId;
-        $.post(`/posts/${id}/comments`,data,res=>{
+        $.post(`/posts/${id}/comments`,{content:content},res=>{
             const html=`
-                <div class="comment mb-2 d-flex" id="comment-${res.id}">
-                    <img src="${res.avatar}" class="rounded-circle mr-2" width="30" height="30" style="object-fit:cover;">
-                    <div>
-                        <strong>${res.user}</strong>: ${res.comment}
-                        ${res.parent_id?'':`<a href="#" class="reply-btn ml-2 small text-primary" data-id="${res.id}">Reply</a>`}
-                        <div class="replies ml-4 mt-1"></div>
-                    </div>
+                <div class="comment d-flex align-items-start">
+                    <img src="${res.avatar}">
+                    <div><strong>${res.user}</strong> ${res.comment}</div>
                 </div>`;
-            if(res.parent_id){
-                $(`#comment-${res.parent_id} .replies`).append(html);
-            } else {
-                $(`#comments-section-${id} .comments-list`).append(html);
-            }
-            input.val('').removeAttr('data-parent');
-            $(`#comment-count-${id}`).text(res.comments_count);
-        }).fail(()=>alert('Failed to add comment'));
-    });
-
-    // === REPLY ===
-    $(document).on('click','.reply-btn',function(e){
-        e.preventDefault();
-        const parent=$(this).data('id');
-        const input=$(this).closest('.comments-section').find('.comment-input');
-        input.focus().attr('data-parent',parent);
+            $(`#comments-section-${id} .comments-list`).append(html);
+            input.val('');
+        }).fail(()=>alert('Failed to comment'));
     });
 });
 </script>

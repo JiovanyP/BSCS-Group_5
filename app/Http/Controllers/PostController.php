@@ -6,11 +6,12 @@ use Illuminate\Http\Request;
 use App\Models\Post;
 use App\Models\Comment;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
     /**
-     * Show dashboard.
+     * Show dashboard (paginated posts).
      */
     public function index()
     {
@@ -22,7 +23,7 @@ class PostController extends Controller
     }
 
     /**
-     * Show timeline.
+     * Show timeline (paginated posts).
      */
     public function timeline()
     {
@@ -38,16 +39,14 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        // ✅ Validation
         $request->validate([
             'content' => 'nullable|string|max:1000',
-            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi|max:20480',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
         ]);
 
         $imagePath = null;
         $mediaType = null;
 
-        // ✅ Handle file upload
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $extension = strtolower($file->getClientOriginalExtension());
@@ -56,15 +55,14 @@ class PostController extends Controller
                 $mediaType = 'image';
             } elseif ($extension === 'gif') {
                 $mediaType = 'gif';
-            } elseif (in_array($extension, ['mp4', 'mov', 'avi'])) {
+            } elseif (in_array($extension, ['mp4', 'mov', 'avi', 'webm'])) {
                 $mediaType = 'video';
             }
 
-            // Store file to storage/app/public/posts
+            // store in storage/app/public/posts
             $imagePath = $file->store('posts', 'public');
         }
 
-        // ✅ Create the post record
         Post::create([
             'user_id' => Auth::id(),
             'content' => $request->content,
@@ -76,7 +74,7 @@ class PostController extends Controller
     }
 
     /**
-     * Vote on a post.
+     * Vote on post (up/down).
      */
     public function vote(Request $request, $id)
     {
@@ -97,7 +95,7 @@ class PostController extends Controller
     }
 
     /**
-     * Add a comment.
+     * Add comment (top-level or reply).
      */
     public function addComment(Request $request, $id)
     {
@@ -122,7 +120,7 @@ class PostController extends Controller
     }
 
     /**
-     * Edit a post.
+     * Show the edit form for a post.
      */
     public function edit(Post $post)
     {
@@ -131,7 +129,7 @@ class PostController extends Controller
     }
 
     /**
-     * Update a post.
+     * Update a post (content and optional new media).
      */
     public function update(Request $request, Post $post)
     {
@@ -139,13 +137,18 @@ class PostController extends Controller
 
         $request->validate([
             'content' => 'required|string|max:1000',
-            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi|max:20480',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
         ]);
 
         $imagePath = $post->image;
         $mediaType = $post->media_type;
 
         if ($request->hasFile('image')) {
+            // delete old file if present
+            if ($post->image && Storage::disk('public')->exists($post->image)) {
+                Storage::disk('public')->delete($post->image);
+            }
+
             $file = $request->file('image');
             $extension = strtolower($file->getClientOriginalExtension());
 
@@ -153,7 +156,7 @@ class PostController extends Controller
                 $mediaType = 'image';
             } elseif ($extension === 'gif') {
                 $mediaType = 'gif';
-            } elseif (in_array($extension, ['mp4', 'mov', 'avi'])) {
+            } elseif (in_array($extension, ['mp4', 'mov', 'avi', 'webm'])) {
                 $mediaType = 'video';
             }
 
@@ -166,17 +169,23 @@ class PostController extends Controller
             'media_type' => $mediaType,
         ]);
 
-        return redirect()->route('timeline')->with('success', 'Post updated!');
+        return redirect()->route('timeline')->with('success', 'Post updated successfully!');
     }
 
     /**
-     * Delete a post.
+     * Delete a post and its associated media file.
      */
     public function destroy(Post $post)
     {
         $this->authorize('delete', $post);
+
+        // Delete file from storage if exists
+        if ($post->image && Storage::disk('public')->exists($post->image)) {
+            Storage::disk('public')->delete($post->image);
+        }
+
         $post->delete();
 
-        return redirect()->route('timeline')->with('success', 'Post deleted!');
+        return redirect()->route('timeline')->with('success', 'Post deleted successfully!');
     }
 }
