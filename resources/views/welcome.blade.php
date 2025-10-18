@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,12 +30,20 @@
         .header {
             min-height: 100vh;
             width: 100%;
-            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('assets/img/landingbg.png');
+            background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0)), url('assets/img/landingbgwhite.png');
             background-position: center;
             background-size: cover;
             position: relative;
             display: flex;
             flex-direction: column;
+            
+            /* for masking*/
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);
+            -webkit-mask-repeat: no-repeat;
+            -webkit-mask-size: cover;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);
+            mask-repeat: no-repeat;
+            mask-size: cover;
         }
 
         nav {
@@ -50,7 +56,6 @@
 
         nav .logo {
             color: #FF0B55;
-            /* color: #fff; */
             font-size: 32px;
             font-weight: 700;
             text-decoration: none;
@@ -69,15 +74,21 @@
             position: relative;
         }
 
-        .nav-links ul li a {
+        .nav-links ul li a,
+        .nav-links ul li form button {
             color: #fff;
             text-decoration: none;
             font-size: 16px;
             font-weight: 500;
             transition: 0.3s;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
         }
 
-        .nav-links ul li a:hover {
+        .nav-links ul li a:hover,
+        .nav-links ul li form button:hover {
             color: #FF0B55;
         }
 
@@ -98,14 +109,14 @@
         .text-box {
             width: 100%;
             color: #fff;
-            text-align: left; /* left-align the text */
+            text-align: left;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center; /* keep it vertically centered */
-            align-items: flex-start; /* align to left */
-            padding: 0 80px; /* add more left padding so it's not glued to the edge */
-            max-width: 600px; /* optional: keep text from stretching too wide */
+            justify-content: center;
+            align-items: flex-start;
+            padding: 0 80px;
+            max-width: 600px;
         }
 
         .text-box h2 {
@@ -119,20 +130,22 @@
 
         .text-box h1 {
             font-size: 80px;
-            /* font-weight: 1500; */
             color: #FF0B55;
             margin-bottom: 20px;
             letter-spacing: 2px;
             line-height: 1;
         }
 
-        .text-box p {
-            margin: 20px auto 30px;
-            font-size: 15px;
-            color: #fff;
-            max-width: 800px;
+        /* ✅ Unified paragraph style */
+        .text-box p,
+        .services-col p,
+        .step-col p,
+        .section-description,
+        footer p {
+            font-size: 16px;
+            color: #555;
             line-height: 1.8;
-            font-weight: 300;
+            font-weight: 400;
         }
 
         .auth-buttons {
@@ -142,26 +155,27 @@
             justify-content: center;
         }
 
+        /* ✅ Auth buttons always white */
         .auth-buttons a {
             display: inline-block;
             padding: 16px 42px;
             font-size: 18px;
             font-weight: 600;
-            color: #fff;
+            color: #FF0B55;
             border-radius: 30px;
             text-decoration: none;
             transition: all 0.3s ease;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            background: #000000; /* Changed to black background */
-            border: 2px solid #FF0B55; /* Keep pink border */
+            background: #fff;
+            border: 2px solid #FF0B55;
         }
 
         .auth-buttons a:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-            background: #1a1a1a; /* Darker black on hover */
-            border-color: #FF0B55; /* Keep pink border on hover */
+            background: #fff;
+            color: #CF0F47;
         }
 
         .services {
@@ -189,17 +203,6 @@
             width: 80px;
             height: 4px;
             background: #FF0B55;
-        }
-
-        .section-description {
-            color: #555;
-            font-size: 18px;
-            font-weight: 400;
-            line-height: 1.8;
-            margin-bottom: 50px;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
         }
 
         .row {
@@ -232,14 +235,6 @@
             margin: 15px 0;
             color: #000;
             font-size: 22px;
-        }
-
-        .services-col p {
-            color: #555;
-            font-size: 16px;
-            font-weight: 400;
-            line-height: 1.7;
-            text-align: center;
         }
 
         .how-it-works {
@@ -290,12 +285,6 @@
             font-size: 20px;
         }
 
-        .step-col p {
-            color: #555;
-            font-size: 16px;
-            line-height: 1.7;
-        }
-
         footer {
             background-color: #000;
             color: white;
@@ -319,10 +308,9 @@
         }
 
         footer p {
-            margin: 0 0 20px 0;
-            line-height: 1.8;
-            opacity: 0.9;
+            color: #ccc;
             font-size: 16px;
+            line-height: 1.8;
         }
 
         .footer-bottom {
@@ -361,10 +349,6 @@
             
             .text-box h2 {
                 font-size: 22px;
-            }
-            
-            .text-box p {
-                font-size: 16px;
             }
             
             .nav-links {
@@ -451,9 +435,7 @@
                         <li>
                             <form method="POST" action="{{ url('/logout') }}">
                                 @csrf
-                                <button type="submit" style="background: none; border: none; color: #fff; cursor: pointer;">
-                                    Log Out
-                                </button>
+                                <button type="submit">Log Out</button>
                             </form>
                         </li>
                     @endguest
@@ -468,10 +450,8 @@
 
             <div class="auth-buttons">
                 @auth
-                    <!-- Show dashboard button if user is logged in -->
                     <a href="{{ route('dashboard') }}">Go to Dashboard</a>
                 @else
-                    <!-- Show auth buttons if user is NOT logged in -->
                     <a href="{{ route('login') }}">Log In</a>
                     <a href="{{ route('register') }}">Get Started</a>
                 @endauth
@@ -482,7 +462,7 @@
     <!-----------Services----------->
     <section class="services">
         <h1 class="section-title"><b>Our Services</b></h1>
-        <p class="section-description">PubL provides a comprehensive platform for incident reporting and verification, empowering communities to collaborate on safety issues.</p>
+        <p class="section-description">Publ provides a comprehensive platform for incident reporting and verification, empowering communities to collaborate on safety issues.</p>
 
         <div class="row">
             <div class="services-col">
@@ -551,16 +531,14 @@
     <!-----Footer---->
     <footer>
         <div class="footer-container">
-            <!-- Mission -->
             <div>
                 <h2>Our Mission</h2>
                 <p>
-                    At Publ., our mission is to create safer communities by enabling transparent incident reporting and verification. 
+                    At Publ, our mission is to create safer communities by enabling transparent incident reporting and verification. 
                     We believe in the power of collective awareness and responsible authority engagement to address community concerns effectively.
                 </p>
             </div>
 
-            <!-- Vision -->
             <div>
                 <h2>Our Vision</h2>
                 <p>

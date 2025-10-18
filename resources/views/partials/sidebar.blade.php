@@ -19,22 +19,17 @@
                 </a>
             </li>
 
+            <li class="{{ request()->routeIs('accidents.create') ? 'active' : '' }}">
+                <a href="{{ route('accidents.create') }}">
+                    <i class="la la-exclamation-triangle me-2"></i>
+                    <span>Notifications</span>
+
             <li class="{{ request()->routeIs('profile') ? 'active' : '' }}">
                 <a href="{{ route('profile') }}">
                     <i class="la la-user me-2"></i>
                     <span>Profile</span>
                 </a>
-            </li>
-
-            <li class="{{ request()->routeIs('accidents.create') ? 'active' : '' }}">
-                <a href="{{ route('accidents.create') }}">
-                    <i class="la la-exclamation-triangle me-2"></i>
-                    <span>Notifications</span>
-                </a>
-            </li>
         </ul>
-
-
     </div>
 
     <form action="{{ route('logout') }}" method="POST" class="mt-4">

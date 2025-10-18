@@ -38,9 +38,10 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        // ✅ Validation
+        // ✅ Validation with required location
         $request->validate([
             'content' => 'nullable|string|max:1000',
+            'location' => 'required|string|max:255', // added
             'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi|max:20480',
         ]);
 
@@ -60,13 +61,13 @@ class PostController extends Controller
                 $mediaType = 'video';
             }
 
-            // Store file to storage/app/public/posts
             $imagePath = $file->store('posts', 'public');
         }
 
-        // ✅ Create the post record
+        // ✅ Create the post record with location
         Post::create([
             'user_id' => Auth::id(),
+            'location' => $request->location, // added
             'content' => $request->content,
             'image' => $imagePath,
             'media_type' => $mediaType,
@@ -139,6 +140,7 @@ class PostController extends Controller
 
         $request->validate([
             'content' => 'required|string|max:1000',
+            'location' => 'required|string|max:255', // added
             'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi|max:20480',
         ]);
 
@@ -162,6 +164,7 @@ class PostController extends Controller
 
         $post->update([
             'content' => $request->input('content'),
+            'location' => $request->input('location'), // added
             'image' => $imagePath,
             'media_type' => $mediaType,
         ]);
