@@ -74,10 +74,6 @@
 
         <div class="main-content flex-grow-1">
             @yield('content')
-
-            <footer class="mt-5">
-                © 2025 All rights reserved | Publ.
-            </footer>
         </div>
     </div>
 

@@ -9,17 +9,14 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
         Schema::table('posts', function (Blueprint $table) {
             $table->string('location')->nullable()->after('content');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::table('posts', function (Blueprint $table) {
             $table->dropColumn('location');

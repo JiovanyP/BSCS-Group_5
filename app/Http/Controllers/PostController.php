@@ -35,13 +35,22 @@ class PostController extends Controller
     }
 
     /**
-     * Store new post (with optional image/video/gif).
+     * Show create post form.
+     */
+    public function create()
+    {
+        return view('posts.create');
+    }
+
+    /**
+     * Store new post (with optional image/video/gif and location).
      */
     public function store(Request $request)
     {
         $request->validate([
-            'content' => 'nullable|string|max:1000',
-            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
+            'content'  => 'nullable|string|max:1000',
+            'location' => 'nullable|string|max:255',
+            'image'    => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
         ]);
 
         $imagePath = null;
@@ -64,9 +73,10 @@ class PostController extends Controller
         }
 
         Post::create([
-            'user_id' => Auth::id(),
-            'content' => $request->content,
-            'image' => $imagePath,
+            'user_id'    => Auth::id(),
+            'content'    => $request->content,
+            'location'   => $request->location,
+            'image'      => $imagePath,
             'media_type' => $mediaType,
         ]);
 
@@ -87,10 +97,10 @@ class PostController extends Controller
         );
 
         return response()->json([
-            'success' => true,
-            'user_vote' => $request->vote,
-            'upvotes_count' => $post->upvotes()->count(),
-            'downvotes_count' => $post->downvotes()->count(),
+            'success'          => true,
+            'user_vote'        => $request->vote,
+            'upvotes_count'    => $post->upvotes()->count(),
+            'downvotes_count'  => $post->downvotes()->count(),
         ]);
     }
 
@@ -102,19 +112,19 @@ class PostController extends Controller
         $request->validate(['content' => 'required|string|max:300']);
 
         $comment = Comment::create([
-            'user_id' => Auth::id(),
-            'post_id' => $id,
-            'content' => $request->content,
+            'user_id'   => Auth::id(),
+            'post_id'   => $id,
+            'content'   => $request->content,
             'parent_id' => $request->parent_id ?? null,
         ]);
 
         return response()->json([
-            'success' => true,
-            'id' => $comment->id,
-            'parent_id' => $comment->parent_id,
-            'user' => Auth::user()->name,
-            'avatar' => Auth::user()->avatar ?? 'https://bootdey.com/img/Content/avatar/avatar1.png',
-            'comment' => $comment->content,
+            'success'        => true,
+            'id'             => $comment->id,
+            'parent_id'      => $comment->parent_id,
+            'user'           => Auth::user()->name,
+            'avatar'         => Auth::user()->avatar ?? 'https://bootdey.com/img/Content/avatar/avatar1.png',
+            'comment'        => $comment->content,
             'comments_count' => Comment::where('post_id', $id)->count(),
         ]);
     }
@@ -129,15 +139,16 @@ class PostController extends Controller
     }
 
     /**
-     * Update a post (content and optional new media).
+     * Update a post (content, location, and optional new media).
      */
     public function update(Request $request, Post $post)
     {
         $this->authorize('update', $post);
 
         $request->validate([
-            'content' => 'required|string|max:1000',
-            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
+            'content'  => 'required|string|max:1000',
+            'location' => 'nullable|string|max:255',
+            'image'    => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
         ]);
 
         $imagePath = $post->image;
@@ -164,8 +175,9 @@ class PostController extends Controller
         }
 
         $post->update([
-            'content' => $request->input('content'),
-            'image' => $imagePath,
+            'content'    => $request->input('content'),
+            'location'   => $request->input('location'),
+            'image'      => $imagePath,
             'media_type' => $mediaType,
         ]);
 

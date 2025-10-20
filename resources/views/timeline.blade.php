@@ -7,14 +7,146 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://maxcdn.icons8.com/fonts/line-awesome/1.1/css/line-awesome.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
+/* === Variables === */
+:root {
+    --primary: #494ca2;
+    --accent: #CF0F47;
+    --accent-hover: #FF0B55;
+    --sidebar-bg: #ffffff;
+    --white: #ffffff;
+    --black: #000000;
+    --text-muted: #666;
+}
+
 /* === Base === */
 body {
     background-color: #f5f7f8;
     color: #1a1a1a;
-    font-family: "Inter", Arial, sans-serif;
+    font-family: 'Poppins', Arial, sans-serif;
     margin: 0;
+    display: flex;
+    min-height: 100vh;
+}
+
+/* === Sidebar === */
+.sidebar {
+    min-width: 270px;
+    max-width: 270px;
+    background: var(--sidebar-bg);
+    color: var(--text-muted);
+    transition: all 0.3s;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid #eee;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.02);
+}
+
+.sidebar h1 {
+    margin-bottom: 20px;
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.sidebar h3 {
+    margin-bottom: 20px;
+    font-weight: 300;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.sidebar .logo {
+    color: var(--accent);
+    text-decoration: none;
+    transition: 0.3s all ease;
+}
+
+.sidebar .logo:hover {
+    text-decoration: none;
+    opacity: 0.9;
+}
+
+.sidebar ul.components {
+    padding: 0;
+    list-style: none;
+}
+
+.sidebar ul li {
+    font-size: 16px;
+}
+
+.sidebar ul li a {
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    color: var(--text-muted);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    text-decoration: none;
+    transition: 0.3s all ease;
+}
+
+.sidebar ul li a:hover {
+    color: var(--black);
+}
+
+.sidebar ul li a i {
+    font-size: 18px;
+    width: 24px;
+}
+
+.sidebar ul li.active > a {
+    background: transparent;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.sidebar .btn {
+    transition: 0.3s all ease;
+    padding: 12px 15px;
+    border-radius: 40px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar .btn-danger {
+    background: #dc3545;
+    color: var(--white);
+}
+
+.sidebar .btn-danger:hover {
+    background: #c82333;
+}
+
+.sidebar .w-100 {
+    width: 100%;
+}
+
+.sidebar .mt-4 {
+    margin-top: 1.5rem;
+}
+
+.sidebar .me-2 {
+    margin-right: 0.5rem;
+}
+
+/* === Main Content Wrapper === */
+.main-content {
+    flex: 1;
+    overflow-y: auto;
 }
 
 /* === Profile Header === */
@@ -22,7 +154,6 @@ body {
     background: #FF0B55;
     text-align: center;
     padding: 80px 20px 40px;
-    border-radius: 0 0 20px 20px;
     color: white;
     position: relative;
     box-shadow: 0 3px 10px rgba(0,0,0,0.1);
@@ -187,136 +318,210 @@ body {
 }
 .timeline-label::before { left: 0; }
 .timeline-label::after { right: 0; }
+
+/* === Responsive === */
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        min-width: 100%;
+        max-width: 100%;
+        height: auto;
+        position: relative;
+    }
+    
+    .profile-header {
+        border-radius: 0;
+    }
+}
 </style>
 </head>
 <body>
 
-{{-- PROFILE HEADER --}}
-<div class="profile-header">
-    <a href="{{ route('dashboard') }}" class="btn btn-outline-light">
-        <i class="la la-sign-out"></i> Exit
-    </a>
+<div class="sidebar" id="sidebar">
+    <div>
+        <h1 class="sidebar-logo">
+            <a href="#" class="logo">Publ.</a>
+        </h1>
 
-    <form id="avatarForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+        <h3>Be part of keeping our community safe. Publish your report with Publ.
+            <br>
+            <br>• Witness
+            <br>• Publish
+            <br>• Report
+        </h3>
+
+        <ul class="components">
+            <li class="active">
+                <a href="{{ route('timeline') }}">
+                    <i class="la la-home me-2"></i>
+                    <span>Home</span>
+                </a>
+            </li>
+
+            <li class="{{ request()->routeIs('posts.create') ? 'active' : '' }}">
+                <a href="{{ route('posts.create') }}">
+                    <i class="la la-plus-circle me-2"></i>
+                    <span>Create Post</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('accidents.create') }}">
+                    <i class="la la-exclamation-triangle me-2"></i>
+                    <span>Notifications</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('profile') }}">
+                    <i class="la la-user me-2"></i>
+                    <span>Profile</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <form action="{{ route('logout') }}" method="POST" class="mt-4">
         @csrf
-        @method('PATCH')
-        <div class="profile-pic-wrapper">
-            <img src="{{ Auth::user()->avatar_url }}" alt="Avatar" id="avatarPreview">
-            <div class="camera-overlay" onclick="document.getElementById('avatarInput').click();">
-                <i class="la la-camera"></i>
-            </div>
-        </div>
-        <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display:none;" onchange="this.form.submit()">
+        <button type="submit" class="btn btn-danger w-100">
+            <i class="la la-sign-out me-2"></i>
+            Logout
+        </button>
     </form>
-    <h3>{{ strtoupper(Auth::user()->name) }}</h3>
 </div>
 
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-xl-8 col-lg-10 col-12">
+{{-- MAIN CONTENT --}}
+<div class="main-content">
+    {{-- PROFILE HEADER --}}
+    <div class="profile-header">
+        <a href="{{ route('dashboard') }}" class="btn btn-outline-light">
+            <i class="la la-sign-out"></i> Exit
+        </a>
 
-            {{-- Post Form --}}
-            <div class="card post-form mb-4">
-                <div class="card-body">
-                    <form action="{{ route('timeline.store') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <textarea name="content" class="form-control mb-2" rows="3" placeholder="Create a post..."></textarea>
-
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <input type="file" id="mediaInput" name="image" accept="image/*,video/*,image/gif">
-                            </div>
-                            <button type="submit" class="btn btn-danger" style="background:#FF0B55; border:none;">Post</button>
-                        </div>
-                    </form>
+        <form id="avatarForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            @method('PATCH')
+            <div class="profile-pic-wrapper">
+                <img src="{{ Auth::user()->avatar_url }}" alt="Avatar" id="avatarPreview">
+                <div class="camera-overlay" onclick="document.getElementById('avatarInput').click();">
+                    <i class="la la-camera"></i>
                 </div>
             </div>
+            <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display:none;" onchange="this.form.submit()">
+        </form>
+        <h3>{{ strtoupper(Auth::user()->name) }}</h3>
+    </div>
 
-            {{-- Timeline --}}
-            @php $currentDate = null; @endphp
-            @forelse ($posts as $post)
-                @if ($currentDate !== $post->created_at->toDateString())
-                    <div class="timeline-label">
-                        {{ $post->created_at->isToday() ? 'Today' : ($post->created_at->isYesterday() ? 'Yesterday' : $post->created_at->format('F j, Y')) }}
-                    </div>
-                    @php $currentDate = $post->created_at->toDateString(); @endphp
-                @endif
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-xl-8 col-lg-10 col-12">
 
-                @php $userVote = $post->userVote(auth()->id()); @endphp
+                {{-- Post Form --}}
+                <div class="card post-form mb-4">
+                    <div class="card-body">
+                        <form action="{{ route('timeline.store') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <textarea name="content" class="form-control mb-2" rows="3" placeholder="Create a post..."></textarea>
 
-                <div class="post-card" id="post-{{ $post->id }}">
-                    {{-- VOTE COLUMN --}}
-                    <div class="vote-column">
-                        <a href="#" class="upvote-btn {{ $userVote==='up'?'voted-up':'' }}" data-id="{{ $post->id }}"><i class="la la-arrow-up"></i></a>
-                        <div class="vote-count" id="upvote-count-{{ $post->id }}">{{ $post->upvotes()->count() - $post->downvotes()->count() }}</div>
-                        <a href="#" class="downvote-btn {{ $userVote==='down'?'voted-down':'' }}" data-id="{{ $post->id }}"><i class="la la-arrow-down"></i></a>
-                    </div>
-
-                    {{-- CONTENT COLUMN --}}
-                    <div class="post-content">
-                        <div class="post-header">
-                            <div class="user-info">
-                                <img src="{{ $post->user->avatar_url }}">
-                                <strong>{{ $post->user->name }}</strong>
-                                <small class="text-muted ml-2">{{ $post->created_at->diffForHumans() }}</small>
-                            </div>
-                            @if(auth()->id() === $post->user_id)
-                            <div class="dropdown">
-                                <a href="#" class="text-muted" data-toggle="dropdown"><i class="la la-ellipsis-h"></i></a>
-                                <div class="dropdown-menu dropdown-menu-right">
-                                    <a class="dropdown-item" href="{{ route('posts.edit', $post->id) }}"><i class="la la-edit"></i> Edit</a>
-                                    <form action="{{ route('posts.destroy', $post->id) }}" method="POST" class="delete-post-form">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="dropdown-item text-danger delete-post-btn" data-id="{{ $post->id }}"><i class="la la-trash"></i> Delete</button>
-                                    </form>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <input type="file" id="mediaInput" name="image" accept="image/*,video/*,image/gif">
                                 </div>
+                                <button type="submit" class="btn btn-danger" style="background:#FF0B55; border:none;">Post</button>
                             </div>
-                            @endif
-                        </div>
-
-                        <div class="post-body">
-                            <p>{{ $post->content }}</p>
-                            @if($post->image)
-                                @if($post->media_type === 'image' || $post->media_type === 'gif')
-                                    <img src="{{ asset('storage/' . $post->image) }}" alt="Post Media">
-                                @elseif($post->media_type === 'video')
-                                    <video controls>
-                                        <source src="{{ asset('storage/' . $post->image) }}" type="video/mp4">
-                                    </video>
-                                @endif
-                            @endif
-                        </div>
-
-                        <div class="post-footer mt-2">
-                            <a href="#" class="toggle-comments" data-id="{{ $post->id }}"><i class="la la-comment"></i> {{ $post->total_comments_count }} Comments</a>
-                        </div>
-
-                        {{-- Comments --}}
-                        <div class="comments-section" id="comments-section-{{ $post->id }}">
-                            <div class="comments-list mb-2">
-                                @foreach($post->comments as $comment)
-                                    <div class="comment d-flex align-items-start">
-                                        <img src="{{ $comment->user->avatar_url }}">
-                                        <div>
-                                            <strong>{{ $comment->user->name }}</strong> {{ $comment->content }}
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                            <div class="input-group mt-2">
-                                <input type="text" class="form-control comment-input" placeholder="Add a comment...">
-                                <div class="input-group-append">
-                                    <button class="btn btn-sm btn-danger comment-send" data-id="{{ $post->id }}">Send</button>
-                                </div>
-                            </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
-            @empty
-                <p class="text-center text-muted">No posts yet.</p>
-            @endforelse
 
-            <div class="d-flex justify-content-center mt-3">{{ $posts->links() }}</div>
+                {{-- Timeline --}}
+                @php $currentDate = null; @endphp
+                @forelse ($posts as $post)
+                    @if ($currentDate !== $post->created_at->toDateString())
+                        <div class="timeline-label">
+                            {{ $post->created_at->isToday() ? 'Today' : ($post->created_at->isYesterday() ? 'Yesterday' : $post->created_at->format('F j, Y')) }}
+                        </div>
+                        @php $currentDate = $post->created_at->toDateString(); @endphp
+                    @endif
+
+                    @php $userVote = $post->userVote(auth()->id()); @endphp
+
+                    <div class="post-card" id="post-{{ $post->id }}">
+                        {{-- VOTE COLUMN --}}
+                        <div class="vote-column">
+                            <a href="#" class="upvote-btn {{ $userVote==='up'?'voted-up':'' }}" data-id="{{ $post->id }}"><i class="la la-arrow-up"></i></a>
+                            <div class="vote-count" id="upvote-count-{{ $post->id }}">{{ $post->upvotes()->count() - $post->downvotes()->count() }}</div>
+                            <a href="#" class="downvote-btn {{ $userVote==='down'?'voted-down':'' }}" data-id="{{ $post->id }}"><i class="la la-arrow-down"></i></a>
+                        </div>
+
+                        {{-- CONTENT COLUMN --}}
+                        <div class="post-content">
+                            <div class="post-header">
+                                <div class="user-info">
+                                    <img src="{{ $post->user->avatar_url }}">
+                                    <strong>{{ $post->user->name }}</strong>
+                                    <small class="text-muted ml-2">{{ $post->created_at->diffForHumans() }}</small>
+                                </div>
+                                @if(auth()->id() === $post->user_id)
+                                <div class="dropdown">
+                                    <a href="#" class="text-muted" data-toggle="dropdown"><i class="la la-ellipsis-h"></i></a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a class="dropdown-item" href="{{ route('posts.edit', $post->id) }}"><i class="la la-edit"></i> Edit</a>
+                                        <form action="{{ route('posts.destroy', $post->id) }}" method="POST" class="delete-post-form">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="dropdown-item text-danger delete-post-btn" data-id="{{ $post->id }}"><i class="la la-trash"></i> Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
+
+                            <div class="post-body">
+                                <p>{{ $post->content }}</p>
+                                @if($post->image)
+                                    @if($post->media_type === 'image' || $post->media_type === 'gif')
+                                        <img src="{{ asset('storage/' . $post->image) }}" alt="Post Media">
+                                    @elseif($post->media_type === 'video')
+                                        <video controls>
+                                            <source src="{{ asset('storage/' . $post->image) }}" type="video/mp4">
+                                        </video>
+                                    @endif
+                                @endif
+                            </div>
+
+                            <div class="post-footer mt-2">
+                                <a href="#" class="toggle-comments" data-id="{{ $post->id }}"><i class="la la-comment"></i> {{ $post->total_comments_count }} Comments</a>
+                            </div>
+
+                            {{-- Comments --}}
+                            <div class="comments-section" id="comments-section-{{ $post->id }}">
+                                <div class="comments-list mb-2">
+                                    @foreach($post->comments as $comment)
+                                        <div class="comment d-flex align-items-start">
+                                            <img src="{{ $comment->user->avatar_url }}">
+                                            <div>
+                                                <strong>{{ $comment->user->name }}</strong> {{ $comment->content }}
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <div class="input-group mt-2">
+                                    <input type="text" class="form-control comment-input" placeholder="Add a comment...">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-sm btn-danger comment-send" data-id="{{ $post->id }}">Send</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-center text-muted">No posts yet.</p>
+                @endforelse
+
+                <div class="d-flex justify-content-center mt-3">{{ $posts->links() }}</div>
+            </div>
         </div>
     </div>
 </div>

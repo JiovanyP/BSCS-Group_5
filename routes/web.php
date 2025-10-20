@@ -98,6 +98,10 @@ Route::middleware('auth')->group(function () {
     // 📊 Dashboard
     Route::get('/dashboard', [PostController::class, 'index'])->name('dashboard');
 
+    // 📝 Create Post
+    Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
+    Route::post('/posts', [PostController::class, 'store'])->name('timeline.store');
+
     // 🧍 Timeline
     Route::get('/timeline', [PostController::class, 'timeline'])->name('timeline'); // ✅ consistent route name
     Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
