@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Timeline</title>
+<title>Profile</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -241,10 +241,10 @@ body {
         <h1><a href="#" class="logo">Publ.</a></h1>
         <h3>Be part of keeping our community safe. Publish your report with Publ.</h3>
         <ul class="components">
-            <li class="active"><a href="{{ route('timeline') }}"><i class="la la-home me-2"></i>Home</a></li>
+            <li><a href="{{ route('timeline') }}"><i class="la la-home me-2"></i>Home</a></li>
             <li><a href="{{ route('posts.create') }}"><i class="la la-plus-circle me-2"></i>Create Post</a></li>
             <li><a href="{{ route('accidents.create') }}"><i class="la la-exclamation-triangle me-2"></i>Notifications</a></li>
-            <li><a href="{{ route('profile') }}"><i class="la la-user me-2"></i>Profile</a></li>
+            <li class="active"><a href="{{ route('profile') }}"><i class="la la-user me-2"></i>Profile</a></li>
         </ul>
     </div>
     <form action="{{ route('logout') }}" method="POST">@csrf
@@ -253,11 +253,6 @@ body {
 </div>
 
 <div class="main-content">
-    <!-- Exit button to go back to dashboard (keeps your UI's look; change route if needed) -->
-    <button class="exit-btn" onclick="window.location.href='{{ route('dashboard') }}'" title="Back to dashboard">
-        <i class="la la-arrow-right"></i>
-    </button>
-
     <div class="profile-header">
         <form id="avatarForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
             @csrf @method('PATCH')

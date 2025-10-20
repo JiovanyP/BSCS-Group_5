@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Post;
 use App\Models\Comment;
+use App\Models\Report;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -199,5 +200,41 @@ class PostController extends Controller
         $post->delete();
 
         return redirect()->route('timeline')->with('success', 'Post deleted successfully!');
+    }
+
+    /**
+     * Report a post.
+     */
+    public function report(Request $request, Post $post)
+    {
+        // Prevent users from reporting their own posts
+        if (Auth::id() === $post->user_id) {
+            return response()->json(['error' => 'Cannot report your own post'], 403);
+        }
+
+        $request->validate([
+            'reason' => 'required|in:spam,violence,hate_speech,misinformation,other'
+        ]);
+
+        // Check if user has already reported this post
+        $existingReport = Report::where('user_id', Auth::id())
+            ->where('post_id', $post->id)
+            ->first();
+
+        if ($existingReport) {
+            return response()->json(['error' => 'You have already reported this post'], 409);
+        }
+
+        // Create the report
+        Report::create([
+            'user_id' => Auth::id(),
+            'post_id' => $post->id,
+            'reason'  => $request->reason
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Thank you for your report. We will review it shortly.'
+        ]);
     }
 }

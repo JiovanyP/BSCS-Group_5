@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
@@ -12,10 +10,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Remove leading '/storage/' from any avatar that starts with it
-        DB::table('users')
-          ->where('avatar', 'like', '/storage/%')
-          ->update(['avatar' => DB::raw("TRIM(LEADING '/storage/' FROM avatar)")]);
+        // Get all users and manually clean up avatars
+        $users = DB::table('users')->get();
+
+        foreach ($users as $user) {
+            if (str_starts_with($user->avatar, '/storage/')) {
+                DB::table('users')
+                    ->where('id', $user->id)
+                    ->update([
+                        'avatar' => substr($user->avatar, strlen('/storage/')),
+                    ]);
+            }
+        }
     }
 
     /**
@@ -23,9 +29,17 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Re-add '/storage/' to normalized avatars that start with 'avatars/'
-        DB::table('users')
-          ->where('avatar', 'like', 'avatars/%')
-          ->update(['avatar' => DB::raw("CONCAT('/storage/', avatar)")]);
+        // Re-add '/storage/' to avatars that start with 'avatars/'
+        $users = DB::table('users')->get();
+
+        foreach ($users as $user) {
+            if (str_starts_with($user->avatar, 'avatars/')) {
+                DB::table('users')
+                    ->where('id', $user->id)
+                    ->update([
+                        'avatar' => '/storage/' . $user->avatar,
+                    ]);
+            }
+        }
     }
 };

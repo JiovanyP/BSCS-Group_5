@@ -1,63 +1,94 @@
-$(document).ready(function () {
+$(function() {
     $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-    // Upvote / Downvote
-    $(document).on('click', '.upvote-btn, .downvote-btn', function(e){
-        e.preventDefault();
-        let postId = $(this).data('id');
-        let vote = $(this).hasClass('upvote-btn') ? 'up' : 'down';
-        $.post(`/posts/${postId}/vote`, { vote: vote }, function(res){
-            $(`#upvote-count-${postId}`).text(res.upvotes_count);
-            $(`#downvote-count-${postId}`).text(res.downvotes_count);
-            $(`.upvote-btn[data-id="${postId}"]`).toggleClass('voted-up', res.user_vote === 'up');
-            $(`.downvote-btn[data-id="${postId}"]`).toggleClass('voted-down', res.user_vote === 'down');
-        }).fail(function(){ alert('Failed to vote.'); });
+    // Avatar upload
+    $('#avatarPreview').click(() => $('#avatarInput').click());
+    $('#avatarInput').change(function(){ if(this.files.length) $('#avatarForm').submit(); });
+
+    // Remove avatar
+    $('#removeAvatarBtn').click(function() {
+        if(confirm('Are you sure?')) {
+            $.post('{{ route("profile.remove") }}', {}, ()=> location.reload());
+        }
     });
 
-    // Add Comment / Reply
-    $(document).on('click', '.comment-send', function(){
+    let currentPostId = null;
+
+    // Upvote / Downvote
+    $(document).on('click','.upvote-btn,.downvote-btn',function(e){
+        e.preventDefault();
+        let id = $(this).data('id');
+        let vote = $(this).hasClass('upvote-btn')?'up':'down';
+        $.post(`/posts/${id}/vote`, {vote:vote}, res=>{
+            $(`#upvote-count-${id}`).text(res.upvotes_count - res.downvotes_count);
+            $(`.upvote-btn[data-id="${id}"]`).toggleClass('voted-up', res.user_vote==='up');
+            $(`.downvote-btn[data-id="${id}"]`).toggleClass('voted-down', res.user_vote==='down');
+        });
+    });
+
+    // Toggle comments
+    $(document).on('click','.toggle-comments', function(e){
+        e.preventDefault();
+        let id = $(this).data('id');
+        $(`#comments-section-${id}`).slideToggle();
+    });
+
+    // Send comment
+    $(document).on('click','.comment-send', function(){
         let btn = $(this);
-        let postId = btn.data('id');
+        let id = btn.data('id');
         let input = btn.closest('.input-group').find('.comment-input');
         let content = input.val().trim();
         if(!content) return;
 
-        let data = { content: content };
-        let parentId = input.data('parent');
-        if(parentId) data.parent_id = parentId;
-
-        $.post(`/posts/${postId}/comments`, data, function(res){
-            let commentHTML = `
-                <div class="comment mb-2 d-flex" id="comment-${res.id}">
-                    <img src="${res.avatar}" class="rounded-circle mr-2" width="30" height="30">
-                    <div>
-                        <strong>${res.user}</strong>: ${res.comment}
-                        ${res.parent_id ? '' : `<a href="#" class="reply-btn ml-2 small text-primary" data-id="${res.id}">Reply</a>`}
-                        <div class="replies ml-4 mt-1"></div>
-                    </div>
-                </div>`;
-            if(res.parent_id){
-                $(`#comment-${res.parent_id} .replies`).append(commentHTML);
-            } else {
-                $(`#comments-section-${postId} .comments-list`).append(commentHTML);
-            }
-            input.val('').removeAttr('data-parent');
-            $(`#comment-count-${postId}`).text(res.comments_count);
-        }).fail(function(){ alert('Failed to add comment.'); });
+        $.post(`/posts/${id}/comments`, {content: content}, res=>{
+            let html = `<div class="d-flex mb-2" id="comment-${res.id}">
+                <img src="${res.avatar}" width="30" height="30" class="rounded-circle mr-2">
+                <div><strong>${res.user}</strong> ${res.comment} <a href="#" class="reply-btn small text-primary" data-id="${res.id}">Reply</a>
+                    <div class="replies ml-3 mt-1"></div>
+                </div>
+            </div>`;
+            $(`#comments-section-${id} .comments-list`).append(html);
+            input.val('');
+        });
     });
 
     // Reply button
-    $(document).on('click', '.reply-btn', function(e){
+    $(document).on('click','.reply-btn',function(e){
         e.preventDefault();
-        let parentId = $(this).data('id');
-        let input = $(this).closest('.comments-section').find('.comment-input');
-        input.focus().attr('data-parent', parentId);
+        let id = $(this).data('id');
+        let replies = $(`#comment-${id} .replies`);
+        if(!replies.find('.reply-input-group').length){
+            replies.append(`<div class="input-group input-group-sm reply-input-group mt-1">
+                <input type="text" class="form-control reply-input" placeholder="Write a reply...">
+                <div class="input-group-append"><button class="btn btn-sm btn-primary reply-send" data-comment-id="${id}">Send</button></div>
+            </div>`);
+        }
     });
 
-    // Toggle comments
-    $(document).on('click', '.toggle-comments', function(e){
-        e.preventDefault();
-        let postId = $(this).data('id');
-        $(`#comments-section-${postId}`).slideToggle('fast');
+    // Send reply
+    $(document).on('click','.reply-send',function(){
+        let btn = $(this);
+        let id = btn.data('comment-id');
+        let input = btn.closest('.input-group').find('.reply-input');
+        let content = input.val().trim();
+        if(!content) return;
+
+        $.post(`/comments/${id}/reply`, {content: content}, res=>{
+            let html = `<div class="d-flex mb-1" id="comment-${res.id}">
+                <img src="${res.avatar}" width="25" height="25" class="rounded-circle mr-2">
+                <div><strong>${res.user}</strong> ${res.comment}</div>
+            </div>`;
+            $(`#comment-${id} .replies`).prepend(html);
+            input.closest('.reply-input-group').remove();
+        });
+    });
+
+    // Delete post
+    $(document).on('click','.delete-post-btn',function(){ currentPostId=$(this).data('id'); });
+    $('#confirmDeleteBtn').click(function(){
+        $.ajax({ url:`/posts/${currentPostId}`, type:'POST', data:{_method:'DELETE'},
+            success:()=>{ $(`#post-${currentPostId}`).fadeOut(()=>$(this).remove()); $('#deleteModal').modal('hide'); }
+        });
     });
 });
