@@ -1,13 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Profile</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('layouts.app')
+
+@section('title', 'Profile')
+
+@section('content')
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://maxcdn.icons8.com/fonts/line-awesome/1.1/css/line-awesome.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
 /* === Variables === */
 :root {
@@ -20,79 +16,23 @@
     --text-muted: #666;
 }
 
-/* === Base === */
-body {
-    background-color: #f5f7f8;
-    color: #1a1a1a;
-    font-family: 'Poppins', Arial, sans-serif;
-    margin: 0;
-    display: flex;
-    min-height: 100vh;
-}
-
-/* === Sidebar === */
-.sidebar {
-    min-width: 270px;
-    max-width: 270px;
-    background: var(--sidebar-bg);
-    color: var(--text-muted);
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    border-right: 1px solid #eee;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.02);
-}
-
-.sidebar h1 {
-    margin-bottom: 20px;
-    font-weight: 700;
-    font-size: 1.5rem;
-}
-
-.sidebar h3 {
-    margin-bottom: 20px;
-    font-weight: 300;
-    font-size: 0.85rem;
-    line-height: 1.6;
-}
-
-.sidebar .logo {
-    color: var(--accent);
-    text-decoration: none;
-}
-
-.sidebar ul.components {
-    list-style: none;
-    padding: 0;
-}
-
-.sidebar ul li a {
-    padding: 10px 0;
-    display: flex;
-    align-items: center;
-    color: var(--text-muted);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    text-decoration: none;
-    transition: 0.3s all ease;
-}
-
-.sidebar ul li a:hover { color: var(--black); }
-.sidebar ul li.active > a { color: var(--accent); font-weight: 600; }
-
-/* === Main Content === */
 .main-content { flex: 1; overflow-y: auto; position: relative; }
 
 /* === Profile Header === */
 .profile-header {
     background: #FF0B55;
     text-align: center;
-    padding: 80px 20px 40px;
+    padding: 60px 20px 50px;
     color: white;
     position: relative;
+}
+
+.profile-header h3 {
+    margin-top: 20px;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
 }
 
 /* === Avatar Wrapper + Camera Icon Overlay === */
@@ -101,47 +41,34 @@ body {
     display: inline-block;
 }
 .avatar-wrapper img {
-    width: 120px;
-    height: 120px;
+    width: 160px;
+    height: 160px;
     border-radius: 50%;
-    border: 4px solid #fff;
+    border: 6px solid #fff;
     object-fit: cover;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 /* Camera icon overlay (small circle at bottom-right) */
 .camera-icon {
     position: absolute;
-    bottom: 6px;
-    right: 6px;
-    background-color: rgba(0, 0, 0, 0.6);
+    bottom: 8px;
+    right: 8px;
+    background-color: #000;
     border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     color: white;
     transition: background 0.2s, transform 0.12s;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
-.camera-icon:hover { background-color: rgba(0, 0, 0, 0.8); transform: translateY(-2px); }
-
-/* === Exit Button (top-right) === */
-.exit-btn {
-    position: absolute;
-    top: 18px;
-    right: 22px;
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 1.6rem;
-    cursor: pointer;
-    z-index: 30;
-    padding: 6px;
-    border-radius: 6px;
-    transition: transform 0.12s, background 0.12s;
-}
-.exit-btn:hover { transform: scale(1.05); background: rgba(255,255,255,0.12); }
+.camera-icon:hover { background-color: #222; transform: scale(1.05); }
+.camera-icon i { font-size: 20px; }
 
 /* === Post Form === */
 .card.post-form {
@@ -233,24 +160,6 @@ body {
     letter-spacing: 0.5px;
 }
 </style>
-</head>
-<body>
-
-<div class="sidebar">
-    <div>
-        <h1><a href="#" class="logo">Publ.</a></h1>
-        <h3>Be part of keeping our community safe. Publish your report with Publ.</h3>
-        <ul class="components">
-            <li><a href="{{ route('timeline') }}"><i class="la la-home me-2"></i>Home</a></li>
-            <li><a href="{{ route('posts.create') }}"><i class="la la-plus-circle me-2"></i>Create Post</a></li>
-            <li><a href="{{ route('accidents.create') }}"><i class="la la-exclamation-triangle me-2"></i>Notifications</a></li>
-            <li class="active"><a href="{{ route('profile') }}"><i class="la la-user me-2"></i>Profile</a></li>
-        </ul>
-    </div>
-    <form action="{{ route('logout') }}" method="POST">@csrf
-        <button type="submit" class="btn btn-danger w-100"><i class="la la-sign-out me-2"></i>Logout</button>
-    </form>
-</div>
 
 <div class="main-content">
     <div class="profile-header">
@@ -429,8 +338,56 @@ body {
   </div>
 </div>
 
+<!-- Load jQuery and Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Weather API Script -->
+<script>
+// Kabacan coords: 7.1067° N, 124.8294° E
+async function fetchWeather() {
+    try {
+        const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=7.1067&longitude=124.8294&current_weather=true");
+        const data = await res.json();
+        const weather = data.current_weather;
+        const container = document.getElementById("weather-info");
+
+        if (weather) {
+            const temp = weather.temperature;
+            const wind = weather.windspeed;
+            const code = weather.weathercode;
+
+            // Emoji icons for cuteness
+            let icon = "☁️";
+            if (code === 0) icon = "☀️"; // clear
+            else if ([1,2].includes(code)) icon = "🌤";
+            else if ([3,45,48].includes(code)) icon = "☁️";
+            else if ([51,61,80].includes(code)) icon = "🌧";
+            else if ([71,85].includes(code)) icon = "❄️";
+            else if ([95,96,99].includes(code)) icon = "⛈";
+
+            container.innerHTML = `
+                <p style="font-size: 32px;">${icon}</p>
+                <p>🌡️ ${temp}°C</p>
+                <p>💨 ${wind} km/h</p>
+            `;
+        } else {
+            container.innerHTML = "<p>Weather data unavailable.</p>";
+        }
+    } catch (err) {
+        document.getElementById("weather-info").innerHTML = "<p>Failed to load weather.</p>";
+    }
+}
+
+// Only run weather fetch if weather-info element exists (i.e., in sidebar)
+if (document.getElementById("weather-info")) {
+    fetchWeather();
+    // Optional auto-refresh every 10 minutes
+    setInterval(fetchWeather, 600000);
+}
+</script>
+
+<!-- Timeline Scripts -->
 <script>
 $(function(){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
@@ -528,7 +485,7 @@ $(function(){
 });
 </script>
 
-<!-- Avatar preview + auto-submit script (keeps behavior minimal) -->
+<!-- Avatar preview + auto-submit script -->
 <script>
 $(document).ready(function() {
     $('#avatarInput').on('change', function() {
@@ -542,6 +499,4 @@ $(document).ready(function() {
     });
 });
 </script>
-
-</body>
-</html>
+@endsection
