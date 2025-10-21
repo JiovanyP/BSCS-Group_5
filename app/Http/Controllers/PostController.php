@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Post;
 use App\Models\Comment;
+use App\Models\Notification;
 use App\Models\Report;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -51,6 +52,7 @@ class PostController extends Controller
         $request->validate([
             'content'  => 'nullable|string|max:1000',
             'location' => 'nullable|string|max:255',
+            'accident_type' => 'required|string|max:100', // ADD THIS VALIDATION
             'image'    => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
         ]);
 
@@ -73,29 +75,65 @@ class PostController extends Controller
             $imagePath = $file->store('posts', 'public');
         }
 
-        Post::create([
+        // ✅ Create the post record WITH accident_type
+        $post = Post::create([
             'user_id'    => Auth::id(),
             'content'    => $request->content,
             'location'   => $request->location,
+            'accident_type' => $request->accident_type, // ADD THIS LINE
             'image'      => $imagePath,
             'media_type' => $mediaType,
         ]);
+
+        // 🚨 Trigger location-based notifications
+        \App\Http\Controllers\NotificationController::createLocationNotifications($post);
 
         return redirect()->route('timeline')->with('success', 'Post created successfully!');
     }
 
     /**
-     * Vote on post (up/down).
+     * Vote on post - WITH NOTIFICATION
      */
     public function vote(Request $request, $id)
     {
         $request->validate(['vote' => 'required|in:up,down']);
 
         $post = Post::findOrFail($id);
+        
+        // Get existing vote if any
+        $existingVote = $post->likes()->where('user_id', Auth::id())->first();
+        
+        // Update or create the vote
         $post->likes()->updateOrCreate(
             ['user_id' => Auth::id()],
             ['vote_type' => $request->vote]
         );
+
+        // Create notification ONLY if voting on someone else's post
+        if ($post->user_id !== Auth::id()) {
+            // Delete old notification if vote type changed
+            if ($existingVote && $existingVote->vote_type !== $request->vote) {
+                Notification::where('user_id', $post->user_id)
+                    ->where('actor_id', Auth::id())
+                    ->where('post_id', $post->id)
+                    ->whereIn('type', ['upvote', 'downvote'])
+                    ->delete();
+            }
+
+            // Create new notification
+            Notification::updateOrCreate(
+                [
+                    'user_id' => $post->user_id,
+                    'actor_id' => Auth::id(),
+                    'post_id' => $post->id,
+                    'type' => $request->vote === 'up' ? 'upvote' : 'downvote',
+                ],
+                [
+                    'is_read' => false,
+                    'created_at' => now(),
+                ]
+            );
+        }
 
         return response()->json([
             'success'          => true,
@@ -106,11 +144,13 @@ class PostController extends Controller
     }
 
     /**
-     * Add comment (top-level or reply).
+     * Add comment - WITH NOTIFICATION
      */
     public function addComment(Request $request, $id)
     {
         $request->validate(['content' => 'required|string|max:300']);
+
+        $post = Post::findOrFail($id);
 
         $comment = Comment::create([
             'user_id'   => Auth::id(),
@@ -118,6 +158,35 @@ class PostController extends Controller
             'content'   => $request->content,
             'parent_id' => $request->parent_id ?? null,
         ]);
+
+        // Create notification
+        if ($request->parent_id) {
+            // This is a reply - notify the comment owner
+            $parentComment = Comment::find($request->parent_id);
+            
+            if ($parentComment && $parentComment->user_id !== Auth::id()) {
+                Notification::create([
+                    'user_id' => $parentComment->user_id,
+                    'actor_id' => Auth::id(),
+                    'post_id' => $id,
+                    'comment_id' => $comment->id,
+                    'type' => 'reply',
+                    'is_read' => false,
+                ]);
+            }
+        } else {
+            // This is a top-level comment - notify the post owner
+            if ($post->user_id !== Auth::id()) {
+                Notification::create([
+                    'user_id' => $post->user_id,
+                    'actor_id' => Auth::id(),
+                    'post_id' => $id,
+                    'comment_id' => $comment->id,
+                    'type' => 'comment',
+                    'is_read' => false,
+                ]);
+            }
+        }
 
         return response()->json([
             'success'        => true,
