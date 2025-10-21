@@ -1,10 +1,12 @@
+@vite('resources/js/loadingBar.js')
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Publ</title>
-
+    
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,10 +23,18 @@
             font-family: 'Poppins', sans-serif;
         }
 
-        body {
-            color: #333;
-            line-height: 1.6;
-            overflow-x: hidden;
+        html, body {
+        color: #333;
+        line-height: 1.6;
+        overflow-x: hidden;
+        scrollbar-width: none;            /* Firefox */
+        -ms-overflow-style: none;         /* Internet Explorer 10+ */
+        }
+
+        /* Chrome, Safari, Edge */
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+        display: none;                   /* Chrome, Safari, Edge */
         }
 
         .header {
@@ -326,6 +336,24 @@
             font-size: 14px;
         }
 
+        #loading-bar-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        background-color: black;
+        z-index: 9999;
+        }
+
+        #loading-bar {
+        height: 100%;
+        width: 0%;
+        background-color: #FF0B55;
+        transition: width 0.2s ease;
+        }
+
+
         /* Responsive design */
         @media(max-width: 900px) {
             .text-box h1 {
@@ -410,12 +438,6 @@
 </head>
 
 <body>
-
-    @auth
-        <div style="background: yellow; padding: 10px; text-align: center;">
-            <strong>You are logged in as: {{ Auth::user()->name }}</strong>
-        </div>
-    @endauth
 
     <div id="loading-bar-container">
     <div id="loading-bar"></div>

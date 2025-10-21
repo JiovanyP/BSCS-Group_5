@@ -8,6 +8,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use Laravel\Socialite\Facades\Socialite;
+use App\Http\Controllers\NotificationController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
@@ -118,8 +119,12 @@ Route::middleware('auth')->group(function () {
     // ✅ New route: Remove avatar
     Route::post('/profile/remove-avatar', [ProfileController::class, 'removeAvatar'])->name('profile.remove');
 
-    // Notifications
-    Route::get('/notifications', fn() => view('notifications'))->name('notifications');
+    // Notifications routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
+    Route::post('/notifications/{id}/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllRead');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unreadCount');
 
     // Logout
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');

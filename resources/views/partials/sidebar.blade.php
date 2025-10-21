@@ -205,7 +205,7 @@
             </li>
 
             <li class="{{ request()->routeIs('accidents.create') ? 'active' : '' }}">
-                <a href="{{ route('accidents.create') }}">
+                <a href="{{ route('notifications') }}">
                     <i class="la la-exclamation-triangle me-2"></i>
                     <span>Notifications</span>
                 </a>

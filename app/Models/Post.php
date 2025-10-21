@@ -23,6 +23,7 @@ class Post extends Model
         'user_id',
         'content',
         'location',
+        'accident_type',
         'views',
         'image',
         'media_type',
