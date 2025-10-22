@@ -1,4 +1,3 @@
-```php
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -14,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
+            $table->enum('reason', ['spam', 'violence', 'hate_speech', 'misinformation', 'other']);
             $table->timestamps();
         });
     }
@@ -23,12 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::create('reports', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-    $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
-    $table->enum('reason', ['spam', 'violence', 'hate_speech', 'misinformation', 'other']);
-    $table->timestamps();
-});
+        Schema::dropIfExists('reports');
     }
 };

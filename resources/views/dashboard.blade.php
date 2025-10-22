@@ -1,158 +1,229 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <!--  This file has been downloaded from bootdey.com @bootdey on twitter -->
-    <!--  All snippets are MIT license http://bootdey.com/license -->
-    <title>Publ Feed</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.1/css/bootstrap.min.css" rel="stylesheet">
-    <style type="text/css">
-    	
-body{margin-top:20px;}				              
-    </style>
-</head>
-<body>
-<!-- Header -->
-<div id="top-nav" class="navbar navbar-inverse navbar-static-top">
-  <div class="container bootstrap snippets bootdey">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-          <span class="icon-toggle"></span>
-      </button>
-      <a class="navbar-brand" href="#">Application</a>
+@extends('layouts.app')
+
+@section('title', 'Admin Dashboard')
+
+@section('content')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
+<style>
+:root {
+    --accent: #CF0F47;
+    --accent-hover: #FF0B55;
+    --muted: #666;
+}
+body { background:#f9fafc; }
+
+.navbar-admin {
+    background: var(--accent);
+    color: #fff;
+    padding: 12px 20px;
+}
+.navbar-admin h4 {
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.sidebar {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+    padding: 20px;
+}
+.sidebar a {
+    display:block;
+    color:#333;
+    padding:8px 10px;
+    border-radius:6px;
+    transition:0.2s;
+    text-decoration:none;
+}
+.sidebar a:hover {
+    background: var(--accent);
+    color: white;
+}
+.card {
+    border:none;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
+    background:white;
+}
+.card h5 { font-weight:600; }
+.table thead th { background:#fafafa; }
+
+.badge-category {
+    background: var(--accent);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+.btn-danger {
+    background: var(--accent);
+    border: none;
+}
+.btn-danger:hover { background: var(--accent-hover); }
+</style>
+
+<div class="navbar-admin d-flex justify-content-between align-items-center">
+    <h4>Admin Dashboard</h4>
+    <div>
+        <span class="small">Logged in as </span><strong>{{ Auth::user()->name }}</strong>
+        <form action="{{ route('logout') }}" method="POST" class="d-inline">
+            @csrf
+            <button type="submit" class="btn btn-sm btn-light ml-2">Logout</button>
+        </form>
     </div>
-    <div class="navbar-collapse collapse">
-      <ul class="nav navbar-nav navbar-right">
-        
-        <li class="dropdown">
-          <a class="dropdown-toggle" role="button" data-toggle="dropdown" href="#">
-            <i class="glyphicon glyphicon-user"></i> {{ Auth::user()->name }} <span class="caret"></span></a>
-          <ul id="g-account-menu" class="dropdown-menu" role="menu">
-            <li><a href="#">My Profile</a></li>
-            <li><a href="{{ route('welcome') }}"><i class="glyphicon glyphicon-lock"></i> Logout</a></li>
-          </ul>
-        </li>
-      </ul>
-    </div>
-  </div><!-- /container -->
 </div>
-<!-- /Header -->
 
-<!-- Main -->
-<div class="container bootstrap snippets bootdey">
-  
-  <!-- upper section -->
+<div class="container-fluid mt-4">
   <div class="row">
+    <!-- Sidebar -->
     <div class="col-md-3">
-      <!-- left -->
-      <a href="#"><strong><i class="glyphicon glyphicon-briefcase"></i> Toolbox</strong></a>
-      <hr>
-      
-      <ul class="nav nav-pills nav-stacked">
-        <li><a href="{{ route('notifications') }}"><i class="glyphicon glyphicon-flash"></i> Notifications</a></li>
-        <!-- <li><a href="#"><i class="glyphicon glyphicon-link"></i> Links</a></li>
-        <li><a href="#"><i class="glyphicon glyphicon-list-alt"></i> Reports</a></li>
-        <li><a href="#"><i class="glyphicon glyphicon-book"></i> Books</a></li>
-        <li><a href="#"><i class="glyphicon glyphicon-briefcase"></i> Tools</a></li>
-        <li><a href="#"><i class="glyphicon glyphicon-time"></i> Real-time</a></li>
-        <li><a href="#"><i class="glyphicon glyphicon-plus"></i> Advanced..</a></li> -->
-      </ul>
-      
-      <hr>
-      
-  	</div><!-- /span-3 -->
-    <div class="col-md-9">   	
-      <!-- column 2 -->	
-       <a href="#"><strong><i class="glyphicon glyphicon-dashboard"></i> My Dashboard</strong></a>     
-       <hr>
-	   <div class="row">
-            <!-- center left-->	
-         	<div class="col-md-7">
-			  <div class="well">Inbox Messages <span class="badge pull-right">3</span></div>
-              
-              <hr>
-              
-              <div class="panel panel-default">
-                  <div class="panel-heading"><h4>Processing Status</h4></div>
-                  <div class="panel-body">
-                    
-                    <small>Complete</small>
-                    <div class="progress">
-                      <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100" style="width: 72%">
-                        <span class="sr-only">72% Complete</span>
-                      </div>
+        <div class="sidebar">
+            <h5><i class="glyphicon glyphicon-cog"></i> Admin Tools</h5>
+            <hr>
+            <a href="{{ route('admin.dashboard') }}"><i class="glyphicon glyphicon-dashboard"></i> Dashboard</a>
+            <a href="{{ route('dashboard') }}"><i class="glyphicon glyphicon-home"></i> User View</a>
+            <a href="#"><i class="glyphicon glyphicon-user"></i> Manage Users</a>
+            <a href="#"><i class="glyphicon glyphicon-stats"></i> Analytics</a>
+            <a href="#"><i class="glyphicon glyphicon-wrench"></i> Settings</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-9">
+      <!-- Summary Cards -->
+      <div class="row mb-4">
+        @foreach (['Fire','Crime','Traffic','Others'] as $cat)
+            @php
+                $count = data_get($accidentCounts->firstWhere('accident_type', $cat), 'total', 0);
+            @endphp
+            <div class="col-md-3 mb-3">
+                <div class="card text-center p-3">
+                    <div style="font-size:32px;">
+                        @if ($cat === 'Fire') 🔥 
+                        @elseif ($cat === 'Crime') 🕵️‍♀️ 
+                        @elseif ($cat === 'Traffic') 🚗 
+                        @else 📍 @endif
                     </div>
-                    <small>In Progress</small>
-                    <div class="progress">
-                      <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 20%">
-                        <span class="sr-only">20% Complete</span>
-                      </div>
-                    </div>
-                    <small>At Risk</small>
-                    <div class="progress">
-                      <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: 80%">
-                        <span class="sr-only">80% Complete</span>
-                      </div>
-                    </div>
+                    <h5>{{ $cat }}</h5>
+                    <div class="h4 mb-0">{{ $count }}</div>
+                    <small class="text-muted">reports</small>
+                </div>
+            </div>
+        @endforeach
+      </div>
 
-                  </div><!--/panel-body-->
-              </div><!--/panel-->                     
-              
-          	</div><!--/col-->
-         
-            <!--center-right-->
-        	<div class="col-md-5">
-              
-                <ul class="nav nav-justified">
-         			<li><a href="#"><i class="glyphicon glyphicon-cog"></i></a></li>
-                    <li><a href="#"><i class="glyphicon glyphicon-heart"></i></a></li>
-         			<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="glyphicon glyphicon-comment"></i><span class="count">3</span></a><ul class="dropdown-menu" role="menu"><li><a href="#">1. Is there a way..</a></li><li><a href="#">2. Hello, admin. I would..</a></li><li><a href="#"><strong>All messages</strong></a></li></ul></li>
-         			<li><a href="#"><i class="glyphicon glyphicon-user"></i></a></li>
-         			<li><a title="Add Widget" data-toggle="modal" href="#addWidgetModal"><span class="glyphicon glyphicon-plus-sign"></span></a></li>
-       			</ul>  
-              
-                <hr>
-              
-				<p>
-                  This is a responsive dashboard-style layout that uses <a href="https://www.getbootstrap.com">Bootstrap 3</a>. You can use this template as a starting point to create something more unique.
-                </p>    
-                <hr>
-              
-                <div class="btn-group btn-group-justified">
-                  <a href="#" class="btn btn-info col-sm-3">
-                    <i class="glyphicon glyphicon-plus"></i><br>
-                    Service
-                  </a>
-                  <a href="#" class="btn btn-info col-sm-3">
-                    <i class="glyphicon glyphicon-cloud"></i><br>
-                    Cloud
-                  </a>
-                  <a href="#" class="btn btn-info col-sm-3">
-                    <i class="glyphicon glyphicon-cog"></i><br>
-                    Tools
-                  </a>
-                  <a href="#" class="btn btn-info col-sm-3">
-                    <i class="glyphicon glyphicon-question-sign"></i><br>
-                    Help
-                  </a>
-               </div>    
-			</div><!--/col-span-6-->
-       </div><!--/row-->
-  	</div><!--/col-span-9-->
-  </div><!--/row-->
-  <!-- /upper section -->
-</div><!--/container-->
-<!-- /Main -->
+      <!-- Top Locations -->
+      <div class="card mb-4">
+        <div class="card-header bg-light">
+          <strong>📍 Top Locations by Reported Incidents</strong>
+        </div>
+        <div class="card-body p-0">
+          @if($topLocations->isEmpty())
+            <p class="p-3 text-muted">No data available.</p>
+          @else
+            <table class="table mb-0">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Location</th>
+                  <th class="text-end">Reports</th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach($topLocations as $index => $loc)
+                  <tr>
+                    <td>{{ $loop->iteration }}</td>
+                    <td>{{ $loc->location ?: 'Unknown' }}</td>
+                    <td class="text-end">{{ $loc->total }}</td>
+                  </tr>
+                @endforeach
+              </tbody>
+            </table>
+          @endif
+        </div>
+      </div>
 
-
-
-
-  
-<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-<script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.1/js/bootstrap.min.js"></script>
-<script type="text/javascript">
-	
-</script>
-</body>
-</html>
+      <!-- Reported Posts -->
+      <div class="card">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+          <strong>🚨 Reported Posts</strong>
+          <span class="small text-muted">{{ $reportedPosts->total() }} total</span>
+        </div>
+        <div class="card-body p-0">
+          @if($reportedPosts->isEmpty())
+            <p class="p-3 text-muted mb-0">No reported posts.</p>
+          @else
+            <div class="table-responsive">
+              <table class="table table-striped mb-0">
+                <thead>
+                  <tr>
+                    <th>Post</th>
+                    <th>Author</th>
+                    <th>Reporter(s)</th>
+                    <th>Reason</th>
+                    <th class="text-center"># Reports</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach($reportedPosts as $group)
+                    @php
+                      $post = $group->post;
+                      $reports = $group->reports;
+                    @endphp
+                    <tr>
+                      <td style="max-width:260px;">
+                        <strong>#{{ $post->id }}</strong> {{ Str::limit($post->content, 100) }}
+                        @if($post->image_url)
+                            <div class="mt-2">
+                                @if($post->media_type === 'video')
+                                    <video width="100%" height="120" controls>
+                                        <source src="{{ $post->image_url }}" type="video/mp4">
+                                    </video>
+                                @else
+                                    <img src="{{ $post->image_url }}" class="img-fluid rounded">
+                                @endif
+                            </div>
+                        @endif
+                      </td>
+                      <td>
+                        <strong>{{ $post->user->name }}</strong><br>
+                        <small class="text-muted">{{ $post->user->email }}</small>
+                      </td>
+                      <td>
+                        @foreach($reports->take(2) as $r)
+                          <div>{{ $r->user->name }} <span class="small text-muted">({{ $r->created_at->diffForHumans() }})</span></div>
+                        @endforeach
+                        @if($reports->count() > 2)
+                          <div class="small text-muted">+{{ $reports->count() - 2 }} more</div>
+                        @endif
+                      </td>
+                      <td><span class="badge-category">{{ $reports->first()->reason }}</span></td>
+                      <td class="text-center">{{ $group->reports_count }}</td>
+                      <td class="text-end">
+                        <form action="{{ route('admin.reports.resolve', ['post'=>$post->id]) }}" method="POST" class="d-inline">
+                            @csrf
+                            <input type="hidden" name="action" value="dismiss">
+                            <button type="submit" class="btn btn-sm btn-success" title="Mark reviewed">Dismiss</button>
+                        </form>
+                        <form action="{{ route('admin.posts.remove', ['post'=>$post->id]) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-danger" title="Remove post">Remove</button>
+                        </form>
+                      </td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3">{{ $reportedPosts->links() }}</div>
+          @endif
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+@endsection
