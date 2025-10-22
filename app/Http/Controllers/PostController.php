@@ -38,9 +38,10 @@ class PostController extends Controller
         // Get reported posts with reports (for admin view)
         $reportedPosts = Post::with(['user', 'reports.user'])
             ->withCount('reports')
-            ->having('reports_count', '>', 0)
+            ->whereHas('reports') // ✅ Works in SQLite, MySQL, and Postgres
             ->orderBy('reports_count', 'desc')
             ->paginate(20);
+
 
         return view('dashboard', compact('posts', 'accidentCounts', 'topLocations', 'reportedPosts'));
     }
@@ -349,11 +350,11 @@ class PostController extends Controller
 
         // Get reported posts with reports
         $reportedPosts = Post::with(['user', 'reports.user'])
-            ->join('reports', 'posts.id', '=', 'reports.post_id')
-            ->select('posts.*', \DB::raw('COUNT(reports.id) as reports_count'))
-            ->groupBy('posts.id')
+            ->withCount('reports')
+            ->whereHas('reports') // ✅ Fix for SQLite
             ->orderBy('reports_count', 'desc')
             ->paginate(20);
+
 
         return view('dashboard', compact('accidentCounts', 'topLocations', 'reportedPosts'));
     }
