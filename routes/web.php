@@ -128,4 +128,11 @@ Route::middleware('auth')->group(function () {
 
     // Logout
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');
+
+    // Admin Routes
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', [PostController::class, 'adminDashboard'])->name('dashboard');
+        Route::post('/reports/{post}/resolve', [\App\Http\Controllers\ReportController::class, 'resolve'])->name('reports.resolve');
+        Route::post('/posts/{post}/remove', [PostController::class, 'adminRemove'])->name('posts.remove');
+    });
 });

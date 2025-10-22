@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\Comment;
 use App\Models\PostLike;
+use App\Models\Report;
 
 class Post extends Model
 {
@@ -70,6 +71,12 @@ class Post extends Model
         return $this->hasMany(Comment::class)
             ->whereNull('parent_id')
             ->with(['user', 'replies.user']); // eager load nested replies
+    }
+
+    // A post can have many reports
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
     }
 
     /*
@@ -151,8 +158,8 @@ class Post extends Model
             $post->likes()->delete();
 
             // delete stored media file if it exists in public disk
-            if ($post->image && Storage::disk('public')->exists($post->image)) {
-                Storage::disk('public')->delete($post->image);
+            if ($post->image && Storage::disk('public')->exists($this->image)) {
+                Storage::disk('public')->delete($this->image);
             }
         });
     }

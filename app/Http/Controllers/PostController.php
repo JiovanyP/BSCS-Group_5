@@ -21,7 +21,28 @@ class PostController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('dashboard', compact('posts'));
+        // Get accident counts by type
+        $accidentCounts = Post::selectRaw('accident_type, COUNT(*) as total')
+            ->whereNotNull('accident_type')
+            ->groupBy('accident_type')
+            ->get();
+
+        // Get top locations by reported incidents
+        $topLocations = Post::selectRaw('location, COUNT(*) as total')
+            ->whereNotNull('location')
+            ->groupBy('location')
+            ->orderBy('total', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Get reported posts with reports (for admin view)
+        $reportedPosts = Post::with(['user', 'reports.user'])
+            ->withCount('reports')
+            ->having('reports_count', '>', 0)
+            ->orderBy('reports_count', 'desc')
+            ->paginate(20);
+
+        return view('dashboard', compact('posts', 'accidentCounts', 'topLocations', 'reportedPosts'));
     }
 
     /**
@@ -305,5 +326,50 @@ class PostController extends Controller
             'success' => true,
             'message' => 'Thank you for your report. We will review it shortly.'
         ]);
+    }
+
+    /**
+     * Admin Dashboard
+     */
+    public function adminDashboard()
+    {
+        // Get accident counts by type
+        $accidentCounts = Post::selectRaw('accident_type, COUNT(*) as total')
+            ->whereNotNull('accident_type')
+            ->groupBy('accident_type')
+            ->get();
+
+        // Get top locations by reported incidents
+        $topLocations = Post::selectRaw('location, COUNT(*) as total')
+            ->whereNotNull('location')
+            ->groupBy('location')
+            ->orderBy('total', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Get reported posts with reports
+        $reportedPosts = Post::with(['user', 'reports.user'])
+            ->join('reports', 'posts.id', '=', 'reports.post_id')
+            ->select('posts.*', \DB::raw('COUNT(reports.id) as reports_count'))
+            ->groupBy('posts.id')
+            ->orderBy('reports_count', 'desc')
+            ->paginate(20);
+
+        return view('dashboard', compact('accidentCounts', 'topLocations', 'reportedPosts'));
+    }
+
+    /**
+     * Admin remove post
+     */
+    public function adminRemove(Post $post)
+    {
+        // Delete file from storage if exists
+        if ($post->image && Storage::disk('public')->exists($post->image)) {
+            Storage::disk('public')->delete($post->image);
+        }
+
+        $post->delete();
+
+        return redirect()->back()->with('success', 'Post removed successfully!');
     }
 }
