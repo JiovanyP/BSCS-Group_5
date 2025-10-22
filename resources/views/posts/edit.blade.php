@@ -1,82 +1,171 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Edit Post</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="csrf-token" content="{{ csrf_token() }}">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://maxcdn.icons8.com/fonts/line-awesome/1.1/css/line-awesome.min.css">
-  <style>
-    body { background:#0f0f10; color:#fff; }
-    .card { background: #1f1f20; border-color: #3a3a3c; }
-  </style>
-</head>
-<body>
-<div class="container mt-5">
-  <div class="row justify-content-center">
-    <div class="col-md-8">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h3 class="mb-0">Edit Post</h3>
-          <a href="{{ route('timeline') }}" class="btn btn-outline-light btn-sm">Back</a>
-        </div>
+@extends('layouts.app')
 
-        <div class="card-body">
-          {{-- UPDATE FORM --}}
-          <form id="update-post-form" action="{{ route('posts.update', $post) }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            @method('PUT')
+@section('title', 'Edit Report')
 
-            <div class="form-group">
-              <label for="content">Content</label>
-              <textarea class="form-control" id="content" name="content" rows="3" required>{{ old('content', $post->content) }}</textarea>
-              @error('content') <small class="text-danger">{{ $message }}</small> @enderror
-            </div>
+@section('content')
 
-            <div class="form-group">
-              <label for="image">Replace media (optional)</label>
-              <input type="file" class="form-control-file" id="image" name="image" accept="image/*,video/*,image/gif">
-              @error('image') <small class="text-danger">{{ $message }}</small> @enderror
-              <small class="form-text text-muted">Allowed: jpeg,png,jpg,gif,mp4,mov,avi,webm. Max 20MB.</small>
-            </div>
+<div class="post-container" role="main" aria-labelledby="editPostTitle">
+    <h1 id="editPostTitle"><strong>Edit Report</strong></h1>
+    <div class="subtitle">Modify your report details or replace the attached media</div>
+<form id="update-post-form" action="{{ route('posts.update', $post) }}" method="POST" enctype="multipart/form-data" novalidate>
+    @csrf
+    @method('PUT')
 
-            @if ($post->image)
-              <div class="mb-3">
-                <label class="d-block text-muted">Current media</label>
-                @if($post->media_type === 'video')
-                  <video controls class="w-100 rounded">
+    <label for="content">Your Report (Required)</label>
+    <textarea id="content" name="content" rows="4" required>{{ old('content', $post->content) }}</textarea>
+    @error('content')
+        <small class="text-danger">{{ $message }}</small>
+    @enderror
+
+    <label for="image">Replace Image/Video (Optional)</label>
+    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <input id="image" name="image" type="file" accept="image/*,video/*,image/gif" style="flex: 1; margin-bottom: 0;" />
+    </div>
+
+    @if ($post->image)
+        <div id="preview-container" style="margin-bottom:12px;">
+            <label>Current Media</label>
+            @if($post->media_type === 'video')
+                <video controls style="max-width:100%; max-height:200px; border-radius:8px;">
                     <source src="{{ asset('storage/' . $post->image) }}" type="video/{{ pathinfo($post->image, PATHINFO_EXTENSION) }}">
                     Your browser does not support the video tag.
-                  </video>
-                @else
-                  <img src="{{ asset('storage/' . $post->image) }}" class="img-fluid rounded">
-                @endif
-              </div>
+                </video>
+            @else
+                <img src="{{ asset('storage/' . $post->image) }}" alt="Current Image" style="max-width:100%; max-height:200px; border-radius:8px; object-fit:cover;">
             @endif
-
-            <div class="d-flex">
-              <button type="submit" class="btn btn-primary mr-2" style="background:#ff0b55;border:none;">Update Post</button>
-              <a href="{{ route('timeline') }}" class="btn btn-secondary ml-auto">Cancel</a>
-            </div>
-          </form>
-
-          {{-- DELETE FORM (SEPARATE, NOT NESTED) --}}
-          <div class="mt-3">
-            <form id="delete-post-form" action="{{ route('posts.destroy', $post) }}" method="POST" onsubmit="return confirm('Delete this post? This cannot be undone.');">
-              @csrf
-              @method('DELETE')
-              <button type="submit" class="btn btn-danger">Delete Post</button>
-            </form>
-          </div>
-
         </div>
-      </div>
+    @endif
+
+    <div class="btn-group">
+        <button type="submit" class="btn btn-primary">Update Post</button>
+        <a href="{{ route('timeline') }}" class="btn btn-secondary">Cancel</a>
     </div>
-  </div>
+</form>
+
+<form id="delete-post-form" action="{{ route('posts.destroy', $post) }}" method="POST" onsubmit="return confirm('Delete this post? This cannot be undone.');" style="margin-top: 16px;">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="btn btn-danger">Delete Post</button>
+</form>
+
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<style>
+    :root {
+        --accent: #CF0F47;
+        --accent-2: #FF0B55;
+        --card-bg: #ffffff;
+        --muted: #666;
+    }
+
+    .post-container {
+        width: 460px;
+        max-width: calc(100% - 40px);
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 36px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+        margin: 0 auto;
+    }
+
+    .post-container h1 {
+        margin: 0 0 14px 0;
+        color: var(--accent);
+        font-size: 24px;
+        letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+        color: var(--muted);
+        margin-bottom: 18px;
+        font-size: 13px;
+    }
+
+    .post-container label {
+        display: block;
+        font-size: 13px;
+        color: #444;
+        margin-bottom: 6px;
+    }
+
+    .post-container textarea,
+    .post-container input[type="text"],
+    .post-container input[type="file"],
+    .post-container select {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        margin-bottom: 12px;
+        box-sizing: border-box;
+        font-size: 14px;
+        background: #fbfbfb;
+    }
+
+    .post-container textarea {
+        resize: none;
+        min-height: 100px;
+    }
+
+    .post-container textarea:focus,
+    .post-container input:focus {
+        border-color: var(--accent);
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(207, 15, 71, 0.1);
+        outline: none;
+    }
+
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .post-container .btn {
+        display: block;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 0;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 15px;
+        transition: 0.25s;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .post-container a.btn {
+        text-decoration: none;
+    }
+
+    .post-container .btn-primary {
+        background: var(--accent);
+        color: #fff;
+    }
+
+    .post-container .btn-primary:hover {
+        background: var(--accent-2);
+    }
+
+    .post-container .btn-secondary {
+        background: #eee;
+        color: #444;
+    }
+
+    .post-container .btn-secondary:hover {
+        background: #ddd;
+    }
+
+    .post-container .btn-danger {
+        width: 100%;
+        background: #e74c3c;
+        color: #fff;
+        border: none;
+    }
+
+    .post-container .btn-danger:hover {
+        background: #c0392b;
+    }
+</style>
+
+@endsection
