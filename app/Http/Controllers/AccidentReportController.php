@@ -14,6 +14,13 @@ class AccidentReportController extends Controller
         return view('accidents.create');
     }
 
+    public function showReportDetails($id)
+    {
+        $report = Accident::findOrFail($id);
+        return view('accidents.details', compact('report'));
+    }
+
+
     public function store(Request $request)
     {
         // Validation

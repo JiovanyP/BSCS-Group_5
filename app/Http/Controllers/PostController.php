@@ -42,8 +42,7 @@ class PostController extends Controller
             ->orderBy('reports_count', 'desc')
             ->paginate(20);
 
-
-        return view('dashboard', compact('posts', 'accidentCounts', 'topLocations', 'reportedPosts'));
+        return view('newsfeed', compact('posts', 'accidentCounts', 'topLocations', 'reportedPosts'));
     }
 
     /**
@@ -356,8 +355,10 @@ class PostController extends Controller
             ->paginate(20);
 
 
-        return view('dashboard', compact('accidentCounts', 'topLocations', 'reportedPosts'));
+        return view('admin.dashboard', compact('accidentCounts', 'topLocations', 'reportedPosts'));
+
     }
+
 
     /**
      * Admin remove post
