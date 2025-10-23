@@ -3,28 +3,38 @@
 @section('title', 'Timeline')
 
 @section('content')
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <style>
-/* === Variables === */
+/* === VARIABLES & BASE STYLES === */
 :root {
     --primary: #494ca2;
     --accent: #CF0F47;
-    --accent-hover: #FF0B55;
+    --accent-2: #FF0B55;
     --card-bg: #ffffff;
     --text-muted: #666;
+    --border-color: #ddd;
+    --input-bg: #fbfbfb;
+    --btn-disabled-bg: #e0e0e0;
+    --btn-disabled-color: #999;
+    --reply-btn-default: #888;
+    /* Custom voting colors */
+    --upvote-color: #28a745;
+    --downvote-color: #dc3545;
 }
 
-.main-content { 
-    flex: 1; 
-    overflow-y: auto; 
+.main-content {
+    flex: 1;
+    overflow-y: auto;
     position: relative;
     background: #f8f9fa;
     padding: 20px 0;
 }
 
-/* === Post Card === */
+/* === POST CARD === */
 .post-card {
-    display: flex;
     background: var(--card-bg);
     border-radius: 16px;
     box-shadow: 0 12px 40px rgba(0,0,0,0.1);
@@ -32,337 +42,283 @@
     transition: all 0.25s ease;
 }
 
-.post-card:hover { 
-    box-shadow: 0 16px 50px rgba(0,0,0,0.15);
-    transform: translateY(-2px);
+.post-content {
+    padding: 1.5rem 2rem;
 }
 
-.vote-column {
-    width: 60px;
-    text-align: center;
-    padding: 1rem 0.5rem;
-    border-right: 1px solid #eee;
-    background: #fbfbfb;
-    border-radius: 16px 0 0 16px;
+/* Post Header and Report Details */
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
 }
 
-.vote-column i.la {
-    font-size: 22px;
-    cursor: pointer;
-    margin: 6px auto;
-    color: #888;
-    transition: color 0.2s;
+.report-details {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+.report-details .location {
+    font-weight: 500;
+    color: #333;
+    text-transform: none;
 }
 
-.vote-column .voted-up i.la-arrow-up { color: #28a745; }
-.vote-column .voted-down i.la-arrow-down { color: var(--accent); }
-.vote-count { font-weight: bold; color: #333; }
-
-.post-content { flex: 1; padding: 1.5rem 2rem; }
-.post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-.post-body { 
+.post-body {
     color: #333;
     line-height: 1.6;
     font-size: 15px;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
 }
-.post-body img, .post-body video { 
-    max-width: 100%; 
-    border-radius: 10px; 
+.post-body img, .post-body video {
+    max-width: 100%;
+    border-radius: 10px;
     margin-top: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
+/* === Post Signature Spacing === */
+.post-signature {
+    padding-top: 10px;
+    margin-bottom: 1rem;
+    border-top: 1px solid #f0f0f0;
+}
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Standard spacing between elements */
+}
+.user-info strong {
+    font-size: 15px;
+    font-weight: 600;
+}
+.user-info small {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-left: auto; /* Pushes the time to the far right */
+}
+
+/* === POST FOOTER (Voting and Comments) === */
 .post-footer {
+    display: flex;
+    align-items: center;
     margin-top: 1rem;
     padding-top: 0.75rem;
     border-top: 1px solid #f0f0f0;
+    gap: 15px; /* Spacing between comment pill and vote pill */
 }
 
-.post-footer a {
+.footer-action {
+    display: flex;
+    align-items: center;
     color: var(--text-muted);
     text-decoration: none;
     font-size: 14px;
+    font-weight: 500;
     transition: color 0.2s;
+    cursor: pointer;
 }
 
-.post-footer a:hover {
-    color: var(--accent);
+.comment-container {
+    display: flex;
+    align-items: center;
+    background: #f0f0f0;
+    border-radius: 18px;
+    padding: 2px 8px;
+    transition: background 0.2s;
+}
+.comment-container:hover {
+    background: #e9e9e9;
+}
+.comment-container .footer-action {
+    padding: 4px 6px;
+    color: var(--text-muted);
+}
+.comment-container .footer-action:hover {
+    color: var(--accent); /* Pink when hovered/clicked */
+}
+.comment-container .material-icons-outlined {
+    margin-right: 4px;
+    font-size: 20px;
 }
 
-/* === Comments === */
+.vote-container {
+    display: flex;
+    align-items: center;
+    margin-left: auto; /* Pushes the vote counter to the right */
+    background: #f0f0f0;
+    border-radius: 18px;
+    padding: 2px;
+}
+
+.upvote-btn, .downvote-btn {
+    padding: 4px 8px;
+}
+.upvote-btn:hover { color: var(--upvote-color); }
+.downvote-btn:hover { color: var(--downvote-color); }
+
+.voted-up { color: var(--upvote-color) !important; }
+.voted-down { color: var(--downvote-color) !important; }
+
+/* === Comments & Replies Styles === */
 .comments-section {
     display: none;
     background: #f8f9fa;
     border-top: 1px solid #eee;
-    padding: 1.5rem 2rem;
+    padding: 1.5rem 2rem 0;
     border-radius: 0 0 16px 16px;
     margin: 0 -2rem -1.5rem -2rem;
+    overflow: hidden;
 }
 
 .comment {
-    padding: 10px 0;
-    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+    gap: 8px; 
 }
-
-.comment:last-child {
-    border-bottom: none;
+.comment img {
+    flex-shrink: 0;
 }
-
 .comment strong {
-    color: #333;
     font-weight: 600;
+    margin-right: 4px;
 }
 
-.replies {
-    margin-left: 2rem;
-    margin-top: 0.75rem;
+.replies .comment {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px; 
+    margin-left: 20px; 
+    margin-top: 4px;
+}
+
+.comments-section > .input-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+    height: 44px;
+}
+
+.comment-input, .reply-input {
+    width: 100%;
+    padding: 12px 60px 12px 16px !important;
+    border-radius: 22px !important;
+    border: 1px solid var(--border-color);
+    font-size: 14px;
+    background: var(--input-bg);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+}
+
+.comment-input:focus, .reply-input:focus {
+    border-color: var(--accent) !important;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(207, 15, 71, 0.15) !important;
+    outline: none;
+}
+
+.comment-send, .reply-send {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: var(--btn-disabled-bg) !important;
+    color: var(--btn-disabled-color) !important;
+    border: none;
+    font-weight: 700;
+    transition: background 0.25s, color 0.25s;
+    padding: 4px 12px;
+    font-size: 14px;
+    border-radius: 18px !important;
+    height: 34px;
+    line-height: 1.8;
+}
+
+.comment-send:not(:disabled), .reply-send:not(:disabled) {
+    background: var(--accent) !important;
+    color: #fff !important;
+}
+.comment-send:not(:disabled):hover, .reply-send:not(:disabled):hover {
+    background: var(--accent-2) !important;
 }
 
 .reply-btn {
     font-size: 0.875rem;
     cursor: pointer;
+    color: var(--reply-btn-default) !important;
+    font-weight: 500;
+    text-decoration: none !important;
+    transition: color 0.2s;
+    display: inline-block;
+}
+.reply-btn:hover, .reply-btn:focus {
     color: var(--accent) !important;
-    font-weight: 500;
 }
 
-.reply-btn:hover {
-    color: var(--accent-hover) !important;
+.reply-input-group {
+    position: relative;
+    height: 44px;
+    margin-top: 0.75rem;
 }
 
-.comment-input {
-    border-radius: 10px;
-    border: 1px solid #ddd;
-    padding: 10px 14px;
-    font-size: 14px;
-    background: #fff;
-}
-
-.comment-input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(207, 15, 71, 0.1);
-    outline: none;
-}
-
-.comment-send {
-    background: var(--accent) !important;
-    border: none;
-    border-radius: 0 10px 10px 0;
-    padding: 10px 20px;
-    font-weight: 600;
-    transition: background 0.25s;
-}
-
-.comment-send:hover {
-    background: var(--accent-hover) !important;
-}
-
-.reply-send {
-    background: var(--accent) !important;
-    border: none;
-    font-weight: 600;
-}
-
-.reply-send:hover {
-    background: var(--accent-hover) !important;
-}
-
-/* === Alert === */
-.alert {
-    border-radius: 10px;
-    animation: fadeIn 0.3s ease-in;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border: none;
-    font-weight: 500;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* === Modal === */
-.modal-content {
-    border-radius: 16px;
-    border: none;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-}
-
-.modal-header.delete-header { 
-    background-color: var(--accent); 
-    color: white;
-    border: none;
-    border-radius: 16px 16px 0 0;
-    padding: 1.25rem 1.5rem;
-}
-
-.modal-header.delete-header .close {
-    background: transparent;
-    border: none;
-    color: white;
-    opacity: 0.8;
-    font-size: 1.5rem;
-    padding: 0;
-    margin: 0;
-}
-
-.modal-header.delete-header .close:hover {
-    opacity: 1;
-}
-
-.modal-header.report-header { 
-    background-color: #d1ecf1;
-    border: none;
-    border-radius: 16px 16px 0 0;
-    padding: 1.25rem 1.5rem;
-}
-
-.modal-body {
-    padding: 1.5rem;
-    font-size: 15px;
-}
-
-.modal-footer {
-    border: none;
-    padding: 1rem 1.5rem;
-}
-
-.modal-footer .btn {
-    border-radius: 10px;
-    padding: 10px 24px;
-    font-weight: 600;
-    transition: all 0.25s;
-}
-
-.modal-footer .btn-secondary {
-    background: #eee;
-    color: #444;
-    border: none;
-}
-
-.modal-footer .btn-secondary:hover {
-    background: #ddd;
-}
-
-.modal-footer .btn-danger {
-    background: var(--accent);
-    border: none;
-}
-
-.modal-footer .btn-danger:hover {
-    background: var(--accent-hover);
-}
-
-.modal-footer .btn-info {
-    background: var(--primary);
-    border: none;
-}
-
-.modal-footer .btn-info:hover {
-    background: #3a3d82;
-}
-
-/* === Timeline Label === */
-.timeline-label {
-    font-size: 0.9rem;
-    letter-spacing: 0.5px;
-    color: var(--text-muted);
-    font-weight: 600;
-}
-
-/* === Dropdown Buttons === */
-.dropdown-menu {
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    padding: 0.5rem 0;
-    min-width: 160px;
-    border-radius: 12px;
-}
-
-.cute-edit-btn,
-.cute-delete-btn,
-.report-post-btn {
-    color: #6b7280 !important;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    padding: 10px 16px;
-    border-radius: 0;
+/* Dropdown menu items for Edit/Delete/Report */
+.dropdown-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 0.9rem;
-    border: none;
-    width: 100%;
-    text-align: left;
+    gap: 8px; /* Spacing between icon and text */
+}
+.dropdown-item .material-icons {
+    font-size: 18px;
 }
 
-.cute-edit-btn:hover {
-    background: #f3f4f6 !important;
-    color: var(--primary) !important;
+/* === REPORT MODAL SPECIFIC STYLES === */
+
+/* Ensure radio buttons stack */
+.report-reason-list label {
+    display: block; /* Makes each label take up the full width */
+    margin-bottom: 8px; /* Adds space between options */
+    font-weight: 400; /* Standard weight */
+    color: #333; /* Standard text color */
 }
 
-.cute-delete-btn {
-    color: var(--accent) !important;
+/* Style for Report Button (Pink) */
+#confirmReportBtn {
+    background-color: var(--accent) !important;
+    color: #fff !important;
+    border: none !important;
+    font-weight: 700;
+    transition: background-color 0.25s;
+}
+#confirmReportBtn:hover {
+    background-color: var(--accent-2) !important;
 }
 
-.cute-delete-btn:hover {
-    background: #fef2f2 !important;
-    color: var(--accent) !important;
+/* Style for Cancel Button (Grey) */
+.modal-footer .btn-secondary {
+    background-color: #f0f0f0 !important;
+    color: #666 !important;
+    border: 1px solid #ddd !important;
+    font-weight: 500;
+}
+.modal-footer .btn-secondary:hover {
+    background-color: #e9e9e9 !important;
 }
 
-.report-post-btn {
-    color: #f59e0b !important;
-}
-
-.report-post-btn:hover {
-    background: #fffbeb !important;
-    color: #f59e0b !important;
-}
-
-/* === User Info === */
-.user-info img {
-    border: 2px solid #f0f0f0;
-}
-
-.user-info strong {
-    color: #333;
-    font-size: 15px;
-}
-
-.user-info small {
-    font-size: 13px;
-}
-
-/* === Empty State === */
-.text-center.text-muted {
-    padding: 60px 20px;
-    font-size: 16px;
-    color: var(--text-muted);
-}
-
-/* === Report Form === */
-#reportForm label {
-    display: block;
-    padding: 10px 12px;
-    margin: 6px 0;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-#reportForm label:hover {
-    background: #f8f9fa;
-}
-
-#reportForm input[type="radio"] {
-    margin-right: 10px;
-}
 </style>
 
 <div class="main-content">
     <div class="container mt-4">
         <div class="col-xl-8 mx-auto">
 
-            {{-- Success Alert --}}
+            {{-- Success Alert (omitted for brevity) --}}
             @if (session('success'))
                 <div class="alert alert-success text-center" id="successAlert">
                     {{ session('success') }}
@@ -384,46 +340,28 @@
 
                 @php $userVote = $post->userVote(auth()->id()); @endphp
                 <div class="post-card" id="post-{{ $post->id }}">
-                    <div class="vote-column">
-                        <a href="#" class="upvote-btn {{ $userVote==='up'?'voted-up':'' }}" data-id="{{ $post->id }}"><i class="la la-arrow-up"></i></a>
-                        <div class="vote-count" id="upvote-count-{{ $post->id }}">{{ $post->upvotes()->count() - $post->downvotes()->count() }}</div>
-                        <a href="#" class="downvote-btn {{ $userVote==='down'?'voted-down':'' }}" data-id="{{ $post->id }}"><i class="la la-arrow-down"></i></a>
-                    </div>
 
                     <div class="post-content">
                         <div class="post-header">
-                            <div class="user-info d-flex align-items-center">
-                                <img src="{{ $post->user->avatar_url }}" width="38" height="38" class="rounded-circle mr-2">
-                                <strong>{{ $post->user->name }}</strong>
-                                <small class="text-muted ml-3">{{ $post->created_at->diffForHumans() }}</small>
+                            <div class="report-details">
+                                {{ strtoupper($post->accident_type) }} • <span class="location">{{ $post->location }}</span>
+                                @if($post->other_type) <small class="text-muted">({{ $post->other_type }})</small> @endif
                             </div>
+
                             <div class="dropdown">
-                                <a href="#" class="text-muted" data-toggle="dropdown"><i class="la la-ellipsis-h"></i></a>
+                                <a href="#" class="text-muted" data-toggle="dropdown"><span class="material-icons">more_horiz</span></a>
                                 <div class="dropdown-menu dropdown-menu-right">
+                                    {{-- Edit/Delete/Report Buttons as before --}}
                                     @if(auth()->id() === $post->user_id)
                                         <a class="dropdown-item cute-edit-btn" href="{{ route('posts.edit', $post->id) }}">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                            </svg>
-                                            Edit
+                                            <span class="material-icons">edit</span> Edit
                                         </a>
                                         <button class="dropdown-item cute-delete-btn delete-post-btn" data-id="{{ $post->id }}" data-toggle="modal" data-target="#deleteModal">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <polyline points="3 6 5 6 21 6"></polyline>
-                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                <line x1="10" y1="11" x2="10" y2="17"></line>
-                                                <line x1="14" y1="11" x2="14" y2="17"></line>
-                                            </svg>
-                                            Delete
+                                            <span class="material-icons">delete</span> Delete
                                         </button>
                                     @else
                                         <button class="dropdown-item report-post-btn" data-id="{{ $post->id }}" data-toggle="modal" data-target="#reportModal">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-                                                <line x1="4" y1="22" x2="4" y2="15"></line>
-                                            </svg>
-                                            Report
+                                            <span class="material-icons">flag</span> Report
                                         </button>
                                     @endif
                                 </div>
@@ -441,23 +379,52 @@
                             @endif
                         </div>
 
+                        {{-- Post Signature --}}
+                        <div class="post-signature">
+                            <div class="user-info">
+                                <img src="{{ $post->user->avatar_url }}" width="32" height="32" class="rounded-circle">
+                                <strong>{{ $post->user->name }}</strong>
+                                <small>{{ $post->created_at->diffForHumans() }}</small>
+                            </div>
+                        </div>
+                        {{-- END Post Signature --}}
+
+                        {{-- Post Footer with Comment Pill --}}
                         <div class="post-footer">
-                            <a href="#" class="toggle-comments" data-id="{{ $post->id }}"><i class="la la-comment"></i> <span id="comment-count-{{ $post->id }}">{{ $post->total_comments_count }}</span> Comments</a>
+                            <div class="comment-container">
+                                <a href="#" class="toggle-comments footer-action" data-id="{{ $post->id }}">
+                                    <span class="material-icons-outlined">chat_bubble_outline</span>
+                                    <span id="comment-count-{{ $post->id }}">{{ $post->total_comments_count }}</span>
+                                </a>
+                            </div>
+                            
+                            <div class="vote-container">
+                                <a href="#" class="upvote-btn footer-action {{ $userVote==='up'?'voted-up':'' }}" data-id="{{ $post->id }}">
+                                    <span class="material-icons">arrow_upward</span>
+                                </a>
+                                <div class="vote-count" id="upvote-count-{{ $post->id }}">
+                                    {{ $post->upvotes()->count() - $post->downvotes()->count() }}
+                                </div>
+                                <a href="#" class="downvote-btn footer-action {{ $userVote==='down'?'voted-down':'' }}" data-id="{{ $post->id }}">
+                                    <span class="material-icons">arrow_downward</span>
+                                </span>
+                                </a>
+                            </div>
                         </div>
 
                         {{-- Comments --}}
                         <div class="comments-section" id="comments-section-{{ $post->id }}">
                             <div class="comments-list mb-3">
                                 @foreach($post->comments as $comment)
-                                    <div class="comment d-flex align-items-start mb-2" id="comment-{{ $comment->id }}">
-                                        <img src="{{ $comment->user->avatar_url }}" width="28" height="28" class="rounded-circle mr-2">
+                                    <div class="comment" id="comment-{{ $comment->id }}">
+                                        <img src="{{ $comment->user->avatar_url }}" width="28" height="28" class="rounded-circle">
                                         <div style="flex: 1;">
                                             <div><strong>{{ $comment->user->name }}</strong> {{ $comment->content }}</div>
                                             <a href="#" class="reply-btn small" data-id="{{ $comment->id }}">Reply</a>
                                             <div class="replies">
                                                 @foreach($comment->replies as $reply)
-                                                    <div class="comment d-flex align-items-start mb-1" id="comment-{{ $reply->id }}">
-                                                        <img src="{{ $reply->user->avatar_url }}" width="25" height="25" class="rounded-circle mr-2">
+                                                    <div class="comment" id="comment-{{ $reply->id }}">
+                                                        <img src="{{ $reply->user->avatar_url }}" width="25" height="25" class="rounded-circle">
                                                         <div><strong>{{ $reply->user->name }}</strong> {{ $reply->content }}</div>
                                                     </div>
                                                 @endforeach
@@ -467,16 +434,14 @@
                                 @endforeach
                             </div>
                             <div class="input-group">
-                                <input type="text" class="form-control comment-input" placeholder="Add a comment...">
-                                <div class="input-group-append">
-                                    <button class="btn btn-sm comment-send" data-id="{{ $post->id }}">Send</button>
-                                </div>
+                                <input type="text" class="form-control comment-input" id="comment-input-{{ $post->id }}" placeholder="Add a comment...">
+                                <button class="comment-send" data-id="{{ $post->id }}" id="comment-send-{{ $post->id }}" disabled>Send</button>
                             </div>
                         </div>
                     </div>
                 </div>
             @empty
-                <p class="text-center text-muted">No posts yet.</p>
+                <p class="text-center text-muted">No reports yet.</p>
             @endforelse
 
             <div class="d-flex justify-content-center mt-4">{{ $posts->links() }}</div>
@@ -484,15 +449,15 @@
     </div>
 </div>
 
-{{-- Delete Modal --}}
+{{-- Delete Modal (No changes requested) --}}
 <div class="modal fade" id="deleteModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header delete-header">
-        <h5 class="modal-title"><i class="la la-exclamation-circle"></i> Delete Post</h5>
+        <h5 class="modal-title"><span class="material-icons">warning</span> Delete Report</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
-      <div class="modal-body">Are you sure you want to delete this post?</div>
+      <div class="modal-body">Are you sure you want to delete this report?</div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
@@ -501,17 +466,18 @@
   </div>
 </div>
 
-{{-- Report Modal --}}
+{{-- MODIFIED REPORT MODAL --}}
 <div class="modal fade" id="reportModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header report-header">
-        <h5 class="modal-title"><i class="la la-flag"></i> Report Post</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        {{-- Removed the 'x' close button here --}}
+        <h5 class="modal-title"><span class="material-icons">flag</span> Report Post</h5>
       </div>
       <div class="modal-body">
         <p>Select a reason for reporting:</p>
-        <form id="reportForm">
+        <form id="reportForm" class="report-reason-list">
+          {{-- Applied 'display: block' styling via .report-reason-list for stacking --}}
           <label><input type="radio" name="reason" value="spam"> It's spam</label>
           <label><input type="radio" name="reason" value="violence"> Violence or threats</label>
           <label><input type="radio" name="reason" value="hate_speech"> Hate speech</label>
@@ -520,73 +486,44 @@
         </form>
       </div>
       <div class="modal-footer">
+        {{-- Cancel button is now grey --}}
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-info" id="confirmReportBtn">Report</button>
+        {{-- Report button is now pink --}}
+        <button type="button" class="btn" id="confirmReportBtn">Report</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Load jQuery and Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Weather API Script -->
-<script>
-// Kabacan coords: 7.1067° N, 124.8294° E
-async function fetchWeather() {
-    try {
-        const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=7.1067&longitude=124.8294&current_weather=true");
-        const data = await res.json();
-        const weather = data.current_weather;
-        const container = document.getElementById("weather-info");
-
-        if (weather) {
-            const temp = weather.temperature;
-            const wind = weather.windspeed;
-            const code = weather.weathercode;
-
-            // Emoji icons for cuteness
-            let icon = "☁️";
-            if (code === 0) icon = "☀️"; // clear
-            else if ([1,2].includes(code)) icon = "🌤";
-            else if ([3,45,48].includes(code)) icon = "☁️";
-            else if ([51,61,80].includes(code)) icon = "🌧";
-            else if ([71,85].includes(code)) icon = "❄️";
-            else if ([95,96,99].includes(code)) icon = "⛈";
-
-            container.innerHTML = `
-                <p style="font-size: 32px;">${icon}</p>
-                <p>🌡️ ${temp}°C</p>
-                <p>💨 ${wind} km/h</p>
-            `;
-        } else {
-            container.innerHTML = "<p>Weather data unavailable.</p>";
-        }
-    } catch (err) {
-        document.getElementById("weather-info").innerHTML = "<p>Failed to load weather.</p>";
-    }
-}
-
-// Only run weather fetch if weather-info element exists (i.e., in sidebar)
-if (document.getElementById("weather-info")) {
-    fetchWeather();
-    // Optional auto-refresh every 10 minutes
-    setInterval(fetchWeather, 600000);
-}
-</script>
-
-<!-- Timeline Scripts -->
 <script>
 $(function(){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
   let currentPostId = null;
-  let currentCommentId = null;
+
+  // --- Dynamic Send Button Logic ---
+  $(document).on('input', '.comment-input', function() {
+    const postId = $(this).attr('id').replace('comment-input-', '');
+    const sendBtn = $(`#comment-send-${postId}`);
+    sendBtn.prop('disabled', $(this).val().trim() === '');
+  });
+
+  $(document).on('input', '.reply-input', function() {
+    const sendBtn = $(this).closest('.reply-input-group').find('.reply-send');
+    sendBtn.prop('disabled', $(this).val().trim() === '');
+  });
+  // ---------------------------------
 
   $(document).on('click','.toggle-comments',function(e){
     e.preventDefault();
     const id=$(this).data('id');
-    $(`#comments-section-${id}`).slideToggle('fast');
+    $(`#comments-section-${id}`).slideToggle('fast', function() {
+        const input = $(`#comment-input-${id}`);
+        const sendBtn = $(`#comment-send-${id}`);
+        sendBtn.prop('disabled', input.val().trim() === '');
+    });
   });
 
   $(document).on('click','.upvote-btn,.downvote-btn',function(e){
@@ -600,15 +537,19 @@ $(function(){
     });
   });
 
-  $(document).on('click','.comment-send',function(){
+  $(document).on('click','.comment-send:not(:disabled)',function(){
     const btn=$(this);
     const id=btn.data('id');
-    const input=btn.closest('.input-group').find('.comment-input');
+    const input=$(`#comment-input-${id}`);
     const content=input.val().trim();
     if(!content) return;
+
+    btn.prop('disabled', true);
+    btn.text('Sending...');
+
     $.post(`/posts/${id}/comments`,{content:content},res=>{
-      const html=`<div class="comment d-flex align-items-start mb-2" id="comment-${res.id}">
-          <img src="${res.avatar}" width="28" height="28" class="rounded-circle mr-2">
+      const html=`<div class="comment" id="comment-${res.id}">
+          <img src="${res.avatar}" width="28" height="28" class="rounded-circle">
           <div style="flex: 1;">
               <div><strong>${res.user}</strong> ${res.comment}</div>
               <a href="#" class="reply-btn small" data-id="${res.id}">Reply</a>
@@ -619,6 +560,7 @@ $(function(){
       const count = parseInt($(`#comment-count-${id}`).text()) + 1;
       $(`#comment-count-${id}`).text(count);
       input.val('');
+      btn.text('Send');
     });
   });
 
@@ -626,31 +568,40 @@ $(function(){
     e.preventDefault();
     const commentId=$(this).data('id');
     const repliesDiv=$(`#comment-${commentId} .replies`);
-    
+
     if(repliesDiv.find('.reply-input-group').length === 0){
-      const replyInput=`<div class="input-group input-group-sm mt-2 reply-input-group">
-          <input type="text" class="form-control reply-input" placeholder="Write a reply..." style="border-radius: 10px 0 0 10px; border: 1px solid #ddd;">
-          <div class="input-group-append">
-              <button class="btn btn-sm reply-send" data-comment-id="${commentId}" style="border-radius: 0 10px 10px 0;">Send</button>
-          </div>
+      const replyInputId = `reply-input-${commentId}`;
+      const replySendId = `reply-send-${commentId}`;
+
+      const replyInput=`<div class="reply-input-group">
+          <input type="text" class="form-control reply-input" id="${replyInputId}" placeholder="Write a reply...">
+          <button class="reply-send" data-comment-id="${commentId}" id="${replySendId}" disabled>Send</button>
       </div>`;
       repliesDiv.append(replyInput);
+      $(`#${replyInputId}`).trigger('input');
     }
   });
 
-  $(document).on('click','.reply-send',function(){
+  $(document).on('click','.reply-send:not(:disabled)',function(){
     const btn=$(this);
     const commentId=btn.data('comment-id');
-    const input=btn.closest('.input-group').find('.reply-input');
+    const input=$(`#reply-input-${commentId}`);
     const content=input.val().trim();
     if(!content) return;
-    
+
+    btn.prop('disabled', true);
+    btn.text('Sending...');
+
     $.post(`/comments/${commentId}/reply`,{content:content},res=>{
-      const html=`<div class="comment d-flex align-items-start mb-1" id="comment-${res.id}">
-          <img src="${res.avatar}" width="25" height="25" class="rounded-circle mr-2">
-          <div><strong>${res.user}</strong> ${res.comment}</div>
+      const html=`<div class="comment" id="comment-${res.id}">
+          <img src="${res.avatar}" width="25" height="25" class="rounded-circle">
+          <div><strong>${res.user}</strong> ${res.content}</div>
       </div>`;
       $(`#comment-${commentId} .replies`).prepend(html);
+      const postId = $(`#comment-${commentId}`).closest('.post-content').find('.toggle-comments').data('id');
+      const countSpan = $(`#comment-count-${postId}`);
+      countSpan.text(parseInt(countSpan.text()) + 1);
+
       input.closest('.reply-input-group').remove();
     });
   });

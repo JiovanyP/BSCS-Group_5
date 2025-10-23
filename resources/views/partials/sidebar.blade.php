@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Publ Sidebar with Weather</title>
 
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
     <style>
     :root {
         --primary: #494ca2;
@@ -87,7 +89,8 @@
         color: var(--black);
     }
 
-    .sidebar ul li a i {
+    /* 2. MODIFIED: Target Material Icons class for styling */
+    .sidebar ul li a .material-icons {
         font-size: 18px;
         width: 24px;
     }
@@ -192,34 +195,33 @@
         <ul class="components">
             <li class="{{ request()->routeIs('timeline') ? 'active' : '' }}">
                 <a href="{{ route('timeline') }}">
-                    <i class="la la-home me-2"></i>
+                    <span class="material-icons me-2">home</span>
                     <span>Home</span>
                 </a>
             </li>
 
             <li class="{{ request()->routeIs('posts.create') ? 'active' : '' }}">
                 <a href="{{ route('posts.create') }}">
-                    <i class="la la-plus-circle me-2"></i>
+                    <span class="material-icons me-2">add_circle</span>
                     <span>Create Post</span>
                 </a>
             </li>
 
-            <li class="{{ request()->routeIs('accidents.create') ? 'active' : '' }}">
+            <li class="{{ request()->is('notifications*') ? 'active' : '' }}">
                 <a href="{{ route('notifications') }}">
-                    <i class="la la-exclamation-triangle me-2"></i>
+                    <span class="material-icons me-2">notifications</span>
                     <span>Notifications</span>
                 </a>
             </li>
 
             <li class="{{ request()->routeIs('profile') ? 'active' : '' }}">
                 <a href="{{ route('profile') }}">
-                    <i class="la la-user me-2"></i>
+                    <span class="material-icons me-2">person</span>
                     <span>Profile</span>
                 </a>
             </li>
         </ul>
 
-        <!-- Weather Widget -->
         <div class="weather-widget">
             <h3>🌤 Kabacan Weather</h3>
             <div id="weather-info">
@@ -231,7 +233,7 @@
     <form action="{{ route('logout') }}" method="POST" class="mt-4">
         @csrf
         <button type="submit" class="btn btn-danger w-100">
-            <i class="la la-sign-out me-2"></i>
+            <span class="material-icons me-2">logout</span>
             Logout
         </button>
     </form>
@@ -254,11 +256,11 @@ async function fetchWeather() {
             // Emoji icons for cuteness
             let icon = "☁️";
             if (code === 0) icon = "☀️"; // clear
-            else if ([1,2].includes(code)) icon = "🌤";
+            else if ([1,2].includes(code)) icon = "⛅";
             else if ([3,45,48].includes(code)) icon = "☁️";
-            else if ([51,61,80].includes(code)) icon = "🌧";
+            else if ([51,61,80].includes(code)) icon = "🌧️";
             else if ([71,85].includes(code)) icon = "❄️";
-            else if ([95,96,99].includes(code)) icon = "⛈";
+            else if ([95,96,99].includes(code)) icon = "⛈️";
 
             container.innerHTML = `
                 <p style="font-size: 32px; ">${icon}</p>

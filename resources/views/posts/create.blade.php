@@ -31,6 +31,9 @@
             <input id="image" name="image" type="file" accept="image/*,video/*,image/gif" style="flex: 1; margin-bottom: 0;" />
             <button type="button" id="cameraBtn" class="btn-camera" style="width: auto; padding: 12px 16px; background: #eee; color: #444; margin: 0;">📷</button>
         </div>
+        
+        {{-- MODIFIED: Added hidden field to store media type --}}
+        <input type="hidden" id="media_type_input" name="media_type" value=""> 
 
         <div id="preview-container" style="display:none; margin-bottom:12px;">
             <img id="preview-image" src="" alt="Preview" style="display:none;" />
@@ -55,6 +58,7 @@
 </div>
 
 <style>
+    /* STYLES REMAINING UNCHANGED */
     :root {
         --accent: #CF0F47;
         --accent-2: #FF0B55;
@@ -229,6 +233,7 @@
         const accidentType = document.getElementById('accident_type');
         const otherType = document.getElementById('other_type');
         const imageInput = document.getElementById('image');
+        const mediaTypeInput = document.getElementById('media_type_input'); // MODIFIED: Get new hidden input
         const previewContainer = document.getElementById('preview-container');
         const previewImage = document.getElementById('preview-image');
         const previewVideo = document.getElementById('preview-video');
@@ -285,24 +290,30 @@
                 previewContainer.style.display = "block";
                 removeBtn.style.display = "inline-block";
                 cameraControls.style.display = "none";
-
+                
+                // MODIFIED: Set media_type_input value based on file type
                 if (file.type.startsWith("image/")) {
+                    mediaTypeInput.value = file.type.endsWith('/gif') ? 'gif' : 'image';
                     previewImage.src = url;
                     previewImage.style.display = "block";
                     previewVideo.style.display = "none";
                     cameraPreview.style.display = "none";
                 } else if (file.type.startsWith("video/")) {
+                    mediaTypeInput.value = 'video';
                     previewVideo.src = url;
                     previewVideo.style.display = "block";
                     previewImage.style.display = "none";
                     cameraPreview.style.display = "none";
                 } else {
+                    // Fallback or unsupported file type
+                    mediaTypeInput.value = '';
                     previewContainer.style.display = "none";
                 }
 
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
                 previewContainer.style.display = "none";
+                mediaTypeInput.value = ''; // MODIFIED: Clear on no file
             }
         });
 
@@ -325,6 +336,8 @@
                 previewImage.style.display = "none";
                 previewVideo.style.display = "none";
                 removeBtn.style.display = "none";
+                mediaTypeInput.value = ''; // MODIFIED: Clear media type when camera is live
+                imageInput.value = ""; // MODIFIED: Clear file input when camera is live
 
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } catch (err) {
@@ -345,13 +358,16 @@
             const context = cameraCanvas.getContext('2d');
             cameraCanvas.width = cameraPreview.videoWidth;
             cameraCanvas.height = cameraPreview.videoHeight;
-            context.drawImage(cameraPreview, 0, 0);
+            context.drawImage(cameraPreview, 0, 0, cameraCanvas.width, cameraCanvas.height); // MODIFIED: Added width/height for safety
 
             cameraCanvas.toBlob(function(blob) {
                 const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(file);
                 imageInput.files = dataTransfer.files;
+                
+                // MODIFIED: Set media type to 'image' after capture
+                mediaTypeInput.value = 'image';
 
                 if (cameraStream) {
                     cameraStream.getTracks().forEach(track => track.stop());
@@ -374,10 +390,12 @@
             cameraPreview.style.display = "none";
             cameraControls.style.display = "none";
             previewContainer.style.display = "none";
+            mediaTypeInput.value = ''; // MODIFIED: Clear media type on cancel
         });
 
         removeBtn.addEventListener('click', function() {
             imageInput.value = "";
+            mediaTypeInput.value = ""; // MODIFIED: Clear media type
             previewImage.src = "";
             previewVideo.src = "";
             previewImage.style.display = "none";

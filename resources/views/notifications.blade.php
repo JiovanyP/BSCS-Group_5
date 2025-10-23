@@ -1,15 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Notifications - PubL')
+@section('title', 'Notifications - Publ')
 
 @section('content')
-<div class="main-content">
-    <!-- Profile Header -->
-    <div class="profile-header">
-        <h3>NOTIFICATIONS</h3>
-    </div>
+{{-- IMPORTANT: Ensure you have the Material Icons CDN in your layouts/app.blade.php head tag: 
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+--}}
 
-    <!-- Notifications Content -->
+<div class="main-content">
     <div class="notifications-container">
         @if(session('success'))
             <div class="success-message">
@@ -17,7 +15,6 @@
             </div>
         @endif
 
-        <!-- Notification Categories Tabs -->
         <div class="categories-tabs">
             <div class="tabs-header">
                 <div class="tabs">
@@ -35,7 +32,7 @@
                     </button>
                 </div>
                 
-                <!-- Accident Type Filter - Only show for Priority and General -->
+                {{-- ACCIDENT TYPE DROPDOWN --}}
                 @if(in_array($type, ['priority', 'general']))
                 <div class="filter-section">
                     <select id="accidentTypeFilter" class="filter-select">
@@ -50,7 +47,6 @@
             </div>
         </div>
 
-        <!-- Notifications Header -->
         <div class="notifications-header">
             <div class="notifications-count">
                 @if($type == 'all')
@@ -58,127 +54,124 @@
                 @else
                     <span class="category-title">
                         @if($type == 'priority') 
-                            🚨 Priority Reports in Your Area
+                            <span class="material-icons">emergency</span> Priority Reports in Your Area
                         @elseif($type == 'general')
-                            📍 General Reports
+                            <span class="material-icons">location_on</span> General Reports
                         @elseif($type == 'social')
-                            💬 Social Interactions
+                            <span class="material-icons">chat</span> Social Interactions
                         @else
                             All Notifications
                         @endif
                     </span>
                 @endif
             </div>
-            <!-- ONLY SHOW IN ALL TAB -->
             @if($unreadCount > 0 && $type == 'all')
                 <form method="POST" action="{{ route('notifications.markAllRead') }}" style="display: inline;">
                     @csrf
                     <button type="submit" class="mark-all-read-btn">
-                        <i class="la la-check-double"></i> Mark All as Read
+                        <span class="material-icons">done_all</span> Mark All as Read
                     </button>
                 </form>
             @endif
         </div>
 
         @forelse($notifications as $notification)
-            <div class="notification-item {{ $notification->is_read ? '' : 'unread' }} 
-                {{ $notification->notification_type }}-notification"
+            <div class="notification-item {{ $notification->is_read ? '' : 'unread' }}"
                 onclick="markAsReadAndNavigate({{ $notification->id }}, '{{ $notification->post ? route('timeline') . '#post-' . $notification->post_id : '#' }}')">
+                
+                <div class="notification-time">
+                    <span class="material-icons">schedule</span> {{ $notification->created_at->diffForHumans() }}
+                </div>
                 
                 @if(!$notification->is_read)
                     <span class="unread-badge"></span>
                 @endif
                 
-                <!-- Notification Icon -->
-                <!-- <div class="notification-icon" style="background: {{ $notification->getIconColor() }}20; color: {{ $notification->getIconColor() }};">
-                    <i class="{{ $notification->getIcon() }}"></i>
-                </div> -->
-
                 <div class="notification-content">
-                    <!-- Notification Header -->
-                    <div class="notification-header">
-                        <div class="notification-message">
-                            {!! $notification->getNotificationMessage() !!}
-                        </div>
+                    <div class="notification-meta-top">
                         <div class="notification-badges">
+                            
+                            {{-- MAIN CATEGORY BADGE --}}
                             @if($notification->notification_type === 'priority')
                                 <span class="badge priority-badge">
-                                    <i class="la la-exclamation-triangle"></i> Priority
+                                    <span class="material-icons" style="font-size: 11px; vertical-align: bottom;">warning</span> Priority
                                 </span>
                             @elseif($notification->notification_type === 'general')
                                 <span class="badge general-badge">
-                                    <i class="la la-map-marker-alt"></i> General
+                                    <span class="material-icons" style="font-size: 11px; vertical-align: bottom;">push_pin</span> General
                                 </span>
                             @elseif($notification->notification_type === 'social')
                                 <span class="badge social-badge">
-                                    <i class="la la-users"></i> Social
+                                    <span class="material-icons" style="font-size: 11px; vertical-align: bottom;">group</span> Social
                                 </span>
                             @endif
                             
+                            {{-- ACCIDENT TYPE BADGE (Beside Category) --}}
                             @if($notification->accident_type && in_array($notification->notification_type, ['priority', 'general']))
                                 <span class="badge accident-badge accident-{{ strtolower($notification->accident_type) }}">
                                     {{ $notification->accident_type }}
                                 </span>
                             @endif
-                        </div>
-                    </div>
 
-                    <!-- Location/Distance Info - Only show for Priority and General -->
-                    @if($notification->distance_km !== null && in_array($notification->notification_type, ['priority', 'general']) && $notification->post)
-                        <div class="location-info">
-                            <i class="la la-map-marker"></i>
-                            @if($notification->distance_km == 0)
-                                <strong>Reported in your area: {{ $notification->post->location }}</strong>
-                            @else
-                                <strong>Reported in: {{ $notification->post->location }}</strong>
+                            {{-- LOCATION INFO (INLINE, NO DISTANCE) --}}
+                            @if($notification->post && in_array($notification->notification_type, ['priority', 'general']))
+                                <div class="location-info location-inline">
+                                    <span class="material-icons">place</span>
+                                    <strong>Reported in: {{ $notification->post->location }}</strong>
+                                </div>
                             @endif
                         </div>
-                    @endif
+                    </div>
+                    
+                    {{-- MODIFIED NOTIFICATION MESSAGE (Social format) --}}
+                    <div class="notification-message">
+                        @if ($notification->notification_type === 'social' && ($notification->type === 'comment' || $notification->type === 'reply') && $notification->post && $notification->comment)
+                            @php
+                                $actor_name = $notification->actor->name ?? ($notification->notifier->name ?? 'A user'); 
+                                $comment_content = Str::limit($notification->comment->content ?? 'a comment', 50);
+                                $post_content_preview = Str::limit($notification->post->content, 50);
+                            @endphp
+                            <strong>{{ $actor_name }}</strong> commented on your post "<strong>{{ $post_content_preview }}</strong>" with: "<strong>{{ $comment_content }}</strong>"
+                        @else
+                            {!! $notification->getNotificationMessage() !!}
+                        @endif
+                    </div>
 
-                    <!-- Post/Comment Content -->
-                    @if($notification->post)
+                    @if($notification->post && !($notification->notification_type === 'social' && ($notification->type === 'comment' || $notification->type === 'reply')))
                         <div class="notification-post-preview">
                             "{{ Str::limit($notification->post->content, 100) }}"
                         </div>
                     @endif
 
-                    @if($notification->comment && in_array($notification->type, ['comment', 'reply']))
+                    @if($notification->comment && in_array($notification->type, ['like_comment', 'reply_comment']))
                         <div class="notification-post-preview">
-                            <i class="la la-comment"></i> "{{ Str::limit($notification->comment->content, 80) }}"
+                            <span class="material-icons" style="font-size: 13px; vertical-align: middle;">comment</span> "{{ Str::limit($notification->comment->content, 80) }}"
                         </div>
                     @endif
-
-                    <!-- Timestamp -->
-                    <div class="notification-time">
-                        <i class="la la-clock"></i> {{ $notification->created_at->diffForHumans() }}
-                    </div>
                 </div>
-
-                <!-- REMOVED DELETE BUTTON -->
             </div>
         @empty
             <div class="empty-state">
                 @if($type == 'priority')
-                    <i class="la la-map-marker-slash"></i>
+                    <span class="material-icons">location_off</span>
                     <h3>No Priority Reports</h3>
                     <p>When incidents occur in your area, they'll appear here as priority notifications</p>
                 @elseif($type == 'general')
-                    <i class="la la-globe"></i>
+                    <span class="material-icons">public</span>
                     <h3>No General Reports</h3>
                     <p>Reports from other areas will appear here</p>
                 @elseif($type == 'social')
-                    <i class="la la-bell-slash"></i>
+                    <span class="material-icons">person_off</span>
                     <h3>No Social Notifications</h3>
                     <p>When someone interacts with your posts, you'll see notifications here</p>
                 @else
-                    <i class="la la-bell-slash"></i>
+                    <span class="material-icons">notifications_off</span>
                     <h3>No Notifications Yet</h3>
                     <p>You're all caught up! New notifications will appear here</p>
                 @endif
             </div>
         @endforelse
 
-        <!-- Pagination -->
         @if($notifications->hasPages())
             <div class="pagination">
                 {{ $notifications->appends(request()->except('page'))->links() }}
@@ -190,6 +183,7 @@
 <style>
     /* === Enhanced Styles === */
     :root {
+        --primary-color: #c82333; /* Primary color */
         --priority-color: #FF5722;
         --general-color: #9C27B0;
         --social-color: #2196F3;
@@ -199,6 +193,25 @@
         --others-color: #607D8B;
     }
 
+    /* Global Material Icon style */
+    .material-icons {
+        font-family: 'Material Icons';
+        font-weight: normal;
+        font-style: normal;
+        font-size: 24px;
+        display: inline-block;
+        line-height: 1;
+        text-transform: none;
+        letter-spacing: normal;
+        word-wrap: normal;
+        white-space: nowrap;
+        direction: ltr;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        -moz-osx-font-smoothing: grayscale;
+        font-feature-settings: 'liga';
+    }
+
     /* === Main Content === */
     .main-content {
         flex: 1;
@@ -206,26 +219,9 @@
         padding: 0;
     }
 
-    /* === Profile Header === */
-    .profile-header {
-        background: #FF0B55;
-        text-align: center;
-        padding: 60px 20px 30px;
-        color: white;
-        position: relative;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-        margin-bottom: 0;
-    }
-    .profile-header h3 {
-        font-weight: 700;
-        letter-spacing: 1px;
-        font-size: 2rem;
-        margin: 0;
-    }
-
     /* === Notifications Container === */
     .notifications-container {
-        max-width: 900px;
+        max-width: 750px; 
         margin: 0 auto;
         padding: 30px 20px;
     }
@@ -253,6 +249,7 @@
         flex-wrap: wrap;
     }
 
+    /* === Tab Button Styling === */
     .tab-btn {
         padding: 10px 20px;
         border: 2px solid #eee;
@@ -268,14 +265,9 @@
     }
 
     .tab-btn.active {
-        background: #FF0B55;
-        border-color: #FF0B55;
+        background: var(--primary-color);
+        border-color: var(--primary-color);
         color: white;
-    }
-
-    .tab-btn:hover:not(.active) {
-        border-color: #FF0B55;
-        color: #FF0B55;
     }
 
     .tab-count {
@@ -286,31 +278,41 @@
         font-weight: 600;
     }
 
-    .tab-btn:not(.active) .tab-count {
-        background: #f0f0f0;
-        color: #666;
-    }
-
-    /* === Filter Section === */
+    /* === Filter Dropdown Styling (FIXED AND STYLED) === */
     .filter-section {
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        flex-shrink: 0;
+    }
+    
+    .filter-select {
+        /* Match tab-btn padding and border */
+        padding: 10px 20px;
+        border: 2px solid #eee;
+        border-radius: 25px; /* Match tab-btn roundness */
+        background: #fff;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+        /* Removing appearance and custom arrow logic for better cross-browser compatibility and to ensure visibility */
+        appearance: menulist; /* Default or minimal customization to ensure visibility */
+        -webkit-appearance: menulist;
+        -moz-appearance: menulist;
+        transition: all 0.3s;
+        
+        /* Ensure it's not hidden by padding/positioning */
+        box-sizing: border-box; 
+        line-height: normal; /* Important for select elements */
     }
 
-    .filter-select {
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        background: #fff;
-        font-size: 14px;
-        min-width: 160px;
+    .filter-select:hover {
+        border-color: #ccc;
     }
 
     .filter-select:focus {
-        border-color: #FF0B55;
+        border-color: var(--primary-color); /* Primary color border on focus */
         outline: none;
     }
+
 
     /* === Notifications Header === */
     .notifications-header {
@@ -318,30 +320,27 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 25px;
-        padding: 0;
-        background: transparent;
-        box-shadow: none;
     }
 
     .notifications-count {
-        font-size: 18px;
-        color: #333;
+        font-size: 16px;
         font-weight: 500;
-    }
-
-    .notifications-count .count {
-        color: #FF0B55;
-        font-weight: 600;
+        color: #333;
     }
 
     .category-title {
-        font-weight: 600;
-        color: #333;
-        font-size: 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
+    .category-title .material-icons {
+        font-size: 20px;
+        vertical-align: middle;
+    }
+    
     .mark-all-read-btn {
-        background: #FF0B55;
+        background: var(--primary-color);
         color: white;
         border: none;
         padding: 10px 20px;
@@ -350,20 +349,35 @@
         font-size: 14px;
         font-weight: 500;
         transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .mark-all-read-btn .material-icons {
+        font-size: 18px;
     }
 
     .mark-all-read-btn:hover {
-        background: #e00a4a;
+        background: #a91b2c;
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(255, 11, 85, 0.3);
+        box-shadow: 0 5px 15px rgba(200, 35, 51, 0.3);
     }
 
-    /* === Notification Badges === */
+    /* === Notification Badges (TOP ROW) === */
+    .notification-meta-top {
+        display: flex;
+        justify-content: space-between; 
+        align-items: center;
+        margin-bottom: 10px; 
+    }
+
     .notification-badges {
         display: flex;
         gap: 8px;
         flex-wrap: wrap;
-        margin-top: 8px;
+        margin-top: 0; 
+        align-items: center; 
     }
 
     .badge {
@@ -372,6 +386,13 @@
         font-size: 11px;
         font-weight: 600;
         text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .badge .material-icons {
+        font-size: 11px !important;
     }
 
     .priority-badge {
@@ -414,89 +435,53 @@
         background: var(--others-color);
     }
 
-    /* === Notification Header === */
-    .notification-header {
-        margin-bottom: 8px;
-    }
-
-    /* === Location Info === */
+    /* === Location Info (INLINE, NO DISTANCE) === */
     .location-info {
         font-size: 13px;
         color: #666;
-        margin-bottom: 8px;
+        margin-bottom: 0;
         display: flex;
         align-items: center;
         gap: 5px;
+        padding-left: 8px;
+        border-left: 1px solid #eee;
+        line-height: 1;
     }
 
-    .location-info strong {
-        color: #333;
+    .location-info.location-inline strong {
+        font-weight: 500;
     }
 
-    /* === Notification Type Styles === */
-    .priority-notification {
-        border-left-color: var(--priority-color) !important;
+    .location-info .material-icons {
+        font-size: 16px;
+        color: #999;
     }
 
-    .priority-notification.unread {
-        background: rgba(255, 87, 34, 0.05);
-    }
-
-    .general-notification {
-        border-left-color: var(--general-color) !important;
-    }
-
-    .general-notification.unread {
-        background: rgba(156, 39, 176, 0.05);
-    }
-
-    .social-notification {
-        border-left-color: var(--social-color) !important;
-    }
-
-    .social-notification.unread {
-        background: rgba(33, 150, 243, 0.05);
-    }
-
-    /* === Enhanced Notification Item === */
+    /* === Notification Item (Card Styling) === */
     .notification-item {
         background: #fff;
-        border-radius: 12px;
+        border-radius: 16px; 
         padding: 20px;
+        padding-right: 120px; 
         margin-bottom: 15px;
         transition: all 0.3s ease;
-        border-left: 4px solid transparent;
+        border-left: 4px solid transparent; 
         display: flex;
         align-items: flex-start;
         gap: 15px;
         cursor: pointer;
-        position: relative;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-
-    .notification-item.unread {
-        background: rgba(255, 11, 85, 0.05);
+        position: relative; 
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
     }
 
     .notification-item:hover {
-        transform: translateX(5px);
-        box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-    }
-
-    .notification-icon {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        flex-shrink: 0;
+        transform: translateY(-2px); 
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); 
     }
 
     .notification-content {
         flex: 1;
-        min-width: 0; /* Prevent overflow */
+        min-width: 0; 
     }
 
     .notification-message {
@@ -505,10 +490,10 @@
         color: #1a1a1a;
         line-height: 1.4;
     }
-
-    .notification-message .actor-name {
+    
+    .notification-message strong {
         font-weight: 600;
-        color: #FF0B55;
+        color: var(--primary-color);
     }
 
     .notification-post-preview {
@@ -523,174 +508,104 @@
         -webkit-box-orient: vertical;
         line-height: 1.4;
     }
-
+    
+    /* === Timestamp (UPPER RIGHT POSITION) === */
     .notification-time {
+        position: absolute; 
+        top: 20px; 
+        right: 20px; 
         font-size: 12px;
         color: #666;
-        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0; 
+        z-index: 1; 
     }
 
-    .unread-badge {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        width: 10px;
-        height: 10px;
-        background: #FF0B55;
-        border-radius: 50%;
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-    }
-
-    /* === Empty State === */
+    /* === Empty State Styling === */
     .empty-state {
         text-align: center;
         padding: 60px 20px;
-        color: #666;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        margin-top: 20px;
+        color: #999;
     }
 
-    .empty-state i {
+    .empty-state .material-icons {
         font-size: 60px;
         color: #ccc;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
     }
 
     .empty-state h3 {
-        font-size: 24px;
-        margin-bottom: 12px;
-        color: #666;
+        font-size: 20px;
+        color: #999;
+        margin-bottom: 10px;
+        font-weight: 500;
     }
 
     .empty-state p {
-        font-size: 15px;
-        color: #999;
-        line-height: 1.5;
-    }
-
-    /* === Success Message === */
-    .success-message {
-        background: rgba(76, 175, 80, 0.1);
-        color: #4CAF50;
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        border-left: 4px solid #4CAF50;
-    }
-
-    /* === Pagination === */
-    .pagination {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 30px;
-    }
-
-    .pagination a, .pagination span {
-        padding: 8px 12px;
-        background: #fff;
-        border: 1px solid #eee;
-        border-radius: 8px;
-        color: #666;
-        text-decoration: none;
-        transition: all 0.3s;
         font-size: 14px;
+        color: #aaa;
+        max-width: 400px;
+        margin: 0 auto;
+        line-height: 1.6;
     }
-
-    .pagination a:hover {
-        background: #FF0B55;
-        border-color: #FF0B55;
-        color: #fff;
-    }
-
-    .pagination .active {
-        background: #FF0B55;
-        border-color: #FF0B55;
-        color: #fff;
-    }
-
-    /* === Responsive === */
+    
+    /* === Responsive (Adjusted for new layout) === */
     @media (max-width: 768px) {
-        .profile-header {
-            padding: 40px 20px 20px;
-        }
-        
-        .profile-header h3 {
-            font-size: 1.5rem;
+        .notification-item {
+            padding: 15px; 
+            padding-right: 15px; 
+            flex-direction: column; 
+            align-items: flex-start;
+            border-radius: 12px; 
         }
 
         .notifications-container {
+            max-width: 100%; 
             padding: 20px 15px;
         }
 
-        .tabs-header {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 15px;
+        .notification-content {
+            padding-right: 0;
+            width: 100%;
+        }
+        
+        .notification-time {
+            position: static; 
+            order: -1; 
+            align-self: flex-end; 
+            margin-bottom: 5px;
+            font-size: 11px;
+            right: auto;
+            top: auto;
         }
 
-        .tabs {
-            justify-content: center;
-        }
-
-        .filter-section {
-            justify-content: center;
-        }
-
-        .notifications-header {
-            flex-direction: column;
-            gap: 15px;
+        .notification-meta-top {
+            flex-direction: column; 
             align-items: flex-start;
-        }
-
-        .notification-badges {
-            justify-content: flex-start;
-        }
-
-        .notification-header {
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .notification-item {
-            padding: 15px;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .tabs {
-            flex-direction: column;
             width: 100%;
-        }
-
-        .tab-btn {
-            justify-content: center;
-            width: 100%;
+            margin-bottom: 10px;
         }
 
         .notification-badges {
             flex-direction: column;
             align-items: flex-start;
             gap: 5px;
+            margin-top: 0;
+            width: 100%;
         }
 
-        .empty-state {
-            padding: 40px 15px;
+        .location-info {
+            padding-left: 0;
+            border-left: none;
+            width: 100%;
         }
-
-        .empty-state i {
-            font-size: 50px;
-        }
-
-        .empty-state h3 {
-            font-size: 20px;
+        
+        /* Ensure filter dropdown works well on mobile */
+        .filter-select {
+            width: 100%; 
+            box-sizing: border-box;
         }
     }
 </style>
@@ -700,12 +615,12 @@
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const type = this.dataset.type;
-            
-            // Simple URL update
             const url = new URL(window.location.href);
             url.searchParams.set('type', type);
-            
-            // Navigate to the new URL
+            // Clear accident_type when switching to 'all' or 'social'
+            if (type === 'all' || type === 'social') {
+                url.searchParams.delete('accident_type');
+            }
             window.location.href = url.toString();
         });
     });
@@ -716,6 +631,13 @@
         accidentTypeFilter.addEventListener('change', function() {
             const url = new URL(window.location.href);
             url.searchParams.set('accident_type', this.value);
+            
+            // Ensure type is set to priority or general if it was 'all'
+            if (!url.searchParams.has('type') || url.searchParams.get('type') === 'all' || url.searchParams.get('type') === 'social') {
+                // Default to priority if not explicitly set
+                url.searchParams.set('type', 'priority'); 
+            }
+            
             window.location.href = url.toString();
         });
     }
