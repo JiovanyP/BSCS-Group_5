@@ -526,17 +526,33 @@ $(function(){
     });
   });
 
-  $(document).on('click','.upvote-btn,.downvote-btn',function(e){
-    e.preventDefault();
-    const id=$(this).data('id');
-    const vote=$(this).hasClass('upvote-btn')?'up':'down';
-    $.post(`/posts/${id}/vote`,{vote:vote},res=>{
-      $(`#upvote-count-${id}`).text(res.upvotes_count - res.downvotes_count);
-      $(`.upvote-btn[data-id="${id}"]`).toggleClass('voted-up',res.user_vote==='up');
-      $(`.downvote-btn[data-id="${id}"]`).toggleClass('voted-down',res.user_vote==='down');
+    $(document).on('click','.upvote-btn,.downvote-btn',function(e){
+        e.preventDefault();
+        const btn = $(this);
+        const id = btn.data('id');
+        const vote = btn.hasClass('upvote-btn') ? 'up' : 'down';
+        
+        $.post(`/posts/${id}/vote`, {vote: vote}, res => {
+            // Update vote count (net score)
+            const netScore = res.upvotes_count - res.downvotes_count;
+            $(`#upvote-count-${id}`).text(netScore);
+            
+            // Remove both vote classes first
+            $(`.upvote-btn[data-id="${id}"]`).removeClass('voted-up');
+            $(`.downvote-btn[data-id="${id}"]`).removeClass('voted-down');
+            
+            // Apply the appropriate class based on user's current vote
+            if (res.user_vote === 'up') {
+                $(`.upvote-btn[data-id="${id}"]`).addClass('voted-up');
+            } else if (res.user_vote === 'down') {
+                $(`.downvote-btn[data-id="${id}"]`).addClass('voted-down');
+            }
+            // If user_vote is null, no classes are added (vote was undone)
+        }).fail(function(xhr) {
+            console.error('Vote failed:', xhr.responseText);
+            alert('Failed to register vote. Please try again.');
+        });
     });
-  });
-
   $(document).on('click','.comment-send:not(:disabled)',function(){
     const btn=$(this);
     const id=btn.data('id');

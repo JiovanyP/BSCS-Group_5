@@ -115,6 +115,9 @@ class PostController extends Controller
     /**
      * Vote on post - WITH NOTIFICATION
      */
+    /**
+ * Vote on post - WITH UNDO FUNCTIONALITY
+ */
     public function vote(Request $request, $id)
     {
         $request->validate(['vote' => 'required|in:up,down']);
@@ -124,7 +127,28 @@ class PostController extends Controller
         // Get existing vote if any
         $existingVote = $post->likes()->where('user_id', Auth::id())->first();
         
-        // Update or create the vote
+        // If user clicks the same vote button again, remove the vote (undo)
+        if ($existingVote && $existingVote->vote_type === $request->vote) {
+            $existingVote->delete();
+            
+            // Delete notification when undoing vote
+            if ($post->user_id !== Auth::id()) {
+                Notification::where('user_id', $post->user_id)
+                    ->where('actor_id', Auth::id())
+                    ->where('post_id', $post->id)
+                    ->whereIn('type', ['upvote', 'downvote'])
+                    ->delete();
+            }
+            
+            return response()->json([
+                'success'          => true,
+                'user_vote'        => null, // No vote now
+                'upvotes_count'    => $post->upvotes()->count(),
+                'downvotes_count'  => $post->downvotes()->count(),
+            ]);
+        }
+        
+        // Otherwise, update or create the vote
         $post->likes()->updateOrCreate(
             ['user_id' => Auth::id()],
             ['vote_type' => $request->vote]
@@ -133,27 +157,20 @@ class PostController extends Controller
         // Create notification ONLY if voting on someone else's post
         if ($post->user_id !== Auth::id()) {
             // Delete old notification if vote type changed
-            if ($existingVote && $existingVote->vote_type !== $request->vote) {
-                Notification::where('user_id', $post->user_id)
-                    ->where('actor_id', Auth::id())
-                    ->where('post_id', $post->id)
-                    ->whereIn('type', ['upvote', 'downvote'])
-                    ->delete();
-            }
+            Notification::where('user_id', $post->user_id)
+                ->where('actor_id', Auth::id())
+                ->where('post_id', $post->id)
+                ->whereIn('type', ['upvote', 'downvote'])
+                ->delete();
 
             // Create new notification
-            Notification::updateOrCreate(
-                [
-                    'user_id' => $post->user_id,
-                    'actor_id' => Auth::id(),
-                    'post_id' => $post->id,
-                    'type' => $request->vote === 'up' ? 'upvote' : 'downvote',
-                ],
-                [
-                    'is_read' => false,
-                    'created_at' => now(),
-                ]
-            );
+            Notification::create([
+                'user_id' => $post->user_id,
+                'actor_id' => Auth::id(),
+                'post_id' => $post->id,
+                'type' => $request->vote === 'up' ? 'upvote' : 'downvote',
+                'is_read' => false,
+            ]);
         }
 
         return response()->json([
