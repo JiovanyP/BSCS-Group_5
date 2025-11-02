@@ -25,6 +25,61 @@
     --downvote-color: #dc3545;
 }
 
+/* === PUBL-style toast (small, self-contained) === */
+.publ-toast {
+    position: fixed;
+    right: 28px;
+    bottom: 28px;
+    z-index: 11000;
+    background: #111214;
+    color: #fff;
+    border-left: 4px solid var(--accent);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    border-radius: 12px;
+    padding: 12px 14px;
+    max-width: 360px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    transform: translateY(18px);
+    opacity: 0;
+    transition: all 260ms cubic-bezier(.2,.9,.2,1);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+.publ-toast.show { transform: translateY(0); opacity: 1; }
+.publ-toast .icon {
+    font-size: 22px;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+.publ-toast .body {
+    flex: 1;
+    min-width: 0;
+}
+.publ-toast .body .title {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+.publ-toast .body .msg {
+    color: #d0d2d6;
+    font-size: 13px;
+    line-height: 1.25;
+    white-space: normal;
+    word-break: break-word;
+}
+.publ-toast .close {
+    margin-left: 8px;
+    background: transparent;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    line-height: 1;
+}
+
+/* === rest of your original CSS (unchanged) === */
 .main-content {
     flex: 1;
     overflow-y: auto;
@@ -164,7 +219,6 @@
 .voted-up { color: var(--upvote-color) !important; }
 .voted-down { color: var(--downvote-color) !important; }
 
-/* === Comments & Replies Styles === */
 .comments-section {
     display: none;
     background: #f8f9fa;
@@ -407,7 +461,6 @@
                                 </div>
                                 <a href="#" class="downvote-btn footer-action {{ $userVote==='down'?'voted-down':'' }}" data-id="{{ $post->id }}">
                                     <span class="material-icons">arrow_downward</span>
-                                </span>
                                 </a>
                             </div>
                         </div>
@@ -629,15 +682,109 @@ $(function(){
     });
   });
 
+  // Open report modal and set post id
   $(document).on('click','.report-post-btn',function(){ currentPostId=$(this).data('id'); });
+
+  // === Robust report AJAX handler ===
   $('#confirmReportBtn').click(function(){
-    const reason=$('input[name="reason"]:checked').val();
-    if(!reason){ alert('Please select a reason'); return; }
-    $.post(`/posts/${currentPostId}/report`,{reason:reason},()=>{
-      $('#reportModal').modal('hide');
-      alert('Thank you for your report.');
+    const reason = $('input[name="reason"]:checked').val();
+    if(!reason){
+        alert('Please select a reason');
+        return;
+    }
+
+    const $btn = $(this);
+    $btn.prop('disabled', true).text('Reporting...');
+
+    $.ajax({
+        url: `/posts/${currentPostId}/report`,
+        method: 'POST',
+        data: { reason: reason },
+        success: function(res) {
+            $('#reportModal').modal('hide');
+
+            // SHOW PUBL-STYLE TOAST (only UI change)
+            showPublToast('Report Sent', res.message || 'Thank you for your report. We will review it shortly.');
+        },
+        error: function(jqXHR) {
+            let text = 'Failed to submit report.';
+            if (jqXHR.status === 401) {
+                text = 'You must be logged in to report.';
+            } else if (jqXHR.status === 419) {
+                text = 'Session expired (CSRF). Refresh the page and try again.';
+            } else if (jqXHR.status === 422) {
+                const json = jqXHR.responseJSON || {};
+                const errors = json.errors || {};
+                text = Object.values(errors).flat().join('\n') || text;
+            } else {
+                try {
+                    const json = JSON.parse(jqXHR.responseText);
+                    if (json.message) text = json.message;
+                } catch (e) {}
+            }
+            console.error('Report error:', jqXHR.responseText);
+            alert(text);
+        },
+        complete: function() {
+            $btn.prop('disabled', false).text('Report');
+        }
     });
   });
+
+  // === minimal helper to show a single toast, prevents duplicates ===
+  function showPublToast(title, message, opts = {}) {
+    // remove any existing toast immediately (prevent stacking weirdness)
+    $('.publ-toast').remove();
+
+    const $toast = $(`
+      <div class="publ-toast" role="status" aria-live="polite">
+        <div class="icon material-icons">flag</div>
+        <div class="body">
+          <div class="title">${escapeHtml(title)}</div>
+          <div class="msg">${escapeHtml(message)}</div>
+        </div>
+        <button class="close" aria-label="Close">&times;</button>
+      </div>
+    `);
+
+    // close handler
+    $toast.on('click', '.close', function(e){
+      e.stopPropagation();
+      hideToast($toast);
+    });
+
+    // append and show
+    $('body').append($toast);
+    // allow CSS transition
+    setTimeout(()=> $toast.addClass('show'), 20);
+
+    // auto-dismiss after 3.8s
+    const ttl = opts.ttl || 3800;
+    const hideTimer = setTimeout(()=> hideToast($toast), ttl);
+
+    // remove on transition end
+    $toast.on('transitionend webkitTransitionEnd oTransitionEnd', function(){
+      if (!$toast.hasClass('show')) $toast.remove();
+    });
+
+    function hideToast($el) {
+      clearTimeout(hideTimer);
+      $el.removeClass('show');
+      setTimeout(()=> $el.remove(), 420);
+    }
+
+    // small HTML-escape util
+    function escapeHtml(str) {
+      if (str === null || typeof str === 'undefined') return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+  }
+
 });
 </script>
 @endsection
