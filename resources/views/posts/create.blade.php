@@ -24,7 +24,22 @@
         <textarea id="content" name="content" rows="4" placeholder="What's up?" required></textarea>
 
         <label for="location">Location (Required)</label>
-        <input id="location" name="location" type="text" placeholder="Enter your location" required />
+        <select id="location" name="location" required>
+            <option value="" disabled selected>Select Location</option>
+            <option value="Bonifacio">Bonifacio</option>
+            <option value="Sinamar 1">Sinamar 1</option>
+            <option value="Sinamar 2">Sinamar 2</option>
+            <option value="Guiang">Guiang</option>
+            <option value="Avenue">Avenue</option>
+            <option value="Sunset">Sunset</option>
+            <option value="Sunrise">Sunrise</option>
+            <option value="Villanueva">Villanueva</option>
+            <option value="Abellera">Abellera</option>
+            <option value="Miracle">Miracle</option>
+            <option value="Others">Others</option>
+        </select>
+
+        <input id="other_location" name="other_location" type="text" placeholder="Please specify" style="display:none;" />
 
         <label for="image">Attach Image/Video (optional)</label>
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
@@ -32,7 +47,6 @@
             <button type="button" id="cameraBtn" class="btn-camera" style="width: auto; padding: 12px 16px; background: #eee; color: #444; margin: 0;">📷</button>
         </div>
         
-        {{-- MODIFIED: Added hidden field to store media type --}}
         <input type="hidden" id="media_type_input" name="media_type" value=""> 
 
         <div id="preview-container" style="display:none; margin-bottom:12px;">
@@ -58,7 +72,6 @@
 </div>
 
 <style>
-    /* STYLES REMAINING UNCHANGED */
     :root {
         --accent: #CF0F47;
         --accent-2: #FF0B55;
@@ -217,6 +230,17 @@
         cursor: pointer;
     }
 
+    #other_location {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        margin-bottom: 12px;
+        box-sizing: border-box;
+        font-size: 14px;
+        background: #fbfbfb;
+    }
+
     .post-container footer.small {
         margin-top: 18px;
         color: #888;
@@ -225,199 +249,200 @@
 </style>
 
 <script>
-    (function(){
-        const form = document.getElementById('postForm');
-        const postBtn = document.getElementById('postBtn');
-        const content = document.getElementById('content');
-        const location = document.getElementById('location');
-        const accidentType = document.getElementById('accident_type');
-        const otherType = document.getElementById('other_type');
-        const imageInput = document.getElementById('image');
-        const mediaTypeInput = document.getElementById('media_type_input'); // MODIFIED: Get new hidden input
-        const previewContainer = document.getElementById('preview-container');
-        const previewImage = document.getElementById('preview-image');
-        const previewVideo = document.getElementById('preview-video');
-        const removeBtn = document.getElementById('removePreviewBtn');
-        const cameraBtn = document.getElementById('cameraBtn');
-        const cameraPreview = document.getElementById('camera-preview');
-        const cameraCanvas = document.getElementById('camera-canvas');
-        const cameraControls = document.getElementById('camera-controls');
-        const captureBtn = document.getElementById('captureBtn');
-        const cancelCameraBtn = document.getElementById('cancelCameraBtn');
+(function(){
+    const form = document.getElementById('postForm');
+    const postBtn = document.getElementById('postBtn');
+    const content = document.getElementById('content');
+    const location = document.getElementById('location');
+    const otherLocation = document.getElementById('other_location');
+    const accidentType = document.getElementById('accident_type');
+    const otherType = document.getElementById('other_type');
+    const imageInput = document.getElementById('image');
+    const mediaTypeInput = document.getElementById('media_type_input');
+    const previewContainer = document.getElementById('preview-container');
+    const previewImage = document.getElementById('preview-image');
+    const previewVideo = document.getElementById('preview-video');
+    const removeBtn = document.getElementById('removePreviewBtn');
+    const cameraBtn = document.getElementById('cameraBtn');
+    const cameraPreview = document.getElementById('camera-preview');
+    const cameraCanvas = document.getElementById('camera-canvas');
+    const cameraControls = document.getElementById('camera-controls');
+    const captureBtn = document.getElementById('captureBtn');
+    const cancelCameraBtn = document.getElementById('cancelCameraBtn');
+    let cameraStream = null;
 
-        let cameraStream = null;
+    function toggleButton() {
+        if (
+            content.value.trim() &&
+            location.value.trim() &&
+            accidentType.value.trim() &&
+            (accidentType.value !== "Others" || otherType.value.trim()) &&
+            (location.value !== "Others" || otherLocation.value.trim())
+        ) {
+            postBtn.disabled = false;
+        } else {
+            postBtn.disabled = true;
+        }
+    }
 
-        function toggleButton() {
-            if (
-                content.value.trim() &&
-                location.value.trim() &&
-                accidentType.value.trim() &&
-                (accidentType.value !== "Others" || otherType.value.trim())
-            ) {
-                postBtn.disabled = false;
+    [content, location, accidentType, otherType, otherLocation].forEach(el => {
+        el.addEventListener('input', toggleButton);
+        el.addEventListener('change', toggleButton);
+    });
+
+    accidentType.addEventListener('change', function() {
+        if (this.value === "") {
+            this.style.color = "#888";
+            otherType.style.display = "none";
+        } else {
+            this.style.color = "#000";
+            if (this.value === "Others") {
+                otherType.style.display = "block";
             } else {
-                postBtn.disabled = true;
+                otherType.style.display = "none";
+                otherType.value = "";
             }
         }
+        toggleButton();
+    });
 
-        [content, location, accidentType, otherType].forEach(el => {
-            el.addEventListener('input', toggleButton);
-            el.addEventListener('change', toggleButton);
-        });
-
-        accidentType.addEventListener('change', function() {
-            if (this.value === "") {
-                this.style.color = "#888";
-                otherType.style.display = "none";
+    location.addEventListener('change', function() {
+        if (this.value === "") {
+            this.style.color = "#888";
+            otherLocation.style.display = "none";
+        } else {
+            this.style.color = "#000";
+            if (this.value === "Others") {
+                otherLocation.style.display = "block";
             } else {
-                this.style.color = "#000";
-                if (this.value === "Others") {
-                    otherType.style.display = "block";
-                } else {
-                    otherType.style.display = "none";
-                    otherType.value = "";
-                }
+                otherLocation.style.display = "none";
+                otherLocation.value = "";
             }
-            toggleButton();
-        });
+        }
+        toggleButton();
+    });
 
-        accidentType.style.color = "#888";
+    location.style.color = "#888";
+    accidentType.style.color = "#888";
 
-        imageInput.addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const url = URL.createObjectURL(file);
-                previewContainer.style.display = "block";
-                removeBtn.style.display = "inline-block";
-                cameraControls.style.display = "none";
-                
-                // MODIFIED: Set media_type_input value based on file type
-                if (file.type.startsWith("image/")) {
-                    mediaTypeInput.value = file.type.endsWith('/gif') ? 'gif' : 'image';
-                    previewImage.src = url;
-                    previewImage.style.display = "block";
-                    previewVideo.style.display = "none";
-                    cameraPreview.style.display = "none";
-                } else if (file.type.startsWith("video/")) {
-                    mediaTypeInput.value = 'video';
-                    previewVideo.src = url;
-                    previewVideo.style.display = "block";
-                    previewImage.style.display = "none";
-                    cameraPreview.style.display = "none";
-                } else {
-                    // Fallback or unsupported file type
-                    mediaTypeInput.value = '';
-                    previewContainer.style.display = "none";
-                }
-
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-                previewContainer.style.display = "none";
-                mediaTypeInput.value = ''; // MODIFIED: Clear on no file
-            }
-        });
-
-        cameraBtn.addEventListener('click', async function() {
-            try {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    alert('Camera access is not supported in your browser. Please use a modern browser like Chrome, Firefox, or Safari.');
-                    return;
-                }
-
-                cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: true,
-                    audio: false
-                });
-
-                cameraPreview.srcObject = cameraStream;
-                cameraPreview.style.display = "block";
-                cameraControls.style.display = "block";
-                previewContainer.style.display = "block";
-                previewImage.style.display = "none";
-                previewVideo.style.display = "none";
-                removeBtn.style.display = "none";
-                mediaTypeInput.value = ''; // MODIFIED: Clear media type when camera is live
-                imageInput.value = ""; // MODIFIED: Clear file input when camera is live
-
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } catch (err) {
-                console.error('Camera error:', err);
-                let errorMsg = 'Unable to access camera. ';
-                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                    errorMsg += 'Please allow camera access in your browser settings.';
-                } else if (err.name === 'NotFoundError') {
-                    errorMsg += 'No camera found on your device.';
-                } else {
-                    errorMsg += err.message;
-                }
-                alert(errorMsg);
-            }
-        });
-
-        captureBtn.addEventListener('click', function() {
-            const context = cameraCanvas.getContext('2d');
-            cameraCanvas.width = cameraPreview.videoWidth;
-            cameraCanvas.height = cameraPreview.videoHeight;
-            context.drawImage(cameraPreview, 0, 0, cameraCanvas.width, cameraCanvas.height); // MODIFIED: Added width/height for safety
-
-            cameraCanvas.toBlob(function(blob) {
-                const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                imageInput.files = dataTransfer.files;
-                
-                // MODIFIED: Set media type to 'image' after capture
-                mediaTypeInput.value = 'image';
-
-                if (cameraStream) {
-                    cameraStream.getTracks().forEach(track => track.stop());
-                    cameraStream = null;
-                }
-
-                previewImage.src = URL.createObjectURL(blob);
-                previewImage.style.display = "block";
-                cameraPreview.style.display = "none";
-                cameraControls.style.display = "none";
-                removeBtn.style.display = "inline-block";
-            }, 'image/jpeg', 0.95);
-        });
-
-        cancelCameraBtn.addEventListener('click', function() {
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
-            cameraPreview.style.display = "none";
+    imageInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            previewContainer.style.display = "block";
+            removeBtn.style.display = "inline-block";
             cameraControls.style.display = "none";
-            previewContainer.style.display = "none";
-            mediaTypeInput.value = ''; // MODIFIED: Clear media type on cancel
-        });
+            
+            if (file.type.startsWith("image/")) {
+                mediaTypeInput.value = file.type.endsWith('/gif') ? 'gif' : 'image';
+                previewImage.src = url;
+                previewImage.style.display = "block";
+                previewVideo.style.display = "none";
+                cameraPreview.style.display = "none";
+            } else if (file.type.startsWith("video/")) {
+                mediaTypeInput.value = 'video';
+                previewVideo.src = url;
+                previewVideo.style.display = "block";
+                previewImage.style.display = "none";
+                cameraPreview.style.display = "none";
+            } else {
+                mediaTypeInput.value = '';
+                previewContainer.style.display = "none";
+            }
 
-        removeBtn.addEventListener('click', function() {
-            imageInput.value = "";
-            mediaTypeInput.value = ""; // MODIFIED: Clear media type
-            previewImage.src = "";
-            previewVideo.src = "";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            previewContainer.style.display = "none";
+            mediaTypeInput.value = '';
+        }
+    });
+
+    cameraBtn.addEventListener('click', async function() {
+        try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Camera access is not supported in your browser.');
+                return;
+            }
+
+            cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            cameraPreview.srcObject = cameraStream;
+            cameraPreview.style.display = "block";
+            cameraControls.style.display = "block";
+            previewContainer.style.display = "block";
             previewImage.style.display = "none";
             previewVideo.style.display = "none";
-            previewContainer.style.display = "none";
+            removeBtn.style.display = "none";
+            mediaTypeInput.value = '';
+            imageInput.value = "";
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (err) {
+            alert('Unable to access camera: ' + err.message);
+        }
+    });
+
+    captureBtn.addEventListener('click', function() {
+        const context = cameraCanvas.getContext('2d');
+        cameraCanvas.width = cameraPreview.videoWidth;
+        cameraCanvas.height = cameraPreview.videoHeight;
+        context.drawImage(cameraPreview, 0, 0, cameraCanvas.width, cameraCanvas.height);
+
+        cameraCanvas.toBlob(function(blob) {
+            const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            imageInput.files = dataTransfer.files;
+            mediaTypeInput.value = 'image';
 
             if (cameraStream) {
                 cameraStream.getTracks().forEach(track => track.stop());
                 cameraStream = null;
             }
-        });
 
-        form.addEventListener('submit', function(){
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
-            postBtn.disabled = true;
-            postBtn.textContent = 'Posting...';
-        });
+            previewImage.src = URL.createObjectURL(blob);
+            previewImage.style.display = "block";
+            cameraPreview.style.display = "none";
+            cameraControls.style.display = "none";
+            removeBtn.style.display = "inline-block";
+        }, 'image/jpeg', 0.95);
+    });
 
-        toggleButton();
-    })();
+    cancelCameraBtn.addEventListener('click', function() {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+        }
+        cameraPreview.style.display = "none";
+        cameraControls.style.display = "none";
+        previewContainer.style.display = "none";
+        mediaTypeInput.value = '';
+    });
+
+    removeBtn.addEventListener('click', function() {
+        imageInput.value = "";
+        mediaTypeInput.value = "";
+        previewImage.src = "";
+        previewVideo.src = "";
+        previewImage.style.display = "none";
+        previewVideo.style.display = "none";
+        previewContainer.style.display = "none";
+
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+        }
+    });
+
+    form.addEventListener('submit', function(){
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+        }
+        postBtn.disabled = true;
+        postBtn.textContent = 'Posting...';
+    });
+
+    toggleButton();
+})();
 </script>
 @endsection

@@ -112,6 +112,14 @@ class PostController extends Controller
         return redirect()->route('timeline')->with('success', 'Post created successfully!');
     }
 
+    public function viewPost($id)
+    {
+        $post = Post::with(['user', 'comments.user', 'comments.replies.user'])
+                    ->findOrFail($id);
+        
+        return view('posts.viewpost', compact('post'));
+    }
+    
     /**
      * Vote on post - WITH NOTIFICATION
      */
