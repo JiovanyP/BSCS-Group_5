@@ -79,7 +79,7 @@
     line-height: 1;
 }
 
-/* === rest of your original CSS (unchanged) === */
+/* === POST CARD === */
 .main-content {
     flex: 1;
     overflow-y: auto;
@@ -88,7 +88,6 @@
     padding: 20px 0;
 }
 
-/* === POST CARD === */
 .post-card {
     background: var(--card-bg);
     border-radius: 16px;
@@ -366,6 +365,23 @@
     background-color: #e9e9e9 !important;
 }
 
+/* === LOCATION TAG FILTER (incoming teammate) === */
+.location-tag {
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+.location-tag:hover {
+    background-color: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+.location-tag.active {
+    background-color: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
 </style>
 
 <div class="main-content">
@@ -382,120 +398,141 @@
                 </script>
             @endif
 
-            {{-- Timeline --}}
-            @php $currentDate = null; @endphp
-            @forelse ($posts as $post)
-                @if ($currentDate !== $post->created_at->toDateString())
-                    <div class="timeline-label text-center font-weight-bold my-3">
-                        {{ $post->created_at->isToday() ? 'Today' : ($post->created_at->isYesterday() ? 'Yesterday' : $post->created_at->format('F j, Y')) }}
-                    </div>
-                    @php $currentDate = $post->created_at->toDateString(); @endphp
-                @endif
+            {{-- === LOCATION FILTER TAGS (incoming) === --}}
+            @php
+                $uniqueLocations = $posts->pluck('location')->unique()->filter()->values();
+            @endphp
 
-                @php $userVote = $post->userVote(auth()->id()); @endphp
-                <div class="post-card" id="post-{{ $post->id }}">
-
-                    <div class="post-content">
-                        <div class="post-header">
-                            <div class="report-details">
-                                {{ strtoupper($post->accident_type) }} • <span class="location">{{ $post->location }}</span>
-                                @if($post->other_type) <small class="text-muted">({{ $post->other_type }})</small> @endif
-                            </div>
-
-                            <div class="dropdown">
-                                <a href="#" class="text-muted" data-toggle="dropdown"><span class="material-icons">more_horiz</span></a>
-                                <div class="dropdown-menu dropdown-menu-right">
-                                    {{-- Edit/Delete/Report Buttons as before --}}
-                                    @if(auth()->id() === $post->user_id)
-                                        <a class="dropdown-item cute-edit-btn" href="{{ route('posts.edit', $post->id) }}">
-                                            <span class="material-icons">edit</span> Edit
-                                        </a>
-                                        <button class="dropdown-item cute-delete-btn delete-post-btn" data-id="{{ $post->id }}" data-toggle="modal" data-target="#deleteModal">
-                                            <span class="material-icons">delete</span> Delete
-                                        </button>
-                                    @else
-                                        <button class="dropdown-item report-post-btn" data-id="{{ $post->id }}" data-toggle="modal" data-target="#reportModal">
-                                            <span class="material-icons">flag</span> Report
-                                        </button>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="post-body">
-                            <p>{{ $post->content }}</p>
-                            @if($post->image)
-                                @if($post->media_type === 'image' || $post->media_type === 'gif')
-                                    <img src="{{ asset('storage/' . $post->image) }}" alt="Post Image">
-                                @elseif($post->media_type === 'video')
-                                    <video controls><source src="{{ asset('storage/' . $post->image) }}" type="video/mp4"></video>
-                                @endif
-                            @endif
-                        </div>
-
-                        {{-- Post Signature --}}
-                        <div class="post-signature">
-                            <div class="user-info">
-                                <img src="{{ $post->user->avatar_url }}" width="32" height="32" class="rounded-circle">
-                                <strong>{{ $post->user->name }}</strong>
-                                <small>{{ $post->created_at->diffForHumans() }}</small>
-                            </div>
-                        </div>
-                        {{-- END Post Signature --}}
-
-                        {{-- Post Footer with Comment Pill --}}
-                        <div class="post-footer">
-                            <div class="comment-container">
-                                <a href="#" class="toggle-comments footer-action" data-id="{{ $post->id }}">
-                                    <span class="material-icons-outlined">chat_bubble_outline</span>
-                                    <span id="comment-count-{{ $post->id }}">{{ $post->total_comments_count }}</span>
-                                </a>
-                            </div>
-                            
-                            <div class="vote-container">
-                                <a href="#" class="upvote-btn footer-action {{ $userVote==='up'?'voted-up':'' }}" data-id="{{ $post->id }}">
-                                    <span class="material-icons">arrow_upward</span>
-                                </a>
-                                <div class="vote-count" id="upvote-count-{{ $post->id }}">
-                                    {{ $post->upvotes()->count() - $post->downvotes()->count() }}
-                                </div>
-                                <a href="#" class="downvote-btn footer-action {{ $userVote==='down'?'voted-down':'' }}" data-id="{{ $post->id }}">
-                                    <span class="material-icons">arrow_downward</span>
-                                </a>
-                            </div>
-                        </div>
-
-                        {{-- Comments --}}
-                        <div class="comments-section" id="comments-section-{{ $post->id }}">
-                            <div class="comments-list mb-3">
-                                @foreach($post->comments as $comment)
-                                    <div class="comment" id="comment-{{ $comment->id }}">
-                                        <img src="{{ $comment->user->avatar_url }}" width="28" height="28" class="rounded-circle">
-                                        <div style="flex: 1;">
-                                            <div><strong>{{ $comment->user->name }}</strong> {{ $comment->content }}</div>
-                                            <a href="#" class="reply-btn small" data-id="{{ $comment->id }}">Reply</a>
-                                            <div class="replies">
-                                                @foreach($comment->replies as $reply)
-                                                    <div class="comment" id="comment-{{ $reply->id }}">
-                                                        <img src="{{ $reply->user->avatar_url }}" width="25" height="25" class="rounded-circle">
-                                                        <div><strong>{{ $reply->user->name }}</strong> {{ $reply->content }}</div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                            <div class="input-group">
-                                <input type="text" class="form-control comment-input" id="comment-input-{{ $post->id }}" placeholder="Add a comment...">
-                                <button class="comment-send" data-id="{{ $post->id }}" id="comment-send-{{ $post->id }}" disabled>Send</button>
-                            </div>
-                        </div>
+            @if($uniqueLocations->count() > 0)
+                <div class="mb-4 text-center">
+                    <div class="d-inline-flex flex-wrap justify-content-center">
+                        <button class="btn btn-sm btn-outline-primary mx-1 location-tag active" data-location="all">All</button>
+                        @foreach($uniqueLocations as $location)
+                            <button class="btn btn-sm btn-outline-primary mx-1 location-tag" data-location="{{ $location }}">
+                                {{ $location }}
+                            </button>
+                        @endforeach
                     </div>
                 </div>
-            @empty
-                <p class="text-center text-muted">No reports yet.</p>
-            @endforelse
+            @endif
+
+            {{-- Timeline wrapper for smooth-scroll target --}}
+            <div class="posts-container">
+                {{-- Timeline --}}
+                @php $currentDate = null; @endphp
+                @forelse ($posts as $post)
+                    @if ($currentDate !== $post->created_at->toDateString())
+                        <div class="timeline-label text-center font-weight-bold my-3">
+                            {{ $post->created_at->isToday() ? 'Today' : ($post->created_at->isYesterday() ? 'Yesterday' : $post->created_at->format('F j, Y')) }}
+                        </div>
+                        @php $currentDate = $post->created_at->toDateString(); @endphp
+                    @endif
+
+                    @php $userVote = $post->userVote(auth()->id()); @endphp
+                    <div class="post-card" id="post-{{ $post->id }}">
+
+                        <div class="post-content">
+                            <div class="post-header">
+                                <div class="report-details">
+                                    {{ strtoupper($post->accident_type) }} • <span class="location">{{ $post->location }}</span>
+                                    @if($post->other_type) <small class="text-muted">({{ $post->other_type }})</small> @endif
+                                </div>
+
+                                <div class="dropdown">
+                                    <a href="#" class="text-muted" data-toggle="dropdown"><span class="material-icons">more_horiz</span></a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        {{-- Edit/Delete/Report Buttons as before --}}
+                                        @if(auth()->id() === $post->user_id)
+                                            <a class="dropdown-item cute-edit-btn" href="{{ route('posts.edit', $post->id) }}">
+                                                <span class="material-icons">edit</span> Edit
+                                            </a>
+                                            <button class="dropdown-item cute-delete-btn delete-post-btn" data-id="{{ $post->id }}" data-toggle="modal" data-target="#deleteModal">
+                                                <span class="material-icons">delete</span> Delete
+                                            </button>
+                                        @else
+                                            <button class="dropdown-item report-post-btn" data-id="{{ $post->id }}" data-toggle="modal" data-target="#reportModal">
+                                                <span class="material-icons">flag</span> Report
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="post-body">
+                                <p>{{ $post->content }}</p>
+                                @if($post->image)
+                                    @if($post->media_type === 'image' || $post->media_type === 'gif')
+                                        <img src="{{ asset('storage/' . $post->image) }}" alt="Post Image">
+                                    @elseif($post->media_type === 'video')
+                                        <video controls><source src="{{ asset('storage/' . $post->image) }}" type="video/mp4"></video>
+                                    @endif
+                                @endif
+                            </div>
+
+                            {{-- Post Signature --}}
+                            <div class="post-signature">
+                                <div class="user-info">
+                                    <img src="{{ $post->user->avatar_url }}" width="32" height="32" class="rounded-circle">
+                                    <strong>{{ $post->user->name }}</strong>
+                                    <small>{{ $post->created_at->diffForHumans() }}</small>
+                                </div>
+                            </div>
+                            {{-- END Post Signature --}}
+
+                            {{-- Post Footer with Comment Pill --}}
+                            <div class="post-footer">
+                                <div class="comment-container">
+                                    <a href="#" class="toggle-comments footer-action" data-id="{{ $post->id }}">
+                                        <span class="material-icons-outlined">chat_bubble_outline</span>
+                                        <span id="comment-count-{{ $post->id }}">{{ $post->total_comments_count }}</span>
+                                    </a>
+                                </div>
+                                
+                                <div class="vote-container">
+                                    <a href="#" class="upvote-btn footer-action {{ $userVote==='up'?'voted-up':'' }}" data-id="{{ $post->id }}">
+                                        <span class="material-icons">arrow_upward</span>
+                                    </a>
+                                    <div class="vote-count" id="upvote-count-{{ $post->id }}">
+                                        {{ $post->upvotes()->count() - $post->downvotes()->count() }}
+                                    </div>
+                                    <a href="#" class="downvote-btn footer-action {{ $userVote==='down'?'voted-down':'' }}" data-id="{{ $post->id }}">
+                                        <span class="material-icons">arrow_downward</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            {{-- Comments --}}
+                            <div class="comments-section" id="comments-section-{{ $post->id }}">
+                                <div class="comments-list mb-3">
+                                    @foreach($post->comments as $comment)
+                                        <div class="comment" id="comment-{{ $comment->id }}">
+                                            <img src="{{ $comment->user->avatar_url }}" width="28" height="28" class="rounded-circle">
+                                            <div style="flex: 1;">
+                                                <div><strong>{{ $comment->user->name }}</strong> {{ $comment->content }}</div>
+                                                <a href="#" class="reply-btn small" data-id="{{ $comment->id }}">Reply</a>
+                                                <div class="replies">
+                                                    @foreach($comment->replies as $reply)
+                                                        <div class="comment" id="comment-{{ $reply->id }}">
+                                                            <img src="{{ $reply->user->avatar_url }}" width="25" height="25" class="rounded-circle">
+                                                            <div><strong>{{ $reply->user->name }}</strong> {{ $reply->content }}</div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <div class="input-group">
+                                    <input type="text" class="form-control comment-input" id="comment-input-{{ $post->id }}" placeholder="Add a comment...">
+                                    <button class="comment-send" data-id="{{ $post->id }}" id="comment-send-{{ $post->id }}" disabled>Send</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-center text-muted">No reports yet.</p>
+                @endforelse
+            </div> {{-- .posts-container end --}}
 
             <div class="d-flex justify-content-center mt-4">{{ $posts->links() }}</div>
         </div>
@@ -784,6 +821,28 @@ $(function(){
         .replace(/'/g, '&#39;');
     }
   }
+
+  /* === LOCATION FILTER HANDLER (merged from teammate) === */
+  $(document).on('click', '.location-tag', function() {
+      const selected = $(this).data('location');
+      $('.location-tag').removeClass('active');
+      $(this).addClass('active');
+
+      // --- Filter logic ---
+      if (selected === 'all') {
+          $('.post-card').fadeIn(250);
+      } else {
+          $('.post-card').hide().filter(function() {
+              const loc = $(this).find('.location').text().trim();
+              return loc === selected;
+          }).fadeIn(250);
+      }
+
+      // --- Smooth scroll up to posts section ---
+      const target = $('.posts-container').offset() ? $('.posts-container').offset().top : 0;
+      $('html, body').animate({ scrollTop: target - 80 }, 500, 'swing');
+      // 80px offset so the section isn’t hidden under a fixed navbar
+  });
 
 });
 </script>

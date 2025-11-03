@@ -9,44 +9,47 @@ use App\Models\Notification;
 use App\Models\Report;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class PostController extends Controller
 {
     /**
-     * Show dashboard (paginated posts).
+     * USER: Main Dashboard (User Feed)
+     * Displays paginated posts and stats (used for /dashboard or /newsfeed).
      */
     public function index()
     {
-        $posts = Post::with(['user', 'comments', 'likes'])
+        // 📰 Regular posts for feed
+        $posts = Post::with(['user', 'comments.user', 'likes'])
             ->latest()
             ->paginate(10);
 
-        // Get accident counts by type
+        // 📊 Accident counts summary
         $accidentCounts = Post::selectRaw('accident_type, COUNT(*) as total')
             ->whereNotNull('accident_type')
             ->groupBy('accident_type')
             ->get();
 
-        // Get top locations by reported incidents
+        // 📍 Top locations
         $topLocations = Post::selectRaw('location, COUNT(*) as total')
             ->whereNotNull('location')
             ->groupBy('location')
-            ->orderBy('total', 'desc')
+            ->orderByDesc('total')
             ->limit(10)
             ->get();
 
-        // Get reported posts with reports (for admin view)
+        // 🚨 Reported posts (for admin viewing convenience)
         $reportedPosts = Post::with(['user', 'reports.user'])
             ->withCount('reports')
-            ->whereHas('reports') // ✅ Works in SQLite, MySQL, and Postgres
-            ->orderBy('reports_count', 'desc')
+            ->whereHas('reports')
+            ->orderByDesc('reports_count')
             ->paginate(20);
 
         return view('newsfeed', compact('posts', 'accidentCounts', 'topLocations', 'reportedPosts'));
     }
 
     /**
-     * Show timeline (paginated posts).
+     * USER: Public Timeline (feed)
      */
     public function timeline()
     {
@@ -58,7 +61,7 @@ class PostController extends Controller
     }
 
     /**
-     * Show create post form.
+     * USER: Show Create Form
      */
     public function create()
     {
@@ -66,72 +69,73 @@ class PostController extends Controller
     }
 
     /**
-     * Store new post (with optional image/video/gif and location).
+     * USER: Store New Post
      */
     public function store(Request $request)
     {
         $request->validate([
-            'content'  => 'nullable|string|max:1000',
-            'location' => 'nullable|string|max:255',
-            'accident_type' => 'required|string|max:100', // ADD THIS VALIDATION
-            'image'    => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
+            'content'        => 'nullable|string|max:1000',
+            'location'       => 'nullable|string|max:255',
+            'accident_type'  => 'required|string|max:100',
+            'image'          => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
         ]);
 
-        $imagePath = null;
         $mediaType = null;
+        $imagePath = null;
 
         if ($request->hasFile('image')) {
             $file = $request->file('image');
-            $extension = strtolower($file->getClientOriginalExtension());
+            $ext = strtolower($file->getClientOriginalExtension());
 
-            if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
-                $mediaType = 'image';
-            } elseif ($extension === 'gif') {
-                $mediaType = 'gif';
-            } elseif (in_array($extension, ['mp4', 'mov', 'avi', 'webm'])) {
-                $mediaType = 'video';
-            }
+            // Identify media type
+            if (in_array($ext, ['jpg', 'jpeg', 'png'])) $mediaType = 'image';
+            elseif ($ext === 'gif') $mediaType = 'gif';
+            elseif (in_array($ext, ['mp4', 'mov', 'avi', 'webm'])) $mediaType = 'video';
 
-            // store in storage/app/public/posts
             $imagePath = $file->store('posts', 'public');
         }
 
-        // ✅ Create the post record WITH accident_type
+        // Create the post
         $post = Post::create([
-            'user_id'    => Auth::id(),
-            'content'    => $request->content,
-            'location'   => $request->location,
-            'accident_type' => $request->accident_type, // ADD THIS LINE
-            'image'      => $imagePath,
-            'media_type' => $mediaType,
+            'user_id'       => Auth::id(),
+            'content'       => $request->content,
+            'location'      => $request->location,
+            'accident_type' => $request->accident_type,
+            'image'         => $imagePath,
+            'media_type'    => $mediaType,
         ]);
 
-        // 🚨 Trigger location-based notifications
-        \App\Http\Controllers\NotificationController::createLocationNotifications($post);
+        // Optional: trigger location notifications
+        if (class_exists(\App\Http\Controllers\NotificationController::class)) {
+            \App\Http\Controllers\NotificationController::createLocationNotifications($post);
+        }
 
         return redirect()->route('timeline')->with('success', 'Post created successfully!');
     }
 
     /**
-     * Vote on post - WITH NOTIFICATION
+     * USER: View Individual Post
      */
+    public function viewPost($id)
+    {
+        $post = Post::with(['user', 'comments.user', 'comments.replies.user'])->findOrFail($id);
+        return view('posts.viewpost', compact('post'));
+    }
+
     /**
- * Vote on post - WITH UNDO FUNCTIONALITY
- */
+     * USER: Vote on Post (Upvote/Downvote)
+     */
     public function vote(Request $request, $id)
     {
         $request->validate(['vote' => 'required|in:up,down']);
-
         $post = Post::findOrFail($id);
-        
-        // Get existing vote if any
-        $existingVote = $post->likes()->where('user_id', Auth::id())->first();
-        
-        // If user clicks the same vote button again, remove the vote (undo)
-        if ($existingVote && $existingVote->vote_type === $request->vote) {
-            $existingVote->delete();
-            
-            // Delete notification when undoing vote
+        $existing = $post->likes()->where('user_id', Auth::id())->first();
+
+        // Undo same vote
+        if ($existing && $existing->vote_type === $request->vote) {
+            $existing->delete();
+
+            // Remove related notification
             if ($post->user_id !== Auth::id()) {
                 Notification::where('user_id', $post->user_id)
                     ->where('actor_id', Auth::id())
@@ -139,31 +143,29 @@ class PostController extends Controller
                     ->whereIn('type', ['upvote', 'downvote'])
                     ->delete();
             }
-            
+
             return response()->json([
-                'success'          => true,
-                'user_vote'        => null, // No vote now
-                'upvotes_count'    => $post->upvotes()->count(),
-                'downvotes_count'  => $post->downvotes()->count(),
+                'success' => true,
+                'user_vote' => null,
+                'upvotes_count' => $post->upvotes()->count(),
+                'downvotes_count' => $post->downvotes()->count(),
             ]);
         }
-        
-        // Otherwise, update or create the vote
+
+        // Create or update vote
         $post->likes()->updateOrCreate(
             ['user_id' => Auth::id()],
             ['vote_type' => $request->vote]
         );
 
-        // Create notification ONLY if voting on someone else's post
+        // Send notification if not self-voting
         if ($post->user_id !== Auth::id()) {
-            // Delete old notification if vote type changed
             Notification::where('user_id', $post->user_id)
                 ->where('actor_id', Auth::id())
                 ->where('post_id', $post->id)
                 ->whereIn('type', ['upvote', 'downvote'])
                 ->delete();
 
-            // Create new notification
             Notification::create([
                 'user_id' => $post->user_id,
                 'actor_id' => Auth::id(),
@@ -174,37 +176,34 @@ class PostController extends Controller
         }
 
         return response()->json([
-            'success'          => true,
-            'user_vote'        => $request->vote,
-            'upvotes_count'    => $post->upvotes()->count(),
-            'downvotes_count'  => $post->downvotes()->count(),
+            'success' => true,
+            'user_vote' => $request->vote,
+            'upvotes_count' => $post->upvotes()->count(),
+            'downvotes_count' => $post->downvotes()->count(),
         ]);
     }
 
     /**
-     * Add comment - WITH NOTIFICATION
+     * USER: Add Comment (or Reply)
      */
     public function addComment(Request $request, $id)
     {
         $request->validate(['content' => 'required|string|max:300']);
-
         $post = Post::findOrFail($id);
 
         $comment = Comment::create([
-            'user_id'   => Auth::id(),
-            'post_id'   => $id,
-            'content'   => $request->content,
+            'user_id' => Auth::id(),
+            'post_id' => $id,
+            'content' => $request->content,
             'parent_id' => $request->parent_id ?? null,
         ]);
 
-        // Create notification
+        // Create Notification (reply or comment)
         if ($request->parent_id) {
-            // This is a reply - notify the comment owner
-            $parentComment = Comment::find($request->parent_id);
-            
-            if ($parentComment && $parentComment->user_id !== Auth::id()) {
+            $parent = Comment::find($request->parent_id);
+            if ($parent && $parent->user_id !== Auth::id()) {
                 Notification::create([
-                    'user_id' => $parentComment->user_id,
+                    'user_id' => $parent->user_id,
                     'actor_id' => Auth::id(),
                     'post_id' => $id,
                     'comment_id' => $comment->id,
@@ -212,33 +211,30 @@ class PostController extends Controller
                     'is_read' => false,
                 ]);
             }
-        } else {
-            // This is a top-level comment - notify the post owner
-            if ($post->user_id !== Auth::id()) {
-                Notification::create([
-                    'user_id' => $post->user_id,
-                    'actor_id' => Auth::id(),
-                    'post_id' => $id,
-                    'comment_id' => $comment->id,
-                    'type' => 'comment',
-                    'is_read' => false,
-                ]);
-            }
+        } elseif ($post->user_id !== Auth::id()) {
+            Notification::create([
+                'user_id' => $post->user_id,
+                'actor_id' => Auth::id(),
+                'post_id' => $id,
+                'comment_id' => $comment->id,
+                'type' => 'comment',
+                'is_read' => false,
+            ]);
         }
 
         return response()->json([
-            'success'        => true,
-            'id'             => $comment->id,
-            'parent_id'      => $comment->parent_id,
-            'user'           => Auth::user()->name,
-            'avatar'         => Auth::user()->avatar ?? 'https://bootdey.com/img/Content/avatar/avatar1.png',
-            'comment'        => $comment->content,
+            'success' => true,
+            'id' => $comment->id,
+            'parent_id' => $comment->parent_id,
+            'user' => Auth::user()->name,
+            'avatar' => Auth::user()->avatar ?? 'https://bootdey.com/img/Content/avatar/avatar1.png',
+            'comment' => $comment->content,
             'comments_count' => Comment::where('post_id', $id)->count(),
         ]);
     }
 
     /**
-     * Show the edit form for a post.
+     * USER: Edit Post Form
      */
     public function edit(Post $post)
     {
@@ -247,7 +243,7 @@ class PostController extends Controller
     }
 
     /**
-     * Update a post (content, location, and optional new media).
+     * USER: Update Post
      */
     public function update(Request $request, Post $post)
     {
@@ -259,32 +255,26 @@ class PostController extends Controller
             'image'    => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
         ]);
 
-        $imagePath = $post->image;
         $mediaType = $post->media_type;
+        $imagePath = $post->image;
 
         if ($request->hasFile('image')) {
-            // delete old file if present
             if ($post->image && Storage::disk('public')->exists($post->image)) {
                 Storage::disk('public')->delete($post->image);
             }
 
             $file = $request->file('image');
-            $extension = strtolower($file->getClientOriginalExtension());
-
-            if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
-                $mediaType = 'image';
-            } elseif ($extension === 'gif') {
-                $mediaType = 'gif';
-            } elseif (in_array($extension, ['mp4', 'mov', 'avi', 'webm'])) {
-                $mediaType = 'video';
-            }
+            $ext = strtolower($file->getClientOriginalExtension());
+            if (in_array($ext, ['jpg', 'jpeg', 'png'])) $mediaType = 'image';
+            elseif ($ext === 'gif') $mediaType = 'gif';
+            elseif (in_array($ext, ['mp4', 'mov', 'avi', 'webm'])) $mediaType = 'video';
 
             $imagePath = $file->store('posts', 'public');
         }
 
         $post->update([
-            'content'    => $request->input('content'),
-            'location'   => $request->input('location'),
+            'content'    => $request->content,
+            'location'   => $request->location,
             'image'      => $imagePath,
             'media_type' => $mediaType,
         ]);
@@ -293,96 +283,78 @@ class PostController extends Controller
     }
 
     /**
-     * Delete a post and its associated media file.
+     * USER: Delete Post
      */
     public function destroy(Post $post)
     {
         $this->authorize('delete', $post);
 
-        // Delete file from storage if exists
         if ($post->image && Storage::disk('public')->exists($post->image)) {
             Storage::disk('public')->delete($post->image);
         }
 
         $post->delete();
-
         return redirect()->route('timeline')->with('success', 'Post deleted successfully!');
     }
 
     /**
-     * Report a post.
+     * USER: Report Post
      */
     public function report(Request $request, Post $post)
     {
-        // Prevent users from reporting their own posts
         if (Auth::id() === $post->user_id) {
             return response()->json(['error' => 'Cannot report your own post'], 403);
         }
 
         $request->validate([
-            'reason' => 'required|in:spam,violence,hate_speech,misinformation,other'
+            'reason' => ['required', Rule::in(['spam', 'violence', 'hate_speech', 'misinformation', 'other'])],
         ]);
 
-        // Check if user has already reported this post
-        $existingReport = Report::where('user_id', Auth::id())
-            ->where('post_id', $post->id)
-            ->first();
-
-        if ($existingReport) {
+        $existing = Report::where('user_id', Auth::id())->where('post_id', $post->id)->first();
+        if ($existing) {
             return response()->json(['error' => 'You have already reported this post'], 409);
         }
 
-        // Create the report
         Report::create([
             'user_id' => Auth::id(),
             'post_id' => $post->id,
-            'reason'  => $request->reason
+            'reason' => $request->reason,
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Thank you for your report. We will review it shortly.'
-        ]);
+        return response()->json(['success' => true, 'message' => 'Thank you for your report.']);
     }
 
     /**
-     * Admin Dashboard
+     * ADMIN: Dashboard (Option 2)
      */
     public function adminDashboard()
     {
-        // Get accident counts by type
         $accidentCounts = Post::selectRaw('accident_type, COUNT(*) as total')
             ->whereNotNull('accident_type')
             ->groupBy('accident_type')
             ->get();
 
-        // Get top locations by reported incidents
         $topLocations = Post::selectRaw('location, COUNT(*) as total')
             ->whereNotNull('location')
             ->groupBy('location')
-            ->orderBy('total', 'desc')
+            ->orderByDesc('total')
             ->limit(10)
             ->get();
 
-        // Get reported posts with reports
         $reportedPosts = Post::with(['user', 'reports.user'])
             ->withCount('reports')
-            ->whereHas('reports') // ✅ Fix for SQLite
-            ->orderBy('reports_count', 'desc')
+            ->whereHas('reports')
+            ->orderByDesc('reports_count')
             ->paginate(20);
 
-
         return view('admin.dashboard', compact('accidentCounts', 'topLocations', 'reportedPosts'));
-
     }
 
-
     /**
-     * Admin remove post
+     * ADMIN: Remove Post
      */
     public function adminRemove(Post $post)
     {
-        // Delete file from storage if exists
         if ($post->image && Storage::disk('public')->exists($post->image)) {
             Storage::disk('public')->delete($post->image);
         }
