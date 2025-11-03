@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Publ Sidebar with Weather</title>
 
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
 
     <style>
     :root {
@@ -16,6 +19,8 @@
         --white: #ffffff;
         --black: #000000;
         --text-muted: #666;
+        /* Added a light pink variable for the gradient */
+        --light-pink: #fbebf1; 
     }
 
     body {
@@ -41,6 +46,15 @@
         justify-content: space-between;
         border-right: 1px solid #eee;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.02);
+        
+        /* MODIFIED: Added a pink gradient at the bottom */
+        background-image: linear-gradient(
+            to bottom, 
+            transparent 50%, 
+            transparent 70%, 
+            var(--light-pink) 100%
+        );
+        background-color: var(--sidebar-bg); /* Fallback/base color */
     }
 
     .sidebar h1 {
@@ -89,8 +103,19 @@
         color: var(--black);
     }
 
-    /* 2. MODIFIED: Target Material Icons class for styling */
+    /* 2. Target Material Icons class for styling (Material Icons) */
     .sidebar ul li a .material-icons {
+        font-size: 18px;
+        width: 24px;
+    }
+    
+    /* NEW: Target Material Symbols Outlined class for styling (Material You) */
+    .material-symbols-outlined {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24;
         font-size: 18px;
         width: 24px;
     }
@@ -122,12 +147,12 @@
     }
 
     .btn-danger {
-        background: #dc3545;
+        background: var(--accent); /* Use accent color for better design harmony */
         color: var(--white);
     }
 
     .btn-danger:hover {
-        background: #c82333;
+        background: var(--accent-hover);
     }
 
     .w-100 {
@@ -233,7 +258,7 @@
     <form action="{{ route('logout') }}" method="POST" class="mt-4">
         @csrf
         <button type="submit" class="btn btn-danger w-100">
-            <span class="material-icons me-2">logout</span>
+            <span class="material-symbols-outlined me-2">logout</span>
             Logout
         </button>
     </form>

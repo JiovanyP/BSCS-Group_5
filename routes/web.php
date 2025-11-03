@@ -30,7 +30,7 @@ use App\Models\User;
 */
 Route::get('/', function () {
     if (Auth::check()) {
-        return redirect()->route('dashboard');
+        return redirect()->route('timeline');
     }
     return view('welcome');
 })->name('welcome');
@@ -112,7 +112,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
-
+    Route::get('/posts/{id}/view', [PostController::class, 'viewPost'])->name('posts.view');    
     // 👍 Votes and Comments
     Route::post('/posts/{id}/vote', [PostController::class, 'vote'])->name('posts.vote');
     Route::post('/posts/{id}/comments', [PostController::class, 'addComment'])->name('posts.comment');
