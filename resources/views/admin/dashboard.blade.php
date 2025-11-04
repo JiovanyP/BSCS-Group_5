@@ -1,501 +1,319 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Admin Dashboard</title>
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <style>
-        :root {
-            --accent: #CF0F47;
-            --accent-hover: #FF0B55;
-            --accent-light: rgba(207, 15, 71, 0.1);
-            --muted: #666;
-            --border-radius: 16px;
-            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
-            --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body { 
-            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            min-height: 100vh;
-        }
+{{-- resources/views/admin/dashboard.blade.php --}}
+@extends('layouts.app')
 
-        .navbar-admin {
-            background: linear-gradient(135deg, var(--accent) 0%, #a00c38 100%);
-            color: #fff;
-            padding: 20px 0;
-            box-shadow: 0 4px 20px rgba(207, 15, 71, 0.2);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        
-        .navbar-admin h4 {
-            margin: 0;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            font-size: 1.5rem;
-        }
-        
-        .navbar-admin .user-info {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        
-        .navbar-admin .btn-light {
-            padding: 8px 20px;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .navbar-admin .btn-light:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
+@section('title', 'Admin Dashboard')
 
-        .dashboard-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 40px 24px;
-        }
+@section('content')
+<meta name="csrf-token" content="{{ csrf_token() }}">
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 24px;
-            margin-bottom: 40px;
-        }
+<style>
+:root {
+  --accent: #CF0F47;
+  --accent-hover: #FF0B55;
+  --muted: #666;
+  --card-radius: 12px;
+}
+body { background:#f9fafc; }
 
-        .stat-card {
-            background: white;
-            border: none;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-sm);
-            padding: 28px 24px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--accent), var(--accent-hover));
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .stat-card:hover::before {
-            opacity: 1;
-        }
-        
-        .stat-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-            display: inline-block;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-        }
-        
-        .stat-card h5 {
-            font-weight: 600;
-            color: #2d3748;
-            font-size: 1rem;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--accent);
-            line-height: 1;
-            margin-bottom: 4px;
-        }
-        
-        .stat-label {
-            font-size: 0.875rem;
-            color: var(--muted);
-            font-weight: 500;
-        }
+.navbar-admin {
+  background: var(--accent);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+}
+.navbar-admin h4 { margin:0; font-weight:700; letter-spacing:1px; }
 
-        .content-card {
-            background: white;
-            border: none;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-sm);
-            margin-bottom: 32px;
-            overflow: hidden;
-        }
-        
-        .card-header {
-            background: linear-gradient(135deg, #fafbfc 0%, #f5f7fa 100%);
-            border-bottom: 2px solid #e8ecf1;
-            padding: 20px 28px;
-            font-weight: 600;
-            color: #2d3748;
-            font-size: 1.1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .card-header strong {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+.sidebar {
+  background:#fff;
+  border-radius:10px;
+  box-shadow:0 3px 12px rgba(0,0,0,0.05);
+  padding:20px;
+}
+.sidebar a { display:block; color:#333; padding:8px 10px; border-radius:6px; text-decoration:none; }
+.sidebar a:hover { background:var(--accent); color:#fff; }
 
-        .table {
-            margin-bottom: 0;
-        }
-        
-        .table thead th {
-            background: #fafbfc;
-            border-bottom: 2px solid #e8ecf1;
-            color: #4a5568;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            padding: 16px 20px;
-        }
-        
-        .table tbody td {
-            padding: 20px;
-            vertical-align: middle;
-            border-bottom: 1px solid #f1f3f5;
-        }
-        
-        .table tbody tr:last-child td {
-            border-bottom: none;
-        }
-        
-        .table tbody tr {
-            transition: background-color 0.2s ease;
-        }
-        
-        .table tbody tr:hover {
-            background-color: #fafbfc;
-        }
+.card { background:#fff; border-radius:var(--card-radius); border:none; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+.card h5 { font-weight:600; }
 
-        .badge-category {
-            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.813rem;
-            font-weight: 600;
-            display: inline-block;
-            box-shadow: 0 2px 8px rgba(207, 15, 71, 0.2);
-        }
-        
-        .btn {
-            border-radius: 8px;
-            font-weight: 500;
-            padding: 8px 16px;
-            transition: all 0.3s ease;
-            border: none;
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: linear-gradient(135deg, #059669, #047857);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-        }
-        
-        .btn-danger:hover {
-            background: linear-gradient(135deg, var(--accent-hover), #d91650);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(207, 15, 71, 0.3);
-        }
-        
-        .post-media {
-            margin-top: 12px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .post-media img,
-        .post-media video {
-            border-radius: 8px;
-        }
-        
-        .reporter-info {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .reporter-item {
-            padding: 6px 0;
-        }
-        
-        .pagination {
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .page-link {
-            border-radius: 8px;
-            border: 1px solid #e8ecf1;
-            color: var(--accent);
-            font-weight: 500;
-            padding: 8px 16px;
-            transition: all 0.2s ease;
-        }
-        
-        .page-link:hover {
-            background: var(--accent-light);
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-        
-        .page-item.active .page-link {
-            background: var(--accent);
-            border-color: var(--accent);
-        }
-        
-        .empty-state {
-            padding: 60px 40px;
-            text-align: center;
-            color: var(--muted);
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        
-        @media (max-width: 768px) {
-            .dashboard-container {
-                padding: 24px 16px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-            
-            .navbar-admin h4 {
-                font-size: 1.2rem;
-            }
-            
-            .stat-number {
-                font-size: 2rem;
-            }
-        }
-    </style>
-</head>
-<body>
+.badge-category { background:var(--accent); color:#fff; padding:6px 10px; border-radius:8px; font-size:13px; }
+.btn-danger { background:var(--accent); border:none; color:#fff; }
+.btn-danger:hover { background:var(--accent-hover); }
+.btn-info { background-color: #007bff; border:none; color:#fff; }
+.btn-info:hover { background-color: #0056b3; }
 
-<div class="navbar-admin">
-    <div class="container-fluid px-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h4>🛡️ Admin Dashboard</h4>
-            <div class="user-info">
-                <div class="text-end d-none d-md-block">
-                    <div class="small opacity-75">Logged in as</div>
-                    <strong>{{ Auth::user()->name }}</strong>
-                </div>
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="btn btn-light">Logout</button>
-                </form>
-            </div>
-        </div>
-    </div>
+.table thead th { background:#fafafa; }
+.table-responsive { max-height:520px; overflow:auto; }
+
+.post-media img, .post-media video { max-height:120px; object-fit:cover; border-radius:8px; }
+
+.small-muted { color:#777; font-size:13px; }
+.orphan-row { background:#fff7e6; }
+
+/* spacing for stacked buttons */
+.btn-sm + .btn-sm, .btn-sm + .d-block { margin-top:5px; }
+
+/* Ensure visibility of the View button */
+.view-post-link {
+  display:block !important;
+  text-align:center;
+  text-decoration:none !important;
+  padding:6px 10px !important;
+  border-radius:18px !important;
+  font-weight:700;
+  width:86px;
+  margin-top:6px !important;
+  background:#1e90ff !important;
+  color:#fff !important;
+  box-shadow:0 3px 8px rgba(0,0,0,0.12);
+}
+</style>
+
+{{-- Navbar --}}
+<div class="navbar-admin d-flex justify-content-between align-items-center mb-3">
+  <h4>Admin Dashboard</h4>
+  <div>
+    <span class="small">Logged in as </span>
+    <strong>{{ optional(Auth::user())->name ?: 'Admin' }}</strong>
+    <form action="{{ route('admin.logout') }}" method="POST" class="d-inline">
+      @csrf
+      <button type="submit" class="btn btn-sm btn-light ml-2">Logout</button>
+    </form>
+  </div>
 </div>
 
-<div class="dashboard-container">
-    <!-- Statistics Cards -->
-    <div class="stats-grid">
+<div class="container-fluid mt-1">
+  <div class="row">
+    {{-- Sidebar --}}
+    <div class="col-md-3 mb-3">
+      <div class="sidebar">
+        <h5><i class="glyphicon glyphicon-cog"></i> Admin Tools</h5>
+        <hr>
+        <a href="{{ route('admin.dashboard') }}"><i class="glyphicon glyphicon-dashboard"></i> Dashboard</a>
+        <a href="{{ route('dashboard') }}"><i class="glyphicon glyphicon-home"></i> User View</a>
+        <a href="#"><i class="glyphicon glyphicon-user"></i> Manage Users</a>
+        <a href="#"><i class="glyphicon glyphicon-stats"></i> Analytics</a>
+        <a href="#"><i class="glyphicon glyphicon-wrench"></i> Settings</a>
+      </div>
+    </div>
+
+    {{-- Main Content --}}
+    <div class="col-md-9">
+
+      {{-- Summary Cards --}}
+      <div class="row mb-4">
         @foreach (['Fire','Crime','Traffic','Others'] as $cat)
-            @php
-                $count = data_get($accidentCounts->firstWhere('accident_type', $cat), 'total', 0);
-                $icons = ['Fire' => '🔥', 'Crime' => '🕵️‍♀️', 'Traffic' => '🚗', 'Others' => '📍'];
-            @endphp
-            <div class="stat-card text-center">
-                <div class="stat-icon">{{ $icons[$cat] }}</div>
-                <h5>{{ $cat }}</h5>
-                <div class="stat-number">{{ $count }}</div>
-                <div class="stat-label">reports</div>
+          @php
+            $count = data_get($accidentCounts->firstWhere('accident_type', $cat), 'total', 0);
+          @endphp
+          <div class="col-md-3 mb-3">
+            <div class="card text-center p-3">
+              <div style="font-size:32px;">
+                @if($cat === 'Fire') 🔥 
+                @elseif($cat === 'Crime') 🕵️‍♀️ 
+                @elseif($cat === 'Traffic') 🚗 
+                @else 📍 @endif
+              </div>
+              <h5>{{ $cat }}</h5>
+              <div class="h4 mb-0">{{ $count }}</div>
+              <small class="small-muted">reports</small>
             </div>
+          </div>
         @endforeach
-    </div>
+      </div>
 
-    <!-- Top Locations -->
-    <div class="content-card">
-        <div class="card-header">
-            <strong>📍 Top Locations by Reported Incidents</strong>
+      {{-- Top Locations --}}
+      <div class="card mb-4">
+        <div class="card-header bg-light">
+          <strong>📍 Top Locations by Reported Incidents</strong>
         </div>
         <div class="card-body p-0">
-            @if($topLocations->isEmpty())
-                <div class="empty-state">
-                    <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
-                    <p class="mb-0">No location data available yet.</p>
-                </div>
-            @else
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th style="width: 80px;">#</th>
-                                <th>Location</th>
-                                <th class="text-end" style="width: 150px;">Reports</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($topLocations as $index => $loc)
-                                <tr>
-                                    <td><strong>{{ $loop->iteration }}</strong></td>
-                                    <td>{{ $loc->location ?: 'Unknown' }}</td>
-                                    <td class="text-end"><strong>{{ $loc->total }}</strong></td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
+          @if(empty($topLocations) || $topLocations->isEmpty())
+            <p class="p-3 small-muted mb-0">No data available.</p>
+          @else
+            <div class="table-responsive">
+              <table class="table table-sm mb-0">
+                <thead>
+                  <tr><th>#</th><th>Location</th><th class="text-end">Reports</th></tr>
+                </thead>
+                <tbody>
+                  @foreach($topLocations as $loc)
+                    <tr>
+                      <td>{{ $loop->iteration }}</td>
+                      <td>{{ $loc->location ?: 'Unknown' }}</td>
+                      <td class="text-end">{{ $loc->total }}</td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+          @endif
         </div>
-    </div>
+      </div>
 
-    <!-- Reported Posts -->
-    <div class="content-card">
-        <div class="card-header">
-            <strong>🚨 Reported Posts</strong>
-            <span class="badge bg-secondary">{{ $reportedPosts->total() }} total</span>
+      {{-- Reported Posts --}}
+      <div class="card">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+          <strong>🚨 Reported Posts</strong>
+          <span class="small text-muted">
+            {{ isset($reportedPosts) && method_exists($reportedPosts, 'total') ? $reportedPosts->total() : (isset($reportedPosts) ? count($reportedPosts) : 0) }} total
+          </span>
         </div>
+
         <div class="card-body p-0">
-            @if($reportedPosts->isEmpty())
-                <div class="empty-state">
-                    <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
-                    <p class="mb-0">No reported posts to review.</p>
-                </div>
-            @else
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th style="width: 35%;">Post</th>
-                                <th style="width: 15%;">Author</th>
-                                <th style="width: 18%;">Reporter(s)</th>
-                                <th style="width: 12%;">Reason</th>
-                                <th class="text-center" style="width: 8%;"># Reports</th>
-                                <th class="text-end" style="width: 12%;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($reportedPosts as $group)
-                                @php
-                                    $post = $group->post;
-                                    $reports = $group->reports;
-                                @endphp
-                                <tr>
-                                    <td>
-                                        <div class="mb-2">
-                                            <strong style="color: var(--accent);">#{{ $post->id }}</strong>
-                                            <span class="ms-2">{{ Str::limit($post->content, 100) }}</span>
-                                        </div>
-                                        @if($post->image_url)
-                                            <div class="post-media">
-                                                @if($post->media_type === 'video')
-                                                    <video width="100%" height="120" controls>
-                                                        <source src="{{ $post->image_url }}" type="video/mp4">
-                                                    </video>
-                                                @else
-                                                    <img src="{{ $post->image_url }}" class="img-fluid rounded" alt="Post image">
-                                                @endif
-                                            </div>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div>
-                                            <strong>{{ $post->user->name }}</strong>
-                                        </div>
-                                        <small class="text-muted">{{ $post->user->email }}</small>
-                                    </td>
-                                    <td>
-                                        <div class="reporter-info">
-                                            @foreach($reports->take(2) as $r)
-                                                <div class="reporter-item">
-                                                    <div>{{ $r->user->name }}</div>
-                                                    <small class="text-muted">{{ $r->created_at->diffForHumans() }}</small>
-                                                </div>
-                                            @endforeach
-                                            @if($reports->count() > 2)
-                                                <small class="text-muted">+{{ $reports->count() - 2 }} more</small>
-                                            @endif
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge-category">{{ $reports->first()->reason }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <strong style="font-size: 1.1rem; color: var(--accent);">{{ $group->reports_count }}</strong>
-                                    </td>
-                                    <td>
-                                        <div class="action-buttons justify-content-end">
-                                            <form action="{{ route('admin.reports.resolve', ['post'=>$post->id]) }}" method="POST">
-                                                @csrf
-                                                <input type="hidden" name="action" value="dismiss">
-                                                <button type="submit" class="btn btn-sm btn-success" title="Mark reviewed">Dismiss</button>
-                                            </form>
-                                            <form action="{{ route('admin.posts.remove', ['post'=>$post->id]) }}" method="POST">
-                                                @csrf
-                                                <button type="submit" class="btn btn-sm btn-danger" title="Remove post">Remove</button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                <div class="p-4">
-                    {{ $reportedPosts->links() }}
-                </div>
-            @endif
+          @if(empty($reportedPosts) || (is_countable($reportedPosts) && count($reportedPosts) === 0))
+            <p class="p-3 small-muted mb-0">No reported posts.</p>
+          @else
+            <div class="table-responsive">
+              <table class="table table-striped mb-0">
+                <thead>
+                  <tr>
+                    <th>Post</th>
+                    <th>Author</th>
+                    <th>Reporter(s)</th>
+                    <th>Reason</th>
+                    <th class="text-center"># Reports</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach($reportedPosts as $post)
+                    @php
+                      $isValid = $post && is_object($post) && isset($post->id);
+                      $reports = $isValid ? ($post->reports ?? collect()) : collect();
+                      $reports_count = $isValid ? ($post->reports_count ?? $reports->count()) : $reports->count();
+                    @endphp
+
+                    @if(!$isValid)
+                      <tr class="orphan-row">
+                        <td>
+                          <strong style="color:var(--accent);">#(deleted)</strong>
+                          <div class="small-muted">Original post deleted — orphaned reports retained.</div>
+                        </td>
+                        <td><em class="text-muted">N/A</em></td>
+                        <td>
+                          @forelse($reports->take(3) as $r)
+                            <div>{{ optional($r->user)->name ?? 'Unknown' }} <span class="small-muted">({{ optional($r->created_at)->diffForHumans() }})</span></div>
+                          @empty
+                            <div class="small-muted">No reporters</div>
+                          @endforelse
+                          @if($reports->count() > 3)
+                            <div class="small-muted">+{{ $reports->count() - 3 }} more</div>
+                          @endif
+                        </td>
+                        <td><span class="badge-category">{{ $reports->first()->reason ?? 'Unknown' }}</span></td>
+                        <td class="text-center">{{ $reports->count() }}</td>
+                        <td class="text-end">
+                          <form action="{{ route('admin.reports.resolveOrphan') }}" method="POST" class="d-inline">
+                            @csrf
+                            <input type="hidden" name="report_ids" value="{{ $reports->pluck('id')->join(',') }}">
+                            <button type="submit" class="btn btn-sm btn-success">Dismiss</button>
+                          </form>
+                        </td>
+                      </tr>
+                      @continue
+                    @endif
+
+                    <tr id="post-row-{{ $post->id }}">
+                      <td style="max-width:300px;">
+                        <strong style="color:var(--accent);">#{{ $post->id }}</strong>
+                        <div class="ms-2">{{ Str::limit($post->content ?? '(No content)',150) }}</div>
+
+                        @if(!empty($post->image))
+                          <div class="mt-2 post-media">
+                            @if(($post->media_type ?? '') === 'video')
+                              <video width="100%" height="120" controls>
+                                <source src="{{ asset('storage/' . $post->image) }}" type="video/mp4">
+                              </video>
+                            @else
+                              <img src="{{ asset('storage/' . $post->image) }}" class="img-fluid rounded" alt="Post image">
+                            @endif
+                          </div>
+                        @endif
+                      </td>
+
+                      <td>
+                        @if(optional($post->user)->name)
+                          <strong>{{ $post->user->name }}</strong><br>
+                          <small class="text-muted">{{ $post->user->email }}</small>
+                        @else
+                          <em class="text-muted">User deleted</em>
+                        @endif
+                      </td>
+
+                      <td>
+                        @forelse($reports->take(2) as $r)
+                          <div>{{ optional($r->user)->name ?? 'Unknown' }} <span class="small-muted">({{ optional($r->created_at)->diffForHumans() }})</span></div>
+                        @empty
+                          <div class="small-muted">No reporters</div>
+                        @endforelse
+                        @if($reports->count() > 2)
+                          <div class="small-muted">+{{ $reports->count() - 2 }} more</div>
+                        @endif
+                      </td>
+
+                      <td><span class="badge-category">{{ $reports->first()->reason ?? 'Unknown' }}</span></td>
+                      <td class="text-center">{{ $reports_count }}</td>
+                      <td class="text-end">
+                        {{-- Dismiss reports --}}
+                        <form action="{{ route('admin.reports.resolve',['post'=>$post->id]) }}" method="POST" class="d-inline resolve-form">
+                          @csrf
+                          <input type="hidden" name="action" value="dismiss">
+                          <button type="submit" class="btn btn-sm btn-success btn-resolve" data-post-id="{{ $post->id }}">Dismiss</button>
+                        </form>
+
+                        {{-- Remove post --}}
+                        <form action="{{ route('admin.posts.remove',['post'=>$post->id]) }}" method="POST" class="d-inline remove-post-form" onsubmit="return confirm('Are you sure you want to remove this post?');">
+                          @csrf
+                          <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                        </form>
+
+                        {{-- View post (Option 2 admin route) --}}
+                        <a href="{{ route('admin.posts.view', ['id' => $post->id]) }}"
+                           target="_blank"
+                           class="view-post-link"
+                           data-post-id="{{ $post->id }}">
+                           View
+                        </a>
+                      </td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+
+            <div class="p-3">
+              @if(method_exists($reportedPosts,'links'))
+                {{ $reportedPosts->links() }}
+              @endif
+            </div>
+          @endif
         </div>
+      </div>
     </div>
+  </div>
 </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{{-- jQuery + Bootstrap scripts --}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
-</body>
-</html>
+<script>
+$(function(){
+  $.ajaxSetup({ headers:{'X-CSRF-TOKEN':$('meta[name="csrf-token"]').attr('content')} });
+
+  // Dismiss reports asynchronously
+  $(document).on('submit','form.resolve-form',function(e){
+    e.preventDefault();
+    const $form=$(this);
+    const $btn=$form.find('button.btn-resolve').prop('disabled',true).text('Processing...');
+    $.post($form.attr('action'),$form.serialize())
+      .done(function(){
+        const postId=$btn.data('post-id');
+        $('#post-row-'+postId).fadeOut(350,function(){$(this).remove();});
+      })
+      .fail(function(){alert('Failed to dismiss reports');})
+      .always(function(){$btn.prop('disabled',false).text('Dismiss');});
+  });
+});
+</script>
+@endsection
