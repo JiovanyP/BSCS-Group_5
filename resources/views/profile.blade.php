@@ -7,6 +7,8 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 
 <meta name="csrf-token" content="{{ csrf_token() }}">
+
+
 <style>
 /* === VARIABLES & BASE STYLES === */
 :root {
@@ -41,6 +43,8 @@
     position: relative;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* softer neutral shadow */
 }
+
+
 
 
 .profile-header h3 {
@@ -447,6 +451,7 @@
 
 
     <div class="profile-header">
+
         <form id="avatarForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
             @csrf @method('PATCH')
             <div class="avatar-wrapper">
@@ -620,6 +625,8 @@
   </div>
 </div>
 
+@include('partials.edit-modal')
+
 {{-- Report Modal --}}
 <div class="modal fade" id="reportModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -642,8 +649,6 @@
         <button type="button" class="btn" id="confirmReportBtn">Report</button>
       </div>
     </div>
-  </div>
-</div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
