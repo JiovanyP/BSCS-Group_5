@@ -23,15 +23,32 @@ class ProfileController extends Controller
         return view('profile', compact('user', 'posts'));
     }
 
-    // Update avatar
+    // Update profile (avatar and personal info)
     public function update(Request $request)
     {
         $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . Auth::id(),
+            'password' => 'nullable|string|min:8|confirmed',
+            'phone' => 'nullable|string|max:20',
+            'bio' => 'nullable|string|max:500',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $user = Auth::user();
 
+        // Update personal info
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->phone = $request->phone;
+        $user->bio = $request->bio;
+
+        // Update password if provided
+        if ($request->filled('password')) {
+            $user->password = bcrypt($request->password);
+        }
+
+        // Handle avatar upload
         if ($request->hasFile('avatar')) {
             // Delete old avatar if exists
             if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
@@ -41,10 +58,11 @@ class ProfileController extends Controller
             // Store new avatar
             $path = $request->file('avatar')->store('avatars', 'public');
             $user->avatar = $path;
-            $user->save();
         }
 
-        return redirect()->back()->with('success', 'Profile updated!');
+        $user->save();
+
+        return redirect()->back()->with('success', 'Personal info updated successfully!');
     }
 
     // Remove avatar
@@ -60,6 +78,12 @@ class ProfileController extends Controller
         $user->save();
 
         return response()->json(['success' => true]);
+    }
+
+    // Get edit modal content
+    public function getEditModal()
+    {
+        return view('partials.edit-modal')->render();
     }
 
     // Optional: Accessor for avatar URL

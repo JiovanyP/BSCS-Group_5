@@ -126,6 +126,7 @@ Route::middleware('auth')->group(function () {
 
     // 👤 Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::get('/profile/modal', [ProfileController::class, 'getEditModal'])->name('profile.modal');
     Route::patch('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/remove-avatar', [ProfileController::class, 'removeAvatar'])->name('profile.remove');
 

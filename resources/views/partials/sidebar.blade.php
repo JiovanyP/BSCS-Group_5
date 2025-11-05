@@ -99,6 +99,10 @@
         transition: 0.3s all ease;
     }
 
+    .sidebar ul li a.dropdown-toggle {
+        justify-content: space-between;
+    }
+
     .sidebar ul li a:hover {
         color: var(--black);
     }
@@ -124,6 +128,44 @@
         background: transparent;
         color: var(--accent);
         font-weight: 600;
+    }
+
+    .sidebar .dropdown > a {
+        position: relative;
+        justify-content: flex-start !important;
+    }
+
+    .dropdown-menu {
+        background: var(--sidebar-bg);
+        border: 1px solid #eee;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        padding: 0;
+        margin-top: 5px;
+        min-width: 200px;
+        position: absolute;
+        left: 0;
+        top: 100%;
+        z-index: 1000;
+    }
+
+    .dropdown-item {
+        padding: 10px 15px;
+        color: var(--text-muted);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        transition: 0.3s all ease;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .dropdown-item:hover {
+        background: rgba(207, 15, 71, 0.1);
+        color: var(--accent);
+    }
+
+    .dropdown-item:last-child {
+        border-bottom: none;
     }
 
     .btn {
@@ -239,11 +281,19 @@
                 </a>
             </li>
 
-            <li class="{{ request()->routeIs('profile') ? 'active' : '' }}">
-                <a href="{{ route('profile') }}">
+            <li class="dropdown {{ request()->routeIs('profile') ? 'active' : '' }}">
+                <a href="{{ route('profile') }}" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" onclick="event.preventDefault(); $(this).dropdown('toggle');">
                     <span class="material-icons me-2">person</span>
                     <span>Profile</span>
                 </a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{{ route('profile') }}">
+                        <span class="material-icons me-2">visibility</span> View Profile
+                    </a></li>
+                    <li><a class="dropdown-item" href="#" data-toggle="modal" data-target="#editProfileModal" onclick="loadEditModal()">
+                        <span class="material-icons me-2">edit</span> Edit Personal Info
+                    </a></li>
+                </ul>
             </li>
         </ul>
 
@@ -303,6 +353,19 @@ fetchWeather();
 
 // Optional auto-refresh every 10 minutes
 setInterval(fetchWeather, 600000);
+
+// Function to load edit modal content dynamically
+function loadEditModal() {
+    // If modal doesn't exist in DOM, load it
+    if (!$('#editProfileModal').length) {
+        $.get('/profile/modal', function(data) {
+            $('body').append(data);
+            $('#editProfileModal').modal('show');
+        });
+    } else {
+        $('#editProfileModal').modal('show');
+    }
+}
 </script>
 
 </body>
