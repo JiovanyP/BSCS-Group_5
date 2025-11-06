@@ -226,6 +226,7 @@ Route::prefix('admin')
          * ADMIN ANALYTICS / SETTINGS
          * ---------------------- */
         Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
+        Route::get('/posts/accident/{type}', [AdminController::class, 'postsByAccidentType'])->name('posts.byAccidentType');
         Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
 
         /** -----------------------

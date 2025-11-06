@@ -30,8 +30,8 @@
 .dashboard-meta { color:var(--muted); margin-top:6px; font-size:13px; }
 
 /* Stats */
-.stats-row { display:grid; grid-template-columns: repeat(4,1fr); gap:12px; margin-bottom:16px; }
-.stats-card { background:var(--panel); border-radius:10px; padding:12px; box-shadow:var(--card-shadow); text-align:center; }
+.stats-row { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:16px; justify-content:center; }
+.stats-card { background:var(--panel); border-radius:10px; padding:12px; box-shadow:var(--card-shadow); text-align:center; min-width:150px; flex:1; max-width:200px; }
 .stats-card .label { color:var(--muted); font-weight:700; font-size:13px; }
 .stats-card .value { font-weight:800; font-size:18px; margin-top:6px; }
 
