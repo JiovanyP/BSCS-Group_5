@@ -17,21 +17,17 @@ use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| WEB ROUTES
 |--------------------------------------------------------------------------
-|
-| All web routes for both users and admins.
-|
 */
 
 // ----------------------------
 // Public Routes
 // ----------------------------
 Route::get('/', function () {
-    if (Auth::check()) {
-        return redirect()->route('timeline');
-    }
-    return view('welcome');
+    return Auth::check()
+        ? redirect()->route('timeline')
+        : view('welcome');
 })->name('welcome');
 
 Route::view('/contact', 'contact')->name('contact');
@@ -44,11 +40,17 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', fn() => view('login'))->name('login');
     Route::post('/login', [UserController::class, 'login'])->name('login.post');
 
+    // ---------- Registration ----------
+    Route::get('/register', [RegisterController::class, 'showForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+    Route::post('/register/send-code', [RegisterController::class, 'sendCode'])->name('register.sendCode');
+    Route::post('/register/verify-code', [RegisterController::class, 'verifyCode'])->name('register.verifyCode');
+    Route::get('/verify', [RegisterController::class, 'showVerifyForm'])->name('verify.show');
+
     // ---------- Admin Login ----------
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/login', [AdminController::class, 'showLoginForm'])->name('login');
         Route::post('/login', [AdminController::class, 'login'])->name('login.post');
-
         Route::get('/forgot-password', fn() => view('admin.forgot-password'))->name('password.request');
     });
 
@@ -60,15 +62,10 @@ Route::middleware('guest')->group(function () {
     Route::get('/auth/google', fn() => Socialite::driver('google')->redirect())->name('google.login');
     Route::get('/auth/google/callback', function () {
         $googleUser = Socialite::driver('google')->user();
-
         $user = User::firstOrCreate(
             ['email' => $googleUser->getEmail()],
-            [
-                'name' => $googleUser->getName(),
-                'password' => bcrypt(str()->random(16)),
-            ]
+            ['name' => $googleUser->getName(), 'password' => bcrypt(str()->random(16))]
         );
-
         Auth::login($user);
         return redirect()->route('timeline')->with('success', 'Logged in with Google!');
     })->name('google.callback');
@@ -81,35 +78,27 @@ Route::middleware('guest')->group(function () {
 });
 
 // ----------------------------
-// Registration with Email Verification
-// ----------------------------
-Route::get('/register', [RegisterController::class, 'showForm'])->name('register');
-Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
-Route::post('/register/send-code', [RegisterController::class, 'sendCode'])->name('register.sendCode'); // ✅ Added
-Route::post('/register/verify-code', [RegisterController::class, 'verifyCode'])->name('register.verifyCode');
-// Email verification page (after sending code)
-Route::get('/verify', [RegisterController::class, 'showVerifyForm'])->name('verify.show');
-
-
-// ----------------------------
 // Authenticated User Routes
 // ----------------------------
 Route::middleware('auth')->group(function () {
+    // Timeline + Dashboard
     Route::get('/dashboard', [PostController::class, 'index'])->name('dashboard');
     Route::get('/timeline', [PostController::class, 'timeline'])->name('timeline');
     Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
+
     // Posts
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
-    Route::get('/viewpost/{id}', [PostController::class, 'viewPost'])->name('viewpost');
     Route::get('/posts/{id}/view', [PostController::class, 'viewPost'])->name('posts.view');
+
+    // Post Interactions
     Route::post('/posts/{id}/vote', [PostController::class, 'vote'])->name('posts.vote');
     Route::post('/posts/{id}/comments', [PostController::class, 'addComment'])->name('posts.comment');
-    Route::post('/posts/{post}/report', [PostController::class, 'report'])->name('posts.report');
     Route::post('/comments/{comment}/reply', [PostController::class, 'reply'])->name('comments.reply');
+    Route::post('/posts/{post}/report', [PostController::class, 'report'])->name('posts.report');
 
     // Accident Reports
     Route::get('/report-accident', [AccidentReportController::class, 'create'])->name('accidents.create');
@@ -136,13 +125,26 @@ Route::middleware('auth')->group(function () {
 // ----------------------------
 // Admin Routes (auth:admin)
 // ----------------------------
-Route::prefix('admin')
-    ->name('admin.')
-    ->middleware('auth:admin')
-    ->group(function () {
-        Route::get('/dashboard', [PostController::class, 'adminDashboard'])->name('dashboard');
-        Route::post('/reports/{post}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
-        Route::post('/posts/{post}/remove', [PostController::class, 'adminRemove'])->name('posts.remove');
-        Route::get('/posts/{id}/view', [PostController::class, 'viewPost'])->name('posts.view');
-        Route::post('/logout', [AdminController::class, 'logout'])->name('logout');
-    });
+Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function () {
+    Route::get('/dashboard', [PostController::class, 'adminDashboard'])->name('dashboard');
+    Route::get('/posts/{id}/view', [PostController::class, 'viewPost'])->name('posts.view');
+    Route::post('/posts/{post}/remove', [PostController::class, 'adminRemove'])->name('posts.remove');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::post('/reports/{post}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
+    Route::post('/reports/resolve-orphan', [ReportController::class, 'resolveOrphan'])->name('reports.resolveOrphan');
+    Route::get('/users', [AdminController::class, 'usersIndex'])->name('users.index');
+    Route::post('/users/{id}/ban', [AdminController::class, 'banUser'])->name('users.ban');
+    Route::post('/users/{id}/unban', [AdminController::class, 'unbanUser'])->name('users.unban');
+    Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
+    Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
+    Route::get('/notifications', [NotificationController::class, 'adminIndex'])->name('notifications.index');
+    Route::get('/profile', [AdminController::class, 'profile'])->name('profile');
+    Route::post('/logout', [AdminController::class, 'logout'])->name('logout');
+});
+
+// ----------------------------
+// 404 Fallback
+// ----------------------------
+Route::fallback(function () {
+    return response()->view('errors.404', [], 404);
+});
