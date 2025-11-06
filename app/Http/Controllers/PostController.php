@@ -21,13 +21,13 @@ class PostController extends Controller
             ->latest()
             ->paginate(10);
 
-        // Get accident counts by type
+        // Accident counts by type
         $accidentCounts = Post::selectRaw('accident_type, COUNT(*) as total')
             ->whereNotNull('accident_type')
             ->groupBy('accident_type')
             ->get();
 
-        // Get top locations by reported incidents
+        // Top 10 locations by reports
         $topLocations = Post::selectRaw('location, COUNT(*) as total')
             ->whereNotNull('location')
             ->groupBy('location')
@@ -35,7 +35,7 @@ class PostController extends Controller
             ->limit(10)
             ->get();
 
-        // Get reported posts with reports (for admin view)
+        // Reported posts for admin
         $reportedPosts = Post::with(['user', 'reports.user'])
             ->withCount('reports')
             ->whereHas('reports')
@@ -66,15 +66,15 @@ class PostController extends Controller
     }
 
     /**
-     * Store new post (with optional image/video/gif and location).
+     * Store new post (with optional media and location).
      */
     public function store(Request $request)
     {
         $request->validate([
-            'content'  => 'nullable|string|max:1000',
-            'location' => 'nullable|string|max:255',
+            'content'       => 'nullable|string|max:1000',
+            'location'      => 'nullable|string|max:255',
             'accident_type' => 'required|string|max:100',
-            'image'    => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
+            'image'         => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
         ]);
 
         $imagePath = null;
@@ -96,12 +96,12 @@ class PostController extends Controller
         }
 
         $post = Post::create([
-            'user_id'    => Auth::id(),
-            'content'    => $request->content,
-            'location'   => $request->location,
-            'accident_type' => $request->accident_type,
-            'image'      => $imagePath,
-            'media_type' => $mediaType,
+            'user_id'      => Auth::id(),
+            'content'      => $request->content,
+            'location'     => $request->location,
+            'accident_type'=> $request->accident_type,
+            'image'        => $imagePath,
+            'media_type'   => $mediaType,
         ]);
 
         \App\Http\Controllers\NotificationController::createLocationNotifications($post);
@@ -110,7 +110,7 @@ class PostController extends Controller
     }
 
     /**
-     * View a single post with comments, replies, votes, etc.
+     * Show a single post view.
      */
     public function viewPost($id)
     {
@@ -126,16 +126,16 @@ class PostController extends Controller
     }
 
     /**
-     * Vote on post - WITH UNDO FUNCTIONALITY
+     * Vote on a post (with undo functionality).
      */
     public function vote(Request $request, $id)
     {
         $request->validate(['vote' => 'required|in:up,down']);
-
         $post = Post::findOrFail($id);
 
         $existingVote = $post->likes()->where('user_id', Auth::id())->first();
 
+        // Undo vote
         if ($existingVote && $existingVote->vote_type === $request->vote) {
             $existingVote->delete();
 
@@ -155,6 +155,7 @@ class PostController extends Controller
             ]);
         }
 
+        // Create/update vote
         $post->likes()->updateOrCreate(
             ['user_id' => Auth::id()],
             ['vote_type' => $request->vote]
@@ -168,11 +169,11 @@ class PostController extends Controller
                 ->delete();
 
             Notification::create([
-                'user_id' => $post->user_id,
+                'user_id'  => $post->user_id,
                 'actor_id' => Auth::id(),
-                'post_id' => $post->id,
-                'type' => $request->vote === 'up' ? 'upvote' : 'downvote',
-                'is_read' => false,
+                'post_id'  => $post->id,
+                'type'     => $request->vote === 'up' ? 'upvote' : 'downvote',
+                'is_read'  => false,
             ]);
         }
 
@@ -202,28 +203,25 @@ class PostController extends Controller
 
         if ($request->parent_id) {
             $parentComment = Comment::find($request->parent_id);
-
             if ($parentComment && $parentComment->user_id !== Auth::id()) {
                 Notification::create([
-                    'user_id' => $parentComment->user_id,
-                    'actor_id' => Auth::id(),
-                    'post_id' => $id,
+                    'user_id'    => $parentComment->user_id,
+                    'actor_id'   => Auth::id(),
+                    'post_id'    => $id,
                     'comment_id' => $comment->id,
-                    'type' => 'reply',
-                    'is_read' => false,
+                    'type'       => 'reply',
+                    'is_read'    => false,
                 ]);
             }
-        } else {
-            if ($post->user_id !== Auth::id()) {
-                Notification::create([
-                    'user_id' => $post->user_id,
-                    'actor_id' => Auth::id(),
-                    'post_id' => $id,
-                    'comment_id' => $comment->id,
-                    'type' => 'comment',
-                    'is_read' => false,
-                ]);
-            }
+        } elseif ($post->user_id !== Auth::id()) {
+            Notification::create([
+                'user_id'    => $post->user_id,
+                'actor_id'   => Auth::id(),
+                'post_id'    => $id,
+                'comment_id' => $comment->id,
+                'type'       => 'comment',
+                'is_read'    => false,
+            ]);
         }
 
         return response()->json([
@@ -238,7 +236,7 @@ class PostController extends Controller
     }
 
     /**
-     * Edit post view
+     * Edit post view.
      */
     public function edit(Post $post)
     {
@@ -247,7 +245,7 @@ class PostController extends Controller
     }
 
     /**
-     * Update a post
+     * Update post.
      */
     public function update(Request $request, Post $post)
     {
@@ -292,23 +290,17 @@ class PostController extends Controller
     }
 
     /**
-     * Delete a post and its associated media file.
+     * Delete a post (uses policy for auth + model cascade cleanup).
      */
     public function destroy(Post $post)
     {
         $this->authorize('delete', $post);
-
-        if ($post->image && Storage::disk('public')->exists($post->image)) {
-            Storage::disk('public')->delete($post->image);
-        }
-
         $post->delete();
-
         return response()->json(['success' => true]);
     }
 
     /**
-     * Report a post.
+     * Report a post (predefined enum-safe reasons).
      */
     public function report(Request $request, Post $post)
     {
@@ -331,13 +323,13 @@ class PostController extends Controller
         Report::create([
             'user_id' => Auth::id(),
             'post_id' => $post->id,
-            'reason'  => $request->reason
+            'reason'  => $request->input('reason'),
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Thank you for your report. We will review it shortly.'
-        ]);
+            'message' => 'Thank you for your report. We will review it shortly.',
+        ], 201);
     }
 
     /**
@@ -367,7 +359,7 @@ class PostController extends Controller
     }
 
     /**
-     * Admin remove post
+     * Admin remove post (via AJAX or backend action).
      */
     public function adminRemove(Post $post)
     {

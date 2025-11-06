@@ -32,25 +32,16 @@
     box-shadow: 0 14px 36px rgba(0,0,0,0.12);
 }
 
-/* Make the entire card clickable */
+/* Make entire card clickable */
 .post-card-link {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 0; /* FIXED: Lower to prevent blocking */
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
     text-decoration: none;
 }
 
-/* Ensure interactive elements are above the overlay */
-.post-header, 
-.post-footer, 
-.dropdown, 
-.footer-action, 
-.vote-container, 
-.comment-container, 
-.comments-section {
+/* Keep interactive elements above overlay */
+.post-header, .post-footer, .dropdown, .footer-action, .vote-container, .comment-container, .comments-section {
     position: relative;
     z-index: 5;
 }
@@ -142,9 +133,8 @@
     padding: 2px 8px;
     transition: background 0.2s;
 }
-.comment-container:hover {
-    background: #e9e9e9;
-}
+.comment-container:hover { background: #e9e9e9; }
+
 .comment-container .footer-action {
     padding: 4px 6px;
     color: var(--text-muted);
@@ -162,9 +152,7 @@
     border-radius: 18px;
     padding: 2px;
 }
-.upvote-btn, .downvote-btn {
-    padding: 4px 8px;
-}
+.upvote-btn, .downvote-btn { padding: 4px 8px; }
 .upvote-btn:hover { color: var(--upvote-color); }
 .downvote-btn:hover { color: var(--downvote-color); }
 .voted-up { color: var(--upvote-color) !important; }
@@ -193,14 +181,8 @@
     margin-bottom: 0.5rem;
     gap: 8px;
 }
-.comment img { 
-    flex-shrink: 0; 
-    border-radius: 50%; 
-}
-.comment strong { 
-    font-weight: 600; 
-    margin-right: 4px; 
-}
+.comment img { border-radius: 50%; flex-shrink: 0; }
+.comment strong { font-weight: 600; margin-right: 4px; }
 
 .replies .comment {
     display: flex;
@@ -225,11 +207,9 @@
     background: var(--input-bg);
     transition: border-color 0.2s, box-shadow 0.2s;
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     height: 100%;
 }
-
 .comment-input:focus, .reply-input:focus {
     border-color: var(--accent) !important;
     background: #fff;
@@ -270,7 +250,6 @@
     font-weight: 500;
     text-decoration: none !important;
     transition: color 0.2s;
-    display: inline-block;
 }
 .reply-btn:hover, .reply-btn:focus {
     color: var(--accent) !important;
@@ -287,9 +266,7 @@
     align-items: center;
     gap: 8px;
 }
-.dropdown-item .material-icons {
-    font-size: 18px;
-}
+.dropdown-item .material-icons { font-size: 18px; }
 </style>
 
 @php $userVote = $post->userVote(auth()->id()); @endphp
@@ -339,12 +316,12 @@
             @if(!empty($post->content))
                 <p>{{ $post->content }}</p>
             @endif
-            @if(!empty($post->image))
+            @if(!empty($post->image_url))
                 @if($post->media_type === 'image' || $post->media_type === 'gif')
-                    <img src="{{ asset('storage/' . $post->image) }}" alt="Post image">
+                    <img src="{{ $post->image_url }}" alt="Post image">
                 @elseif($post->media_type === 'video')
                     <video controls>
-                        <source src="{{ asset('storage/' . $post->image) }}" type="video/mp4">
+                        <source src="{{ $post->image_url }}" type="video/mp4">
                     </video>
                 @endif
             @endif
@@ -367,7 +344,7 @@
                     <span id="comment-count-{{ $post->id }}">{{ $post->total_comments_count }}</span>
                 </a>
             </div>
-            
+
             <div class="vote-container">
                 <a href="#" class="upvote-btn footer-action {{ $userVote === 'up' ? 'voted-up' : '' }}" data-id="{{ $post->id }}">
                     <span class="material-icons">arrow_upward</span>
@@ -427,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Enable Send button only when input is not empty
+    // Enable send button only when input not empty
     document.querySelectorAll('.comment-input').forEach(input => {
         input.addEventListener('input', e => {
             const id = e.target.id.split('-').pop();

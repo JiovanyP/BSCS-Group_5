@@ -8,23 +8,20 @@ use Illuminate\Support\Facades\Auth;
 
 class CheckUserStatus
 {
-    /**
-     * Handle an incoming request.
-     */
     public function handle(Request $request, Closure $next)
     {
-        $user = Auth::user();
+        // only check the web (normal user) guard — don't affect admin sessions
+        if (Auth::guard('web')->check()) {
+            $user = Auth::guard('web')->user();
 
-        if ($user && Auth::getDefaultDriver() === 'web') {
-
-            if ($user->status === 'suspended') {
-                Auth::logout();
+            if ($user && $user->status === 'suspended') {
+                Auth::guard('web')->logout();
                 return redirect()->route('login')
                     ->withErrors(['error' => 'Your account has been suspended by an administrator.']);
             }
 
-            if ($user->status === 'banned') {
-                Auth::logout();
+            if ($user && $user->status === 'banned') {
+                Auth::guard('web')->logout();
                 return redirect()->route('login')
                     ->withErrors(['error' => 'Your account has been banned by an administrator.']);
             }
