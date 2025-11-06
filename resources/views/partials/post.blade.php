@@ -420,6 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.toggle-comments').forEach(btn => {
         btn.addEventListener('click', e => {
             e.preventDefault();
+            e.stopPropagation(); // <-- STOP click from reaching .post-card-link
             const id = btn.dataset.id;
             const section = document.getElementById(`comments-section-${id}`);
             section.style.display = (section.style.display === 'block') ? 'none' : 'block';
@@ -434,5 +435,68 @@ document.addEventListener('DOMContentLoaded', () => {
             send.disabled = e.target.value.trim() === '';
         });
     });
+
+    // Prevent clicks on other interactive elements from triggering card link
+    document.querySelectorAll('.footer-action, .dropdown-item, .comment-send, .reply-btn').forEach(el => {
+        el.addEventListener('click', e => e.stopPropagation());
+    });
+
+    // Reply button click handler
+document.addEventListener('click', e => {
+    if (e.target.closest('.reply-btn')) {
+        e.preventDefault();
+        e.stopPropagation();
+        const btn = e.target.closest('.reply-btn');
+        const commentId = btn.dataset.id;
+
+        // Check if input already exists
+        if (btn.nextElementSibling?.classList.contains('reply-input-group')) return;
+
+        const replyGroup = document.createElement('div');
+        replyGroup.className = 'reply-input-group';
+        replyGroup.innerHTML = `
+            <input type="text" class="form-control reply-input" placeholder="Write a reply...">
+            <button class="reply-send" disabled>Send</button>
+        `;
+
+        btn.insertAdjacentElement('afterend', replyGroup);
+
+        const input = replyGroup.querySelector('.reply-input');
+        const sendBtn = replyGroup.querySelector('.reply-send');
+
+        // Enable send button
+        input.addEventListener('input', () => {
+            sendBtn.disabled = input.value.trim() === '';
+        });
+
+        // Stop propagation on send click
+        sendBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            const value = input.value.trim();
+            if (!value) return;
+            console.log(`Reply to comment ${commentId}:`, value);
+
+            // TODO: Send AJAX request here
+            // Example:
+            // axios.post('/comments/reply', { comment_id: commentId, content: value })
+            //     .then(res => { ... });
+
+            // For demo: append reply
+            const repliesContainer = btn.parentElement.querySelector('.replies');
+            const newReply = document.createElement('div');
+            newReply.className = 'comment';
+            newReply.innerHTML = `
+                <img src="/images/avatar.png" width="25" height="25" class="rounded-circle">
+                <div><strong>You</strong> ${value}</div>
+            `;
+            repliesContainer.appendChild(newReply);
+
+            // Clear and remove input
+            input.value = '';
+            sendBtn.disabled = true;
+            replyGroup.remove();
+        });
+    }
+
 });
 </script>
