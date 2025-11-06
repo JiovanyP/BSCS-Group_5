@@ -38,6 +38,17 @@ Route::get('/', function () {
 
 Route::view('/contact', 'contact')->name('contact');
 
+/** -----------------------
+ * TERMS & PRIVACY PAGES
+ * ---------------------- */
+Route::get('/terms', function () {
+    return view('terms');
+})->name('terms');
+
+Route::get('/privacy', function () {
+    return view('privacy');
+})->name('privacy');
+
 /*
 |--------------------------------------------------------------------------
 | AUTHENTICATION - GUEST ONLY
