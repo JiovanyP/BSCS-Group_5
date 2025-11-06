@@ -109,10 +109,18 @@ class PostController extends Controller
         return redirect()->route('timeline')->with('success', 'Post created successfully!');
     }
 
+    /**
+     * View a single post with comments, replies, votes, etc.
+     */
     public function viewPost($id)
     {
-        $post = Post::with(['user', 'comments.user', 'comments.replies.user'])
-                    ->findOrFail($id);
+        $post = Post::with([
+            'user',
+            'comments.user',
+            'comments.replies.user',
+            'upvotes',
+            'downvotes'
+        ])->findOrFail($id);
 
         return view('posts.viewpost', compact('post'));
     }
@@ -230,7 +238,7 @@ class PostController extends Controller
     }
 
     /**
-     * Show the edit form for a post.
+     * Edit post view
      */
     public function edit(Post $post)
     {
@@ -239,7 +247,7 @@ class PostController extends Controller
     }
 
     /**
-     * Update a post (content, location, and optional new media).
+     * Update a post
      */
     public function update(Request $request, Post $post)
     {
@@ -296,7 +304,7 @@ class PostController extends Controller
 
         $post->delete();
 
-        return redirect()->route('timeline')->with('success', 'Post deleted successfully!');
+        return response()->json(['success' => true]);
     }
 
     /**
@@ -360,19 +368,15 @@ class PostController extends Controller
 
     /**
      * Admin remove post
-     *
-     * NOTE: returns JSON (suitable for AJAX). Keep route as POST and name = admin.posts.remove.
      */
     public function adminRemove(Post $post)
     {
-        // delete associated media if present
         if ($post->image && Storage::disk('public')->exists($post->image)) {
             Storage::disk('public')->delete($post->image);
         }
 
         $post->delete();
 
-        // Return JSON for AJAX call (do NOT redirect)
         return response()->json([
             'success' => true,
             'message' => 'Post removed successfully!',

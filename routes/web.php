@@ -12,22 +12,18 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
 | WEB ROUTES
 |--------------------------------------------------------------------------
-| Unified routes for both normal users and administrators.
-| Separated via guards: "auth" (user) and "auth:admin" (admin).
-|-------------------------------------------------------------------------- 
 */
 
-/*
-|--------------------------------------------------------------------------
-| PUBLIC (Guest) ROUTES
-|--------------------------------------------------------------------------
-*/
+// ----------------------------
+// Public Routes
+// ----------------------------
 Route::get('/', function () {
     return Auth::check()
         ? redirect()->route('timeline')
@@ -36,42 +32,34 @@ Route::get('/', function () {
 
 Route::view('/contact', 'contact')->name('contact');
 
-/*
-|--------------------------------------------------------------------------
-| AUTHENTICATION - GUEST ONLY
-|--------------------------------------------------------------------------
-*/
+// ----------------------------
+// Guest Routes (Users + Admins)
+// ----------------------------
 Route::middleware('guest')->group(function () {
-
-    /** -----------------------
-     * USER LOGIN & REGISTER
-     * ---------------------- */
+    // ---------- Normal User Login ----------
     Route::get('/login', fn() => view('login'))->name('login');
     Route::post('/login', [UserController::class, 'login'])->name('login.post');
 
-    Route::get('/register', fn() => view('register'))->name('register');
-    Route::post('/register', [UserController::class, 'register'])->name('register.post');
+    // ---------- Registration ----------
+    Route::get('/register', [RegisterController::class, 'showForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+    Route::post('/register/send-code', [RegisterController::class, 'sendCode'])->name('register.sendCode');
+    Route::post('/register/verify-code', [RegisterController::class, 'verifyCode'])->name('register.verifyCode');
+    Route::get('/verify', [RegisterController::class, 'showVerifyForm'])->name('verify.show');
 
-    /** -----------------------
-     * ADMIN LOGIN
-     * ---------------------- */
+    // ---------- Admin Login ----------
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/login', [AdminController::class, 'showLoginForm'])->name('login');
         Route::post('/login', [AdminController::class, 'login'])->name('login.post');
         Route::get('/forgot-password', fn() => view('admin.forgot-password'))->name('password.request');
     });
 
-    /** -----------------------
-     * AJAX CHECKS FOR USER REGISTRATION
-     * ---------------------- */
+    // ---------- AJAX Email/Username Validation ----------
     Route::post('/check-email', [UserController::class, 'checkEmail'])->name('check.email');
     Route::post('/check-username', [UserController::class, 'checkUsername'])->name('check.username');
 
-    /** -----------------------
-     * GOOGLE OAUTH LOGIN
-     * ---------------------- */
+    // ---------- Google OAuth ----------
     Route::get('/auth/google', fn() => Socialite::driver('google')->redirect())->name('google.login');
-
     Route::get('/auth/google/callback', function () {
         $googleUser = Socialite::driver('google')->user();
         $user = User::firstOrCreate(
@@ -82,36 +70,23 @@ Route::middleware('guest')->group(function () {
         return redirect()->route('timeline')->with('success', 'Logged in with Google!');
     })->name('google.callback');
 
-    /** -----------------------
-     * PASSWORD RESET (USER)
-     * ---------------------- */
-    Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])
-        ->name('password.request');
-    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])
-        ->name('password.email');
-    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])
-        ->name('password.reset');
-    Route::post('/reset-password', [ResetPasswordController::class, 'reset'])
-        ->name('password.update');
+    // ---------- Forgot/Reset Password ----------
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
-/*
-|--------------------------------------------------------------------------
-| USER AUTHENTICATED ROUTES
-|--------------------------------------------------------------------------
-*/
+// ----------------------------
+// Authenticated User Routes
+// ----------------------------
 Route::middleware('auth')->group(function () {
-
-    /** -----------------------
-     * DASHBOARD & TIMELINE
-     * ---------------------- */
+    // Timeline + Dashboard
     Route::get('/dashboard', [PostController::class, 'index'])->name('dashboard');
     Route::get('/timeline', [PostController::class, 'timeline'])->name('timeline');
     Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
 
-    /** -----------------------
-     * POSTS (CRUD)
-     * ---------------------- */
+    // Posts
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
@@ -119,115 +94,57 @@ Route::middleware('auth')->group(function () {
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::get('/posts/{id}/view', [PostController::class, 'viewPost'])->name('posts.view');
 
-    /** -----------------------
-     * POST INTERACTIONS
-     * ---------------------- */
+    // Post Interactions
     Route::post('/posts/{id}/vote', [PostController::class, 'vote'])->name('posts.vote');
     Route::post('/posts/{id}/comments', [PostController::class, 'addComment'])->name('posts.comment');
     Route::post('/comments/{comment}/reply', [PostController::class, 'reply'])->name('comments.reply');
     Route::post('/posts/{post}/report', [PostController::class, 'report'])->name('posts.report');
 
-    /** -----------------------
-     * ACCIDENT REPORTS
-     * ---------------------- */
+    // Accident Reports
     Route::get('/report-accident', [AccidentReportController::class, 'create'])->name('accidents.create');
     Route::post('/report-accident', [AccidentReportController::class, 'store'])->name('accidents.store');
-    Route::get('/report-accident/{id}', [AccidentReportController::class, 'showReportDetails'])
-        ->name('accidents.details');
+    Route::get('/report-accident/{id}', [AccidentReportController::class, 'showReportDetails'])->name('accidents.details');
 
-    /** -----------------------
-     * USER PROFILE
-     * ---------------------- */
+    // Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::get('/profile/modal', [ProfileController::class, 'getEditModal'])->name('profile.modal');
     Route::patch('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/remove-avatar', [ProfileController::class, 'removeAvatar'])->name('profile.remove');
 
-    /** -----------------------
-     * NOTIFICATIONS
-     * ---------------------- */
+    // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
-    Route::post('/notifications/{id}/mark-read', [NotificationController::class, 'markAsRead'])
-        ->name('notifications.markAsRead');
-    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])
-        ->name('notifications.markAllRead');
-    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])
-        ->name('notifications.destroy');
-    Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount'])
-        ->name('notifications.unreadCount');
+    Route::post('/notifications/{id}/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllRead');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unreadCount');
 
-    /** -----------------------
-     * LOGOUT
-     * ---------------------- */
+    // Logout
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 });
 
-/*
-|--------------------------------------------------------------------------
-| ADMIN AUTHENTICATED ROUTES (guard: admin)
-|--------------------------------------------------------------------------
-| These are the moderator / superadmin routes that should never redirect
-| to the user login. Each link in the admin dashboard sidebar maps here.
-|--------------------------------------------------------------------------
-*/
-Route::prefix('admin')
-    ->name('admin.')
-    ->middleware('auth:admin')
-    ->group(function () {
+// ----------------------------
+// Admin Routes (auth:admin)
+// ----------------------------
+Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function () {
+    Route::get('/dashboard', [PostController::class, 'adminDashboard'])->name('dashboard');
+    Route::get('/posts/{id}/view', [PostController::class, 'viewPost'])->name('posts.view');
+    Route::post('/posts/{post}/remove', [PostController::class, 'adminRemove'])->name('posts.remove');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::post('/reports/{post}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
+    Route::post('/reports/resolve-orphan', [ReportController::class, 'resolveOrphan'])->name('reports.resolveOrphan');
+    Route::get('/users', [AdminController::class, 'usersIndex'])->name('users.index');
+    Route::post('/users/{id}/ban', [AdminController::class, 'banUser'])->name('users.ban');
+    Route::post('/users/{id}/unban', [AdminController::class, 'unbanUser'])->name('users.unban');
+    Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
+    Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
+    Route::get('/notifications', [NotificationController::class, 'adminIndex'])->name('notifications.index');
+    Route::get('/profile', [AdminController::class, 'profile'])->name('profile');
+    Route::post('/logout', [AdminController::class, 'logout'])->name('logout');
+});
 
-        /** -----------------------
-         * ADMIN DASHBOARD
-         * ---------------------- */
-        Route::get('/dashboard', [PostController::class, 'adminDashboard'])->name('dashboard');
-
-        /** -----------------------
-         * ADMIN POSTS
-         * ---------------------- */
-        Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
-        Route::get('/posts/{id}/view', [PostController::class, 'viewPost'])->name('posts.view');
-        Route::post('/posts/{post}/remove', [PostController::class, 'adminRemove'])->name('posts.remove');
-
-        /** -----------------------
-         * ADMIN REPORTS
-         * ---------------------- */
-        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-        Route::post('/reports/{post}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
-        Route::post('/reports/resolve-orphan', [ReportController::class, 'resolveOrphan'])->name('reports.resolveOrphan');
-
-        /** -----------------------
-         * ADMIN USERS
-         * ---------------------- */
-        Route::get('/users', [AdminController::class, 'usersIndex'])->name('users.index');
-        Route::post('/users/{id}/ban', [AdminController::class, 'banUser'])->name('users.ban');
-        Route::post('/users/{id}/unban', [AdminController::class, 'unbanUser'])->name('users.unban');
-
-        /** -----------------------
-         * ADMIN ANALYTICS / SETTINGS
-         * ---------------------- */
-        Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
-        Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
-
-        /** -----------------------
-         * ADMIN NOTIFICATIONS
-         * ---------------------- */
-        Route::get('/notifications', [NotificationController::class, 'adminIndex'])->name('notifications.index');
-
-        /** -----------------------
-         * ADMIN PROFILE (optional)
-         * ---------------------- */
-        Route::get('/profile', [AdminController::class, 'profile'])->name('profile');
-
-        /** -----------------------
-         * ADMIN LOGOUT
-         * ---------------------- */
-        Route::post('/logout', [AdminController::class, 'logout'])->name('logout');
-    });
-
-/*
-|--------------------------------------------------------------------------
-| FALLBACK / 404
-|--------------------------------------------------------------------------
-*/
+// ----------------------------
+// 404 Fallback
+// ----------------------------
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
 });
