@@ -132,7 +132,7 @@
 
         <a href="{{ route('admin.notifications.index') }}"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2zM19 17H5v-6a7 7 0 0 1 14 0v6z"/></svg> Notifications</a>
 
-        <a href="{{ route('admin.users') }}"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM6 8c0 1.66 1.34 3 3 3s3-1.34 3-3S10.66 5 9 5 6 6.34 6 8zM6 20v-1c0-2.21 4-3.34 6-3.34s6 1.13 6 3.34V20H6z"/></svg> Manage Users</a>
+        <a href="{{ route('admin.users.index') }}"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM6 8c0 1.66 1.34 3 3 3s3-1.34 3-3S10.66 5 9 5 6 6.34 6 8zM6 20v-1c0-2.21 4-3.34 6-3.34s6 1.13 6 3.34V20H6z"/></svg> Manage Users</a>
 
         <a href="{{ route('admin.analytics') }}"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 3h4v18h-4zM17 8h4v13h-4z"/></svg> Analytics</a>
 

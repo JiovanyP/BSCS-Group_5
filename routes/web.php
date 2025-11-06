@@ -11,6 +11,7 @@ use App\Http\Controllers\AccidentReportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
 use App\Models\User;
@@ -50,8 +51,12 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', fn() => view('login'))->name('login');
     Route::post('/login', [UserController::class, 'login'])->name('login.post');
 
-    Route::get('/register', fn() => view('register'))->name('register');
-    Route::post('/register', [UserController::class, 'register'])->name('register.post');
+    // Registration with verification flow
+    Route::get('/register', [RegisterController::class, 'showForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+    Route::post('/register/send-code', [RegisterController::class, 'sendCode'])->name('register.sendCode');
+    Route::post('/register/verify-code', [RegisterController::class, 'verifyCode'])->name('register.verifyCode');
+    Route::get('/verify', [RegisterController::class, 'showVerifyForm'])->name('verify.show');
 
     /** -----------------------
      * ADMIN LOGIN
@@ -193,15 +198,12 @@ Route::prefix('admin')
         Route::post('/reports/resolve-orphan', [ReportController::class, 'resolveOrphan'])->name('reports.resolveOrphan');
 
         /** -----------------------
-         * ADMIN USERS (old & new combined)
+         * ADMIN USERS (new AdminUserController)
          * ---------------------- */
-
-        // Old admin controller routes (kept separate)
         Route::get('/users-old', [AdminController::class, 'usersIndex'])->name('users.old');
         Route::post('/users/{id}/ban', [AdminController::class, 'banUser'])->name('users.old.ban');
         Route::post('/users/{id}/unban', [AdminController::class, 'unbanUser'])->name('users.old.unban');
 
-        // ✅ NEW admin user management (AdminUserController)
         Route::get('/users', [AdminUserController::class, 'index'])->name('users');
         Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
         Route::post('/users/{user}/suspend', [AdminUserController::class, 'suspend'])->name('users.suspend');
