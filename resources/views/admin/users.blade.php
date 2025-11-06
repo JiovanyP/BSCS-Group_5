@@ -84,7 +84,7 @@
     </div>
 
     <div style="display:flex; gap:8px; align-items:center;">
-      <form method="get" action="{{ route('admin.users') }}" style="display:flex; gap:8px; align-items:center;">
+      <form method="get" action="{{ route('admin.users.index') }}" style="display:flex; gap:8px; align-items:center;">
         <input type="search" name="q" placeholder="Search name or email" value="{{ request('q') }}" style="background:transparent; border:1px solid rgba(255,255,255,0.03); padding:8px 10px; border-radius:8px; color:#fff;">
         <select name="status" style="background:transparent; border:1px solid rgba(255,255,255,0.03); padding:8px 10px; border-radius:8px; color:#fff;">
           <option value="">All status</option>
