@@ -618,59 +618,82 @@
 (function() {
     'use strict';
     
+    // Tab switching functionality
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const type = this.dataset.type;
             const url = new URL(window.location.href);
+            
+            // Set the type parameter
             url.searchParams.set('type', type);
+            
+            // Reset accident_type filter for non-relevant tabs
             if (type === 'all' || type === 'social') {
                 url.searchParams.delete('accident_type');
+            } else if (type === 'priority' || type === 'general') {
+                // Keep current accident_type if it exists, otherwise set to 'all'
+                if (!url.searchParams.has('accident_type')) {
+                    url.searchParams.set('accident_type', 'all');
+                }
             }
+            
             window.location.href = url.toString();
         });
     });
 
+    // Accident type filter functionality
     const accidentTypeFilter = document.getElementById('accidentTypeFilter');
     if (accidentTypeFilter) {
         accidentTypeFilter.addEventListener('change', function() {
             const url = new URL(window.location.href);
+            const currentType = url.searchParams.get('type') || 'all';
+            
+            // Set accident_type parameter
             url.searchParams.set('accident_type', this.value);
             
-            if (!url.searchParams.has('type') || url.searchParams.get('type') === 'all' || url.searchParams.get('type') === 'social') {
-                url.searchParams.set('type', 'priority'); 
+            // Ensure we're on a tab that supports accident_type filtering
+            if (currentType === 'all' || currentType === 'social') {
+                url.searchParams.set('type', 'priority'); // Default to priority when filtering
             }
             
             window.location.href = url.toString();
         });
     }
 
+    // Mark as read and navigate function
     window.markAsReadAndNavigate = function(notificationId, postUrl) {
         if (!postUrl || postUrl === '#' || postUrl === '') {
             console.log('No valid post URL');
             return;
         }
 
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
-        fetch(`/notifications/${notificationId}/mark-read`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            }
-        })
-        .then(response => {
-            if (response.ok) {
+        if (csrfToken) {
+            fetch(`/notifications/${notificationId}/mark-read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = postUrl;
+                } else {
+                    console.error('Failed to mark notification as read');
+                    window.location.href = postUrl;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
                 window.location.href = postUrl;
-            } else {
-                console.error('Failed to mark notification as read');
-                window.location.href = postUrl;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+            });
+        } else {
+            // Fallback if CSRF token not found
             window.location.href = postUrl;
-        });
+        }
     };
 })();
 </script>
