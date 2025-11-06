@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use App\Models\Post; // ✅ Added import for relationship
 
 class User extends Authenticatable
 {
@@ -22,6 +23,9 @@ class User extends Authenticatable
         'phone',
         'bio',
         'avatar',
+        'status',
+        'suspended_at',
+        'banned_at',
     ];
 
     /**
@@ -44,7 +48,7 @@ class User extends Authenticatable
      *
      * Returns a valid public URL for the user's avatar regardless of how it's stored:
      * - remote absolute URLs (Google / Socialite) are returned untouched,
-     * - storage-relative values (avatars/xxx.jpg or storage/avatars/xxx.jpg) become asset('storage/...')
+     * - storage-relative values (avatars/xxx.jpg or storage/avatars/xxx.jpg) become asset('storage/...'),
      * - null/empty returns a default placeholder.
      *
      * Use in Blade: $user->avatar_url
@@ -73,5 +77,15 @@ class User extends Authenticatable
 
         // Otherwise, assume it's a path saved under storage/app/public (e.g. avatars/...)
         return asset('storage/' . $avatar);
+    }
+
+    /**
+     * ✅ Relationship: A User has many Posts
+     *
+     * Used by AdminUserController@index for withCount('posts')
+     */
+    public function posts()
+    {
+        return $this->hasMany(Post::class, 'user_id', 'id');
     }
 }
