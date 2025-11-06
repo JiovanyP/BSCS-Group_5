@@ -204,7 +204,7 @@ Route::prefix('admin')
         Route::post('/users/{id}/ban', [AdminController::class, 'banUser'])->name('users.old.ban');
         Route::post('/users/{id}/unban', [AdminController::class, 'unbanUser'])->name('users.old.unban');
 
-        Route::get('/users', [AdminUserController::class, 'index'])->name('users');
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
         Route::post('/users/{user}/suspend', [AdminUserController::class, 'suspend'])->name('users.suspend');
         Route::post('/users/{user}/ban', [AdminUserController::class, 'ban'])->name('users.ban');
@@ -232,6 +232,15 @@ Route::prefix('admin')
          * ---------------------- */
         Route::post('/logout', [AdminController::class, 'logout'])->name('logout');
     });
+
+
+// Redirect /admin to /admin/login if not authenticated
+Route::get('/admin', function () {
+    if (Auth::guard('admin')->check()) {
+        return redirect()->route('admin.dashboard');
+    }
+    return redirect()->route('admin.login');
+});
 
 /*
 |--------------------------------------------------------------------------

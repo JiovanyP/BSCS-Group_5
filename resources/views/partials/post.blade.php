@@ -295,8 +295,8 @@
 @php $userVote = $post->userVote(auth()->id()); @endphp
 
 <div class="post-card" id="post-{{ $post->id }}">
-    <a href="{{ route('viewpost', $post->id) }}" class="post-card-link"></a>
-    
+    <a href="{{ route('posts.view', $post->id) }}" class="post-card-link"></a>
+
     <div class="post-content">
         <!-- HEADER -->
         <div class="post-header">
