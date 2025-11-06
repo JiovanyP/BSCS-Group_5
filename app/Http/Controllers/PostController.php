@@ -112,13 +112,13 @@ class PostController extends Controller
         return redirect()->route('timeline')->with('success', 'Post created successfully!');
     }
 
-    public function viewPost($id)
-    {
-        $post = Post::with(['user', 'comments.user', 'comments.replies.user'])
-                    ->findOrFail($id);
+    // public function viewPost($id)
+    // {
+    //     $post = Post::with(['user', 'comments.user', 'comments.replies.user'])
+    //                 ->findOrFail($id);
         
-        return view('posts.viewpost', compact('post'));
-    }
+    //     return view('posts.viewpost', compact('post'));
+    // }
     
     /**
      * Vote on post - WITH NOTIFICATION
@@ -188,6 +188,19 @@ class PostController extends Controller
             'downvotes_count'  => $post->downvotes()->count(),
         ]);
     }
+    public function viewPost($id)
+    {
+        $post = Post::with([
+            'user',
+            'comments.user',
+            'comments.replies.user',
+            'upvotes',
+            'downvotes'
+        ])->findOrFail($id);
+
+        return view('posts.viewpost', compact('post')); // Changed from 'viewpost' to 'posts.viewpost'
+    }
+
 
     /**
      * Add comment - WITH NOTIFICATION
@@ -305,16 +318,13 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        $this->authorize('delete', $post);
-
-        // Delete file from storage if exists
-        if ($post->image && Storage::disk('public')->exists($post->image)) {
-            Storage::disk('public')->delete($post->image);
+        if (auth()->id() !== $post->user_id) {
+            abort(403, 'This action is unauthorized.');
         }
 
         $post->delete();
 
-        return redirect()->route('timeline')->with('success', 'Post deleted successfully!');
+        return response()->json(['success' => true]);
     }
 
     /**

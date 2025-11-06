@@ -119,13 +119,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [PostController::class, 'index'])->name('dashboard');
     Route::get('/timeline', [PostController::class, 'timeline'])->name('timeline');
     Route::post('/timeline', [PostController::class, 'store'])->name('timeline.store');
-
     // Post CRUD (user)
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+    Route::get('/viewpost/{id}', [PostController::class, 'viewPost'])->name('viewpost');
 
     // NOTE: user-scoped view route (keeps user and admin view routes separate)
     Route::get('/posts/{id}/view', [PostController::class, 'viewPost'])->name('posts.view');
