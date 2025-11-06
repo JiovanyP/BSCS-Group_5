@@ -16,25 +16,14 @@ use Illuminate\Support\Facades\Validator;
  * AdminUserController
  *
  * Admin-facing user management: list, view details, suspend, ban, restore, delete.
- *
- * Notes:
- * - This controller expects to be used under admin middleware (auth:admin).
- * - Actions return JSON when the request expects JSON (AJAX), otherwise redirect back with a flash message.
- * - The controller is defensive: uses transactions for destructive operations and logs unexpected errors.
  */
 class AdminUserController extends Controller
 {
-    /**
-     * Apply admin auth middleware by default.
-     */
     public function __construct()
     {
         $this->middleware('auth:admin');
     }
 
-    /**
-     * Index - list users with optional filters and search.
-     */
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 15);
@@ -74,9 +63,6 @@ class AdminUserController extends Controller
         return view('admin.users', compact('users', 'q', 'status', 'role'));
     }
 
-    /**
-     * Show user details for admin (including a summary of posts and reports).
-     */
     public function show(User $user, Request $request)
     {
         $user->load(['posts' => function ($q) {
@@ -99,9 +85,6 @@ class AdminUserController extends Controller
         return view('admin.user_show', compact('user', 'reportsCount'));
     }
 
-    /**
-     * Suspend a user (temporary disable).
-     */
     public function suspend(User $user, Request $request)
     {
         if (!Auth::guard('admin')->check()) {
@@ -122,16 +105,28 @@ class AdminUserController extends Controller
             $user->suspended_at = now();
             $user->save();
 
+            // Defensive notification creation: do not allow notification failure to break the action
             if (class_exists(Notification::class)) {
-                Notification::create([
-                    'user_id'  => $user->id,
-                    'actor_id' => Auth::guard('admin')->id(), // ✅ fix: added actor_id
-                    'type'     => 'account_suspended',
-                    'data'     => json_encode([
-                        'by_admin_id' => Auth::guard('admin')->id(),
-                        'reason'      => $request->input('reason'),
-                    ]),
-                ]);
+                try {
+                    Notification::create([
+                        'user_id'  => $user->id,
+                        // supply actor_id (admin id) when possible
+                        'actor_id' => Auth::guard('admin')->id() ?? null,
+                        'post_id'  => null, // explicit null to signal no post association
+                        'type'     => 'account_suspended',
+                        'data'     => json_encode([
+                            'by_admin_id' => Auth::guard('admin')->id(),
+                            'reason'      => $request->input('reason'),
+                        ]),
+                    ]);
+                } catch (\Throwable $notifEx) {
+                    // Log a warning but do NOT fail the suspend action
+                    Log::warning('Notification create failed (suspend)', [
+                        'user_id' => $user->id,
+                        'admin_id'=> Auth::guard('admin')->id(),
+                        'error'   => $notifEx->getMessage(),
+                    ]);
+                }
             }
 
             return $this->successResponse($request, 'User suspended successfully.');
@@ -141,9 +136,6 @@ class AdminUserController extends Controller
         }
     }
 
-    /**
-     * Ban a user (permanent disable).
-     */
     public function ban(User $user, Request $request)
     {
         if (!Auth::guard('admin')->check()) {
@@ -165,15 +157,24 @@ class AdminUserController extends Controller
             $user->save();
 
             if (class_exists(Notification::class)) {
-                Notification::create([
-                    'user_id'  => $user->id,
-                    'actor_id' => Auth::guard('admin')->id(), // ✅ fix
-                    'type'     => 'account_banned',
-                    'data'     => json_encode([
-                        'by_admin_id' => Auth::guard('admin')->id(),
-                        'reason'      => $request->input('reason'),
-                    ]),
-                ]);
+                try {
+                    Notification::create([
+                        'user_id'  => $user->id,
+                        'actor_id' => Auth::guard('admin')->id() ?? null,
+                        'post_id'  => null,
+                        'type'     => 'account_banned',
+                        'data'     => json_encode([
+                            'by_admin_id' => Auth::guard('admin')->id(),
+                            'reason'      => $request->input('reason'),
+                        ]),
+                    ]);
+                } catch (\Throwable $notifEx) {
+                    Log::warning('Notification create failed (ban)', [
+                        'user_id' => $user->id,
+                        'admin_id'=> Auth::guard('admin')->id(),
+                        'error'   => $notifEx->getMessage(),
+                    ]);
+                }
             }
 
             return $this->successResponse($request, 'User banned successfully.');
@@ -183,9 +184,6 @@ class AdminUserController extends Controller
         }
     }
 
-    /**
-     * Restore a suspended or banned user.
-     */
     public function restore(User $user, Request $request)
     {
         if (!Auth::guard('admin')->check()) {
@@ -204,15 +202,24 @@ class AdminUserController extends Controller
             $user->save();
 
             if (class_exists(Notification::class)) {
-                Notification::create([
-                    'user_id'  => $user->id,
-                    'actor_id' => Auth::guard('admin')->id(), // ✅ fix
-                    'type'     => 'account_restored',
-                    'data'     => json_encode([
-                        'by_admin_id' => Auth::guard('admin')->id(),
-                        'note'        => $request->input('reason'),
-                    ]),
-                ]);
+                try {
+                    Notification::create([
+                        'user_id'  => $user->id,
+                        'actor_id' => Auth::guard('admin')->id() ?? null,
+                        'post_id'  => null,
+                        'type'     => 'account_restored',
+                        'data'     => json_encode([
+                            'by_admin_id' => Auth::guard('admin')->id(),
+                            'note'        => $request->input('reason'),
+                        ]),
+                    ]);
+                } catch (\Throwable $notifEx) {
+                    Log::warning('Notification create failed (restore)', [
+                        'user_id' => $user->id,
+                        'admin_id'=> Auth::guard('admin')->id(),
+                        'error'   => $notifEx->getMessage(),
+                    ]);
+                }
             }
 
             return $this->successResponse($request, 'User restored to active status.');
@@ -222,9 +229,6 @@ class AdminUserController extends Controller
         }
     }
 
-    /**
-     * Destroy (delete) a user account.
-     */
     public function destroy(User $user, Request $request)
     {
         if (!Auth::guard('admin')->check()) {
@@ -248,10 +252,6 @@ class AdminUserController extends Controller
                 $user->delete();
             }
 
-            if (class_exists(Post::class)) {
-                // optional: Post::where('user_id', $user->id)->delete();
-            }
-
             DB::commit();
 
             return $this->successResponse($request, 'User deleted successfully.');
@@ -262,32 +262,19 @@ class AdminUserController extends Controller
         }
     }
 
-    /* -----------------------------------------------------------------
-     |  Helper / utility methods
-     | ----------------------------------------------------------------- */
-
+    /* helpers (unchanged) */
     protected function validateActionInput(Request $request, bool $requireReason = false)
     {
-        $rules = [
-            'reason' => 'nullable|string|max:1000',
-        ];
-
-        if ($requireReason) {
-            $rules['reason'] = 'required|string|max:1000';
-        }
-
+        $rules = ['reason' => 'nullable|string|max:1000'];
+        if ($requireReason) $rules['reason'] = 'required|string|max:1000';
         Validator::make($request->all(), $rules)->validate();
     }
 
     protected function successResponse(Request $request, string $message = 'OK', $data = [])
     {
         if ($request->wantsJson()) {
-            return response()->json(array_merge(
-                ['success' => true, 'message' => $message],
-                $data ? ['data' => $data] : []
-            ));
+            return response()->json(array_merge(['success' => true, 'message' => $message], $data ? ['data' => $data] : []));
         }
-
         return back()->with('success', $message);
     }
 
@@ -296,7 +283,6 @@ class AdminUserController extends Controller
         if ($request->wantsJson()) {
             return response()->json(['success' => false, 'message' => $message], $status);
         }
-
         return back()->withErrors(['error' => $message]);
     }
 

@@ -134,7 +134,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+
+    // ✅ Main post view route
     Route::get('/posts/{id}/view', [PostController::class, 'viewPost'])->name('posts.view');
+
+    // ✅ Legacy alias — safely redirects to posts.view
+    Route::get('/viewpost/{id}', function ($id) {
+        return redirect()->route('posts.view', ['id' => $id]);
+    })->name('viewpost');
 
     /** -----------------------
      * POST INTERACTIONS
@@ -199,6 +206,9 @@ Route::prefix('admin')
          * ---------------------- */
         Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
         Route::get('/posts/{id}/view', [PostController::class, 'viewPost'])->name('posts.view');
+        Route::get('/viewpost/{id}', function ($id) {
+            return redirect()->route('admin.posts.view', ['id' => $id]);
+        })->name('viewpost');
         Route::post('/posts/{post}/remove', [PostController::class, 'adminRemove'])->name('posts.remove');
 
         /** -----------------------
