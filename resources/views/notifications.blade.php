@@ -10,6 +10,31 @@
                 {{ session('success') }}
             </div>
         @endif
+    
+        {{-- No location warning --}}
+        @if(auth()->user() && empty(auth()->user()->location))
+            <div class="notification-item unread" onclick="loadEditModal()">
+                <span class="unread-dot"></span>
+                <div class="notification-time">
+                    <span class="material-icons">schedule</span> {{ now()->diffForHumans() }}
+                </div>
+                <div class="notification-content">
+                    <div class="notification-meta-top">
+                        <div class="notification-badges">
+                            <span class="badge priority-badge">
+                                <span class="material-icons" style="font-size:11px; vertical-align: bottom;">warning</span> Priority
+                            </span>
+                        </div>
+                    </div>
+                    <div class="notification-message">
+                        <strong>No location set!</strong> <br>You haven't added your location in your profile. 
+                        <span style="text-decoration: underline; color: var(--primary-color); cursor: pointer;" onclick="loadEditModal(); event.stopPropagation();">
+                            Edit your profile
+                        </span> to add your location and get local notifications.
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <div class="categories-tabs">
             <div class="tabs-header">
