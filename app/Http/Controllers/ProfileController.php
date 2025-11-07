@@ -26,43 +26,47 @@ class ProfileController extends Controller
     // Update profile (avatar and personal info)
     public function update(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . Auth::id(),
-            'password' => 'nullable|string|min:8|confirmed',
-            'phone' => 'nullable|string|max:20',
-            'bio' => 'nullable|string|max:500',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
         $user = Auth::user();
-
-        // Update personal info
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->phone = $request->phone;
-        $user->bio = $request->bio;
-
-        // Update password if provided
-        if ($request->filled('password')) {
-            $user->password = bcrypt($request->password);
-        }
 
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
+            $request->validate([
+                'avatar' => 'image|max:2048', // 2MB max
+            ]);
+
             // Delete old avatar if exists
-            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
-                Storage::disk('public')->delete($user->avatar);
+            if ($user->avatar && Storage::exists('public/' . $user->avatar)) {
+                Storage::delete('public/' . $user->avatar);
             }
 
             // Store new avatar
             $path = $request->file('avatar')->store('avatars', 'public');
             $user->avatar = $path;
+            $user->save();
+
+            // ✅ Return JSON if AJAX request
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Profile picture updated successfully!',
+                    'avatar' => $user->avatar_url, // Use the accessor
+                ]);
+            }
+
+            // ✅ Fallback for normal form submission
+            return redirect()->back()->with('success', 'Profile picture updated successfully!');
         }
 
-        $user->save();
+        // Handle personal info update (optional)
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'address' => 'nullable|string|max:255',
+        ]);
 
-        return redirect()->back()->with('success', 'Personal info updated successfully!');
+        $user->update($request->only('name', 'email', 'address'));
+
+        return redirect()->back()->with('success', 'Personal information updated successfully!');
     }
 
     // Remove avatar
@@ -77,18 +81,15 @@ class ProfileController extends Controller
         $user->avatar = null;
         $user->save();
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile picture removed successfully!'
+        ]);
     }
 
     // Get edit modal content
     public function getEditModal()
     {
         return view('partials.edit-modal')->render();
-    }
-
-    // Optional: Accessor for avatar URL
-    public function getAvatarUrlAttribute()
-    {
-        return $this->avatar ? asset('storage/' . $this->avatar) : asset('images/default-avatar.png');
     }
 }
