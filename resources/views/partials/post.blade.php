@@ -38,12 +38,14 @@
     top: 0; left: 0; right: 0; bottom: 0;
     z-index: 0;
     text-decoration: none;
+    pointer-events: none;
 }
 
 /* Keep interactive elements above overlay */
 .post-header, .post-footer, .dropdown, .footer-action, .vote-container, .comment-container, .comments-section {
     position: relative;
     z-index: 5;
+    pointer-events: auto;
 }
 
 .post-content {
@@ -293,17 +295,17 @@
                         <a class="dropdown-item" href="{{ route('posts.edit', $post->id) }}">
                             <span class="material-icons">edit</span> Edit
                         </a>
-                        <button class="dropdown-item text-danger delete-post-btn" 
-                                data-id="{{ $post->id }}" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#deleteModal">
+                        <button class="dropdown-item text-danger delete-post-btn"
+                                data-id="{{ $post->id }}"
+                                data-toggle="modal"
+                                data-target="#deleteModal">
                             <span class="material-icons">delete</span> Delete
                         </button>
                     @else
-                        <button class="dropdown-item report-post-btn" 
-                                data-id="{{ $post->id }}" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#reportModal">
+                        <button class="dropdown-item report-post-btn"
+                                data-id="{{ $post->id }}"
+                                data-toggle="modal"
+                                data-target="#reportModal">
                             <span class="material-icons">flag</span> Report
                         </button>
                     @endif
@@ -414,8 +416,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Prevent clicks on other interactive elements from triggering card link
-    document.querySelectorAll('.footer-action, .dropdown-item, .comment-send, .reply-btn').forEach(el => {
-        el.addEventListener('click', e => e.stopPropagation());
+    document.querySelectorAll('.footer-action:not(.upvote-btn):not(.downvote-btn), .dropdown-item, .comment-send, .reply-btn').forEach(el => {
+        el.addEventListener('click', e => {
+            e.stopPropagation();
+            e.preventDefault();
+        });
     });
 
     // Reply button click handler

@@ -64,8 +64,11 @@ $(document).on('click', '.upvote-btn, .downvote-btn', function(e) {
     
     // Send to server
     const vote = isUpvote ? 'up' : 'down';
-    
-    $.post(`/posts/${postId}/vote`, { vote: vote })
+
+    $.post(`/posts/${postId}/vote`, {
+        vote: vote,
+        _token: $('meta[name="csrf-token"]').attr('content')
+    })
         .done(function(res) {
             // Sync with server response
             const serverCount = (res.upvotes_count || 0) - (res.downvotes_count || 0);

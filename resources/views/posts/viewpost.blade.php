@@ -312,11 +312,11 @@
                                     <a class="dropdown-item" href="{{ route('posts.edit', $post->id) }}">
                                         <span class="material-icons">edit</span> Edit
                                     </a>
-                                    <button class="dropdown-item delete-post-btn" data-id="{{ $post->id }}" data-toggle="modal" data-target="#deleteModal">
+                                    <button class="dropdown-item delete-post-btn" data-id="{{ $post->id }}" data-bs-toggle="modal" data-bs-target="#deleteModal">
                                         <span class="material-icons">delete</span> Delete
                                     </button>
                                 @else
-                                    <button class="dropdown-item report-post-btn" data-id="{{ $post->id }}" data-toggle="modal" data-target="#reportModal">
+                                    <button class="dropdown-item report-post-btn" data-id="{{ $post->id }}" data-bs-toggle="modal" data-bs-target="#reportModal">
                                         <span class="material-icons">flag</span> Report
                                     </button>
                                 @endif

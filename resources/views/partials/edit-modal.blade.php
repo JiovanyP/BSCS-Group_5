@@ -31,7 +31,7 @@
             <small class="form-text text-muted">Leave empty to keep current avatar. Max 2MB, JPEG/PNG/GIF only.</small>
 
             <button type="submit" class="btn btn-primary">Save Changes</button>
-            <button type="button" class="btn btn-secondary" onclick="$('#editProfileModal').modal('hide')">Cancel</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
           </form>
 
           <footer class="small">
