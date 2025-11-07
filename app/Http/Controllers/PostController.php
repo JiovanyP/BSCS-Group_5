@@ -238,6 +238,9 @@ class PostController extends Controller
     /**
      * Reply to a comment
      */
+   /**
+ * Reply to a comment
+ */
     public function reply(Request $request, $commentId)
     {
         $request->validate(['content' => 'required|string|max:300']);
@@ -262,13 +265,14 @@ class PostController extends Controller
             ]);
         }
 
+        // ✅ CHANGED: Return 'content' instead of 'comment' for consistency
         return response()->json([
             'success'        => true,
             'id'             => $reply->id,
             'parent_id'      => $reply->parent_id,
             'user'           => Auth::user()->name,
             'avatar'         => Auth::user()->avatar_url,
-            'comment'        => $reply->content,
+            'content'        => $reply->content,  // ✅ Changed from 'comment' to 'content'
             'comments_count' => Comment::where('post_id', $parentComment->post_id)->count(),
         ]);
     }
