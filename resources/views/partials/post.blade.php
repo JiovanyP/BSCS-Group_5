@@ -340,7 +340,7 @@
         <!-- SIGNATURE -->
         <div class="post-signature">
             <div class="user-info">
-                <img src="{{ $post->user->avatar_url ?? asset('images/avatar.png') }}" width="28" height="28" class="rounded-circle">
+                <img src="{{ $post->user->avatar_url ?? asset('images/avatar.png') }}" width="28" height="28" class="rounded-circle user-avatar-{{ $post->user_id }}">
                 <strong>{{ $post->user->name ?? 'Unknown User' }}</strong>
                 <small>{{ $post->created_at->diffForHumans() }}</small>
             </div>
@@ -401,79 +401,4 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // Toggle comment section
-    document.querySelectorAll('.toggle-comments').forEach(btn => {
-        btn.addEventListener('click', e => {
-            e.preventDefault();
-            e.stopPropagation();
-            const id = btn.dataset.id;
-            const section = document.getElementById(`comments-section-${id}`);
-            section.style.display = (section.style.display === 'block') ? 'none' : 'block';
-        });
-    });
-
-    // Enable send button only when input not empty
-    document.querySelectorAll('.comment-input').forEach(input => {
-        input.addEventListener('input', e => {
-            const id = e.target.id.split('-').pop();
-            const send = document.getElementById(`comment-send-${id}`);
-            send.disabled = e.target.value.trim() === '';
-        });
-    });
-
-    // Prevent clicks on other interactive elements from triggering card link
-    document.querySelectorAll('.footer-action:not(.upvote-btn):not(.downvote-btn), .dropdown-item, .comment-send, .reply-btn').forEach(el => {
-        el.addEventListener('click', e => {
-            e.stopPropagation();
-            e.preventDefault();
-        });
-    });
-
-    // Reply button logic
-    document.addEventListener('click', e => {
-        if (e.target.closest('.reply-btn')) {
-            e.preventDefault();
-            e.stopPropagation();
-            const btn = e.target.closest('.reply-btn');
-            const commentId = btn.dataset.id;
-
-            if (btn.nextElementSibling?.classList.contains('reply-input-group')) return;
-
-            const replyGroup = document.createElement('div');
-            replyGroup.className = 'reply-input-group';
-            replyGroup.innerHTML = `
-                <input type="text" class="form-control reply-input" placeholder="Write a reply...">
-                <button class="reply-send" disabled>Send</button>
-            `;
-
-            btn.insertAdjacentElement('afterend', replyGroup);
-
-            const input = replyGroup.querySelector('.reply-input');
-            const sendBtn = replyGroup.querySelector('.reply-send');
-
-            input.addEventListener('input', () => { sendBtn.disabled = input.value.trim() === ''; });
-
-            sendBtn.addEventListener('click', e => {
-                e.stopPropagation();
-                const value = input.value.trim();
-                if (!value) return;
-
-                const repliesContainer = btn.parentElement.querySelector('.replies');
-                const newReply = document.createElement('div');
-                newReply.className = 'comment';
-                newReply.innerHTML = `
-                    <img src="/images/avatar.png" width="22" height="22" class="rounded-circle">
-                    <div><strong>You</strong> ${value}</div>
-                `;
-                repliesContainer.appendChild(newReply);
-
-                input.value = '';
-                sendBtn.disabled = true;
-                replyGroup.remove();
-            });
-        }
-    });
-});
-</script>
+{{-- NO JAVASCRIPT HERE - All handled by parent pages (timeline.blade.php / profile.blade.php) --}}

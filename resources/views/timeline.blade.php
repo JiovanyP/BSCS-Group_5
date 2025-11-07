@@ -109,7 +109,7 @@
                     @php $currentDate = $post->created_at->toDateString(); @endphp
                 @endif
 
-                {{-- Reusable Post Partial (ensure root element in partial has class "post-card") --}}
+                {{-- Reusable Post Partial --}}
                 @include('partials.post', ['post' => $post])
             @empty
                 <p class="text-center text-muted">No reports yet.</p>
@@ -121,25 +121,30 @@
     </div>
 </div>
 
-{{-- Delete & Report Modals Partial (ensure it's the radio-based Option 2 partial) --}}
+{{-- Modals --}}
 @include('partials.delete-report-modals')
 
-{{-- jQuery + Bootstrap JS (keep these; partials may rely on them) --}}
+{{-- jQuery --}}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+{{-- ===== CONSOLIDATED JAVASCRIPT ===== --}}
 <script>
 $(function() {
-    // Ensure CSRF token is included in all jQuery AJAX requests
-    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+    // ===== GLOBAL AJAX SETUP =====
+    $.ajaxSetup({ 
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } 
+    });
 
     let currentPostId = null;
 
-    // Prevent default anchors with href="#" causing scroll-to-top
+    // ===== PREVENT ANCHOR SCROLL =====
     $(document).on('click', 'a[href="#"]', function(e) {
-        if (!$(this).attr('data-toggle') && !$(this).attr('data-target')) e.preventDefault();
+        if (!$(this).attr('data-toggle') && !$(this).attr('data-target')) {
+            e.preventDefault();
+        }
     });
 
-    // LOCATION FILTER
+    // ===== LOCATION FILTER =====
     $(document).on('click', '.location-tag', function() {
         const selected = $(this).data('location');
         $('.location-tag').removeClass('active');
@@ -154,11 +159,12 @@ $(function() {
             }).fadeIn(250);
         }
 
-        // scroll to top of posts container for UX
-        $('html, body').animate({ scrollTop: $('.posts-container').offset().top - 80 }, 500, 'swing');
+        $('html, body').animate({ 
+            scrollTop: $('.posts-container').offset().top - 80 
+        }, 500);
     });
 
-    // TOGGLE COMMENTS
+    // ===== TOGGLE COMMENTS =====
     $(document).on('click', '.toggle-comments', function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -166,7 +172,7 @@ $(function() {
         $(`#comments-section-${id}`).slideToggle(200);
     });
 
-    // DYNAMIC SEND BUTTON LOGIC (comments/replies)
+    // ===== DYNAMIC SEND BUTTON ENABLE/DISABLE =====
     $(document).on('input', '.comment-input', function() {
         const postId = $(this).attr('id').replace('comment-input-', '');
         const sendBtn = $(`#comment-send-${postId}`);
@@ -178,12 +184,15 @@ $(function() {
         sendBtn.prop('disabled', $(this).val().trim() === '');
     });
 
-    // ADD COMMENT
-    $(document).on('click', '.comment-send:not(:disabled)', function() {
+    // ===== ADD COMMENT =====
+    $(document).on('click', '.comment-send', function() {
         const btn = $(this);
+        if (btn.prop('disabled')) return;
+        
         const id = btn.data('id');
         const input = $(`#comment-input-${id}`);
         const content = input.val().trim();
+        
         if (!content) return;
 
         btn.prop('disabled', true).text('Sending...');
@@ -200,27 +209,34 @@ $(function() {
                 </div>`;
 
                 if ($(`#comments-section-${id} .comments-list`).length === 0) {
-                    $(`#comments-section-${id}`).prepend('<div class="comments-header">Comments</div><div class="comments-list mb-3"></div>');
+                    $(`#comments-section-${id}`).prepend(
+                        '<div class="comments-header">Comments</div><div class="comments-list mb-3"></div>'
+                    );
                 }
 
                 $(`#comments-section-${id} .comments-list`).append(html);
-                const count = parseInt($(`#comment-count-${id}`).text() || '0') + 1;
-                $(`#comment-count-${id}`).text(count);
+                
+                const countEl = $(`#comment-count-${id}`);
+                const count = parseInt(countEl.text() || '0') + 1;
+                countEl.text(count);
+                
                 input.val('');
                 btn.prop('disabled', false).text('Send');
             })
-            .fail(function() {
+            .fail(function(xhr) {
+                console.error('Comment failed:', xhr.responseText);
                 alert('Failed to add comment. Please try again.');
                 btn.prop('disabled', false).text('Send');
             });
     });
 
-    // REPLY BUTTON
+    // ===== REPLY BUTTON =====
     $(document).on('click', '.reply-btn', function(e) {
         e.preventDefault();
         const commentId = $(this).data('id');
         const repliesDiv = $(`#comment-${commentId} .replies`);
 
+        // Only add input if it doesn't exist
         if (repliesDiv.find('.reply-input-group').length === 0) {
             const replyInputId = `reply-input-${commentId}`;
             const replySendId = `reply-send-${commentId}`;
@@ -229,17 +245,21 @@ $(function() {
                 <input type="text" class="form-control reply-input" id="${replyInputId}" placeholder="Write a reply...">
                 <button class="reply-send btn btn-sm btn-primary" data-comment-id="${commentId}" id="${replySendId}" disabled>Send</button>
             </div>`;
+            
             repliesDiv.append(replyInput);
             $(`#${replyInputId}`).trigger('input').focus();
         }
     });
 
-    // SEND REPLY
-    $(document).on('click', '.reply-send:not(:disabled)', function() {
+    // ===== SEND REPLY =====
+    $(document).on('click', '.reply-send', function() {
         const btn = $(this);
+        if (btn.prop('disabled')) return;
+        
         const commentId = btn.data('comment-id');
         const input = $(`#reply-input-${commentId}`);
         const content = input.val().trim();
+        
         if (!content) return;
 
         btn.prop('disabled', true).text('Sending...');
@@ -250,57 +270,54 @@ $(function() {
                     <img src="${res.avatar}" width="25" height="25" class="rounded-circle">
                     <div><strong>${res.user}</strong> ${res.content}</div>
                 </div>`;
+                
                 $(`#comment-${commentId} .replies`).prepend(html);
 
+                // Update comment count
                 const postId = $(`#comment-${commentId}`).closest('.post-content').find('.toggle-comments').data('id');
                 const countSpan = $(`#comment-count-${postId}`);
                 countSpan.text(parseInt(countSpan.text() || '0') + 1);
 
                 input.closest('.reply-input-group').remove();
             })
-            .fail(function() {
+            .fail(function(xhr) {
+                console.error('Reply failed:', xhr.responseText);
                 alert('Failed to send reply. Try again.');
                 btn.prop('disabled', false).text('Send');
             });
     });
 
-    // DELETE POST: deleteForm action set by modal partial on show.bs.modal
-    $(document).on('click', '.delete-post-btn', function () {
+    // ===== DELETE POST =====
+    $(document).on('click', '.delete-post-btn', function() {
         currentPostId = $(this).data('id');
-        // modal partial's show handler will set #deleteForm action
     });
 
-    $('#deleteModal').on('hidden.bs.modal', function () {
+    $('#deleteModal').on('hidden.bs.modal', function() {
         $('#deleteForm').attr('action', '');
         currentPostId = null;
     });
 
-    // REPORT POST: capturing clicks (modal partial sets action), plus supporting manual show
+    // ===== REPORT POST =====
     $(document).on('click', '.report-post-btn', function(e) {
         e.preventDefault();
         const id = $(this).data('id');
         currentPostId = id;
 
-        // If trigger uses Bootstrap data attributes, modal partial's 'show' will set action
-        // If trigger doesn't use data-toggle, handle manually:
         if (!$(this).data('toggle')) {
             $('#reportForm').attr('action', `/posts/${id}/report`);
             $('#reportModal').modal('show');
         }
     });
 
-    // REPORT FORM SUBMIT (Option 2: read checked radio)
     $('#reportForm').on('submit', function(e) {
         e.preventDefault();
 
-        // Use the form's action attribute (set by modal partial) or fallback to currentPostId
         const action = $(this).attr('action') || (currentPostId ? `/posts/${currentPostId}/report` : null);
         if (!action) {
             alert('Unable to determine which post to report. Please try again.');
             return;
         }
 
-        // Read checked radio
         const reason = $('input[name="reason"]:checked').val();
         if (!reason) {
             alert('Please select a reason for the report.');
@@ -313,27 +330,16 @@ $(function() {
         $.post(action, { reason: reason })
             .done(function(res) {
                 $('#reportModal').modal('hide');
-                if (res && res.message) {
-                    alert(res.message);
-                } else {
-                    alert('Thank you for your report.');
-                }
-                // cleanup
+                alert(res.message || 'Thank you for your report.');
                 $('input[name="reason"]').prop('checked', false);
                 currentPostId = null;
             })
             .fail(function(xhr) {
-                if (xhr && xhr.responseJSON) {
-                    const json = xhr.responseJSON;
-                    if (json.errors && json.errors.reason) {
-                        alert(json.errors.reason.join(' '));
-                    } else if (json.message) {
-                        alert(json.message);
-                    } else if (json.error) {
-                        alert(json.error);
-                    } else {
-                        alert('Could not submit report. Please try again.');
-                    }
+                const json = xhr.responseJSON;
+                if (json && json.errors && json.errors.reason) {
+                    alert(json.errors.reason.join(' '));
+                } else if (json && json.message) {
+                    alert(json.message);
                 } else {
                     alert('Could not submit report. Please try again.');
                 }
@@ -343,14 +349,13 @@ $(function() {
             });
     });
 
-    // Clear report state on modal close (partial also clears)
-    $('#reportModal').on('hidden.bs.modal', function () {
+    $('#reportModal').on('hidden.bs.modal', function() {
         $('input[name="reason"]').prop('checked', false);
         $('#reportForm').attr('action', '');
         currentPostId = null;
     });
 
-    // Voting logic
+    // ===== VOTING LOGIC (Reddit-style) =====
     $(document).on('click', '.upvote-btn, .downvote-btn', function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -362,7 +367,6 @@ $(function() {
         const downvoteBtn = $(`.downvote-btn[data-id="${postId}"]`);
         const voteCountEl = $(`#upvote-count-${postId}`);
         
-        // Get current state
         const wasUpvoted = upvoteBtn.hasClass('voted-up');
         const wasDownvoted = downvoteBtn.hasClass('voted-down');
         const currentCount = parseInt(voteCountEl.text());
@@ -370,38 +374,31 @@ $(function() {
         let newCount = currentCount;
         let newVoteState = null;
         
-        // Reddit-style voting logic
         if (isUpvote) {
             if (wasUpvoted) {
-                // Clicking upvote again = remove upvote
                 newCount = currentCount - 1;
                 newVoteState = null;
             } else if (wasDownvoted) {
-                // Switch from downvote to upvote (+2)
                 newCount = currentCount + 2;
                 newVoteState = 'up';
             } else {
-                // New upvote
                 newCount = currentCount + 1;
                 newVoteState = 'up';
             }
         } else {
             if (wasDownvoted) {
-                // Clicking downvote again = remove downvote
                 newCount = currentCount + 1;
                 newVoteState = null;
             } else if (wasUpvoted) {
-                // Switch from upvote to downvote (-2)
                 newCount = currentCount - 2;
                 newVoteState = 'down';
             } else {
-                // New downvote
                 newCount = currentCount - 1;
                 newVoteState = 'down';
             }
         }
         
-        // Update UI optimistically
+        // Optimistic UI update
         voteCountEl.text(newCount);
         upvoteBtn.removeClass('voted-up');
         downvoteBtn.removeClass('voted-down');
@@ -412,12 +409,10 @@ $(function() {
             downvoteBtn.addClass('voted-down');
         }
         
-        // Send to server
         const vote = isUpvote ? 'up' : 'down';
         
         $.post(`/posts/${postId}/vote`, { vote: vote })
             .done(function(res) {
-                // Sync with server response
                 const serverCount = (res.upvotes_count || 0) - (res.downvotes_count || 0);
                 voteCountEl.text(serverCount);
 
@@ -432,10 +427,10 @@ $(function() {
             })
             .fail(function(xhr) {
                 console.error('Vote failed:', xhr.responseText);
-                // Revert UI on error
                 voteCountEl.text(currentCount);
                 upvoteBtn.toggleClass('voted-up', wasUpvoted);
                 downvoteBtn.toggleClass('voted-down', wasDownvoted);
+                
                 if (xhr.responseJSON && xhr.responseJSON.error) {
                     alert(xhr.responseJSON.error);
                 } else {
@@ -443,11 +438,7 @@ $(function() {
                 }
             });
     });
-
 });
 </script>
-
-{{-- Voting logic partial remains as-is --}}
-@include('partials.voting-logic')
 
 @endsection
