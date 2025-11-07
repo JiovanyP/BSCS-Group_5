@@ -23,6 +23,7 @@ class User extends Authenticatable
         'phone',
         'bio',
         'avatar',
+        'location',
         'status',
         'suspended_at',
         'banned_at',

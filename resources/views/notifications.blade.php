@@ -695,6 +695,47 @@
             window.location.href = postUrl;
         }
     };
+
+    let autoRefreshInterval;
+    let lastNotificationCount = {{ $notifications->count() }}; // Initial count from server
+    
+    function startSmartAutoRefresh() {
+        autoRefreshInterval = setInterval(() => {
+            // Check for new notifications via AJAX without full page reload
+            fetch(window.location.href + '&check_only=1', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                // Simple check - if the HTML contains notification items, count them
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const currentCount = doc.querySelectorAll('.notification-item').length;
+                
+                if (currentCount !== lastNotificationCount) {
+                    // Only reload if count changed
+                    lastNotificationCount = currentCount;
+                    window.location.reload();
+                }
+            })
+            .catch(error => console.error('Error checking notifications:', error));
+        }, 1000); // Check every 1 second, but only reload if changes
+    }
+    
+    function stopSimpleAutoRefresh() {
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        startSmartAutoRefresh();
+    });
+
+    window.addEventListener('beforeunload', stopSimpleAutoRefresh);
+
 })();
 </script>
 @endsection
