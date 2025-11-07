@@ -1,252 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Publ Sidebar with Weather</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Publ Sidebar with Weather</title>
 
-    <!-- Material icons/fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<!-- Material icons/fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <style>
-    :root {
-        --primary: #494ca2;
-        --accent: #CF0F47;
-        --accent-hover: #FF0B55;
-        --sidebar-bg: #ffffff;
-        --white: #ffffff;
-        --black: #000000;
-        --text-muted: #666;
-        --light-pink: #fbebf1;
-    }
+<style>
+:root {
+    --primary: #494ca2;
+    --accent: #CF0F47;
+    --accent-hover: #FF0B55;
+    --sidebar-bg: #ffffff;
+    --white: #ffffff;
+    --black: #000000;
+    --text-muted: #666;
+    --light-pink: #fbebf1;
+}
 
-    body {
-        font-family: 'Poppins', Arial, sans-serif;
-        font-size: 14px;
-        line-height: 1.8;
-        background: #fafafa;
-        margin: 0;
-    }
+body {
+    font-family: 'Poppins', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.8;
+    background: #fafafa;
+    margin: 0;
+}
 
+.sidebar {
+    min-width: 270px;
+    max-width: 270px;
+    background: var(--sidebar-bg);
+    color: var(--text-muted);
+    transition: all 0.3s;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #eee;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.02);
+    background-image: linear-gradient(to bottom, #fff 40%, var(--light-pink) 100%);
+}
+
+/* Make only the content scrollable */
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Sidebar heading/logo */
+.sidebar h1 {
+    margin-bottom: 20px;
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+.logo {
+    color: var(--accent);
+    text-decoration: none;
+    transition: 0.3s;
+}
+.logo:hover {
+    opacity: 0.9;
+}
+
+/* Sidebar links */
+.components {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.components li {
+    font-size: 16px;
+}
+.components li a,
+.components li button {
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    text-decoration: none;
+    transition: 0.3s all ease;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+}
+.components li a:hover,
+.components li button:hover {
+    color: var(--black);
+}
+.components li.active > a,
+.components li.active > button {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* Material icons */
+.material-icons,
+.material-symbols-outlined {
+    font-size: 22px !important;
+    flex-shrink: 0;
+    line-height: 1 !important;
+    vertical-align: middle !important;
+}
+.sidebar li a span:last-child,
+.sidebar li button span:last-child {
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    line-height: 1 !important;
+}
+
+/* Hide sidebar scrollbar by default */
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+
+    /* Hide scrollbar for Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+}
+
+/* Hide scrollbar for Webkit (Chrome, Edge, Safari) */
+.sidebar-content::-webkit-scrollbar {
+    width: 6px;
+    background: transparent; /* Hide by default */
+}
+
+/* Scrollbar thumb */
+.sidebar-content::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 3px;
+}
+
+/* Show scrollbar on hover */
+.sidebar:hover .sidebar-content::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.4);
+}
+.sidebar:hover .sidebar-content {
+    scrollbar-color: rgba(0,0,0,0.4) transparent;
+}
+
+/* Profile expandable */
+.profile-section {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: all 0.3s ease;
+    border-left: 2px solid var(--accent);
+    margin-left: 15px;
+    padding-left: 10px;
+    position: relative;
+    z-index: 100;
+    background: var(--sidebar-bg);
+}
+.profile-section a,
+.profile-section button {
+    display: flex;
+    align-items: center;
+    gap: 4px !important;
+    font-size: 10px !important;
+    padding: 4px 0;
+    color: var(--text-muted);
+    border: none;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+}
+.profile-section a:hover,
+.profile-section button:hover {
+    color: var(--accent);
+}
+.profile-item:hover .profile-section,
+.profile-section:hover {
+    max-height: 220px;
+    opacity: 1;
+    margin-top: 5px;
+}
+
+/* Weather Widget */
+.weather-widget {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f9f9ff;
+    border: 1px solid #eee;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    font-size: 14px;
+}
+.weather-widget h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--primary);
+}
+.weather-widget p {
+    margin: 4px 0;
+    font-size: 13px;
+}
+
+/* Buttons */
+.btn {
+    transition: 0.3s;
+    padding: 12px 15px;
+    border-radius: 40px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.btn-danger {
+    background: var(--accent);
+    color: var(--white);
+}
+.btn-danger:hover {
+    background: var(--accent-hover);
+}
+.mt-4 { margin-top: 1.5rem; }
+
+/* Responsive sidebar for mobile */
+@media (max-width: 768px) {
     .sidebar {
-        min-width: 270px;
-        max-width: 270px;
-        background: var(--sidebar-bg);
-        color: var(--text-muted);
-        transition: all 0.3s;
-        position: sticky;
-        top: 0;
-        height: 100vh;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        border-right: 1px solid #eee;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.02);
-        background-image: linear-gradient(to bottom, #fff 40%, var(--light-pink) 100%);
-    }
-
-    .sidebar h1 {
-        margin-bottom: 20px;
-        font-weight: 700;
-        font-size: 1.5rem;
-    }
-
-    .logo {
-        color: var(--accent);
-        text-decoration: none;
-        transition: 0.3s;
-    }
-
-    .logo:hover {
-        opacity: 0.9;
-    }
-
-    .components {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .components li {
-        font-size: 16px;
-    }
-
-    .components li a,
-    .components li button {
-        padding: 10px 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: var(--text-muted);
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        text-decoration: none;
-        transition: 0.3s all ease;
-        background: transparent;
-        border: none;
-        width: 100%;
-        text-align: left;
-        cursor: pointer;
-        font: inherit;
-    }
-
-    .components li a:hover,
-    .components li button:hover {
-        color: var(--black);
-    }
-
-    .components li.active > a,
-    .components li.active > button {
-        color: var(--accent);
-        font-weight: 600;
-    }
-
-    .material-icons,
-    .material-symbols-outlined {
-        font-size: 22px !important;
-        flex-shrink: 0;
-        line-height: 1 !important;
-        vertical-align: middle !important;
-    }
-
-    .sidebar li a span:last-child,
-    .sidebar li button span:last-child {
-        font-size: 15px !important;
-        font-weight: 500 !important;
-        line-height: 1 !important;
-    }
-
-    /* Profile expandable section */
-    .profile-section {
-        overflow: hidden;
-        max-height: 0;
-        opacity: 0;
-        transition: all 0.3s ease;
-        border-left: 2px solid var(--accent);
-        margin-left: 15px;
-        padding-left: 10px;
-        position: relative;
-        z-index: 100;
-        background: var(--sidebar-bg);
-    }
-
-    .profile-section a,
-    .profile-section button {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        padding: 8px 0;
-        color: var(--text-muted);
-        border: none;
-        text-decoration: none;
-        transition: color 0.2s ease;
-        background: transparent;
-        cursor: pointer;
-        font: inherit;
-    }
-
-    .profile-section a:hover,
-    .profile-section button:hover {
-        color: var(--accent);
-    }
-
-    /* Ensure the profile section remains visible when hovering it */
-    .profile-item:hover .profile-section,
-    .profile-section:hover {
-        max-height: 220px; /* increased to accommodate content comfortably */
-        opacity: 1;
-        margin-top: 5px;
-    }
-
-    /* Weather Widget */
-    .weather-widget {
-        margin-top: 20px;
-        padding: 15px;
-        background: #f9f9ff;
-        border: 1px solid #eee;
-        border-radius: 15px;
-        text-align: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        font-size: 14px;
-    }
-
-    .weather-widget h3 {
-        font-size: 16px;
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: var(--primary);
-    }
-
-    .weather-widget p {
-        margin: 4px 0;
-        font-size: 13px;
-    }
-
-    .btn {
-        transition: 0.3s;
-        padding: 12px 15px;
-        border-radius: 40px;
-        font-size: 14px;
-        font-weight: 600;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    }
-
-    .btn-danger {
-        background: var(--accent);
-        color: var(--white);
-    }
-
-    .btn-danger:hover {
-        background: var(--accent-hover);
-    }
-
-    .mt-4 { margin-top: 1.5rem; }
-
-    @media (max-width: 768px) {
-        .sidebar {
-            margin-left: -270px;
-            position: fixed;
-            z-index: 1000;
-        }
-        .sidebar.active { margin-left: 0; }
-    }
-
-    /* Small helper for inserted fallback modal */
-    .fallback-modal-backdrop {
+        margin-left: -270px;
         position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: 1050;
+        z-index: 1000;
     }
-    .fallback-modal {
-        position: fixed;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%,-50%);
-        z-index: 1060;
-        background: white;
-        border-radius: 8px;
-        max-width: 750px;
-        width: 90%;
-        max-height: 90vh;
-        overflow: auto;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-        padding: 16px;
-    }
-    </style>
+    .sidebar.active { margin-left: 0; }
+}
+
+/* Fallback modal helper (unchanged) */
+.fallback-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1050;
+}
+.fallback-modal {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    z-index: 1060;
+    background: white;
+    border-radius: 8px;
+    max-width: 750px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    padding: 16px;
+}
+</style>
 </head>
 <body>
 
 <div class="sidebar" id="sidebar">
-    <div>
+    <div class="sidebar-content">
         <h1><a href="#" class="logo">Publ.</a></h1>
         <p><br>Be part of keeping our community safe. Publish your report with Publ.</p>
 
@@ -275,7 +304,10 @@
             <!-- Profile Expandable -->
             <li class="profile-item {{ request()->routeIs('profile') ? 'active' : '' }}">
                 <button type="button" aria-expanded="false" aria-controls="profile-section" onclick="/* noop */">
-                    <span class="material-icons">person</span>
+                    <!-- Replace icon with avatar -->
+                    <img src="{{ auth()->user()->avatar_url ?? asset('images/avatar.png') }}" 
+                        alt="Avatar" 
+                        style="width:22px; height:22px; border-radius:50%; flex-shrink:0;">
                     <span>Profile</span>
                 </button>
 
@@ -284,8 +316,6 @@
                         <span class="material-icons">visibility</span>
                         View Profile
                     </a>
-
-                    <!-- changed to button to avoid default link navigation and to ensure JS reliably runs -->
                     <button type="button" id="open-edit-profile" onclick="loadEditModal()">
                         <span class="material-icons">edit</span>
                         Edit Personal Info

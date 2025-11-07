@@ -8,7 +8,9 @@
     <div class="subtitle">Create reports with texts, images, or videos</div>
 
     <form id="postForm" action="{{ route('timeline.store') }}" method="POST" enctype="multipart/form-data" novalidate>
-    @csrf
+        @csrf
+
+        {{-- Accident Type --}}
         <label for="accident_type">Accident Type (Required)</label>
         <select id="accident_type" name="accident_type" required>
             <option value="" disabled selected>Select Type</option>
@@ -17,12 +19,9 @@
             <option value="Traffic">Traffic</option>
             <option value="Others">Others</option>
         </select>
+        <input id="other_type" type="text" placeholder="Please specify" style="display:none;" />
 
-        <input id="other_type" name="other_type" type="text" placeholder="Please specify" style="display:none;" />
-
-        <label for="content">Your Report (Required)</label>
-        <textarea id="content" name="content" rows="4" placeholder="What's up?" required></textarea>
-
+        {{-- Location --}}
         <label for="location">Location (Required)</label>
         <select id="location" name="location" required>
             <option value="" disabled selected>Select Location</option>
@@ -38,37 +37,33 @@
             <option value="Miracle">Miracle</option>
             <option value="Others">Others</option>
         </select>
+        <input id="other_location" type="text" placeholder="Please specify" style="display:none;" />
 
-        <input id="other_location" name="other_location" type="text" placeholder="Please specify" style="display:none;" />
+        {{-- Hidden fields to save final values --}}
+        <input type="hidden" name="final_accident_type" id="final_accident_type">
+        <input type="hidden" name="final_location" id="final_location">
 
+        {{-- Report Content --}}
+        <label for="content">Your Report (Required)</label>
+        <textarea id="content" name="content" rows="4" placeholder="What's up?" required></textarea>
+
+        {{-- Image/Video --}}
         <label for="image">Attach Image/Video (optional)</label>
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-            <input id="image" name="image" type="file" accept="image/*,video/*,image/gif" style="flex: 1; margin-bottom: 0;" />
-            <button type="button" id="cameraBtn" class="btn-camera" style="width: auto; padding: 12px 16px; background: #eee; color: #444; margin: 0;">📷</button>
+            <input id="image" name="image" type="file" accept="image/*,video/*,image/gif" style="flex:1;" />
+            <button type="button" id="cameraBtn" class="btn-camera">📷</button>
         </div>
-        
+
         <input type="hidden" id="media_type_input" name="media_type" value=""> 
 
         <div id="preview-container" style="display:none; margin-bottom:12px;">
             <img id="preview-image" src="" alt="Preview" style="display:none;" />
             <video id="preview-video" controls style="display:none;"></video>
-            <video id="camera-preview" autoplay playsinline style="display:none; max-width: 100%; max-height: 200px; margin-top: 10px; border-radius: 8px;"></video>
-            <canvas id="camera-canvas" style="display:none;"></canvas>
-            <div id="camera-controls" style="display:none; margin-top: 10px;">
-                <button type="button" id="captureBtn" class="camera-btn capture">Capture</button>
-                <button type="button" id="cancelCameraBtn" class="camera-btn">Cancel</button>
-            </div>
-            <button type="button" id="removePreviewBtn">Remove</button>
         </div>
 
         <button id="postBtn" type="submit" class="btn btn-primary" disabled>Post</button>
         <a href="{{ route('timeline') }}" class="btn btn-secondary">Cancel</a>
     </form>
-
-    <footer class="small">
-        By posting, you agree to follow our
-        <a href="#" style="color:var(--accent)">Community Guidelines</a>.
-    </footer>
 </div>
 
 <style>
@@ -252,192 +247,52 @@
 (function(){
     const form = document.getElementById('postForm');
     const postBtn = document.getElementById('postBtn');
+
     const content = document.getElementById('content');
-    const location = document.getElementById('location');
-    const otherLocation = document.getElementById('other_location');
     const accidentType = document.getElementById('accident_type');
     const otherType = document.getElementById('other_type');
-    const imageInput = document.getElementById('image');
-    const mediaTypeInput = document.getElementById('media_type_input');
-    const previewContainer = document.getElementById('preview-container');
-    const previewImage = document.getElementById('preview-image');
-    const previewVideo = document.getElementById('preview-video');
-    const removeBtn = document.getElementById('removePreviewBtn');
-    const cameraBtn = document.getElementById('cameraBtn');
-    const cameraPreview = document.getElementById('camera-preview');
-    const cameraCanvas = document.getElementById('camera-canvas');
-    const cameraControls = document.getElementById('camera-controls');
-    const captureBtn = document.getElementById('captureBtn');
-    const cancelCameraBtn = document.getElementById('cancelCameraBtn');
-    let cameraStream = null;
+    const location = document.getElementById('location');
+    const otherLocation = document.getElementById('other_location');
 
-    function toggleButton() {
-        if (
-            content.value.trim() &&
-            location.value.trim() &&
-            accidentType.value.trim() &&
-            (accidentType.value !== "Others" || otherType.value.trim()) &&
-            (location.value !== "Others" || otherLocation.value.trim())
-        ) {
-            postBtn.disabled = false;
-        } else {
-            postBtn.disabled = true;
-        }
+    const finalAccidentType = document.getElementById('final_accident_type');
+    const finalLocation = document.getElementById('final_location');
+
+    function toggleButton(){
+        const ready = content.value.trim() &&
+                      accidentType.value &&
+                      location.value &&
+                      (accidentType.value !== "Others" || otherType.value.trim()) &&
+                      (location.value !== "Others" || otherLocation.value.trim());
+        postBtn.disabled = !ready;
     }
 
-    [content, location, accidentType, otherType, otherLocation].forEach(el => {
+    [content, accidentType, otherType, location, otherLocation].forEach(el=>{
         el.addEventListener('input', toggleButton);
         el.addEventListener('change', toggleButton);
     });
 
-    accidentType.addEventListener('change', function() {
-        if (this.value === "") {
-            this.style.color = "#888";
-            otherType.style.display = "none";
-        } else {
-            this.style.color = "#000";
-            if (this.value === "Others") {
-                otherType.style.display = "block";
+    function handleOther(selectEl, inputEl){
+        selectEl.addEventListener('change', function(){
+            if(this.value==="Others"){
+                inputEl.style.display="block";
+                inputEl.required = true;
             } else {
-                otherType.style.display = "none";
-                otherType.value = "";
+                inputEl.style.display="none";
+                inputEl.value="";
+                inputEl.required = false;
             }
-        }
-        toggleButton();
-    });
+            toggleButton();
+        });
+    }
 
-    location.addEventListener('change', function() {
-        if (this.value === "") {
-            this.style.color = "#888";
-            otherLocation.style.display = "none";
-        } else {
-            this.style.color = "#000";
-            if (this.value === "Others") {
-                otherLocation.style.display = "block";
-            } else {
-                otherLocation.style.display = "none";
-                otherLocation.value = "";
-            }
-        }
-        toggleButton();
-    });
-
-    location.style.color = "#888";
-    accidentType.style.color = "#888";
-
-    imageInput.addEventListener('change', function() {
-        const file = this.files[0];
-        if (file) {
-            const url = URL.createObjectURL(file);
-            previewContainer.style.display = "block";
-            removeBtn.style.display = "inline-block";
-            cameraControls.style.display = "none";
-            
-            if (file.type.startsWith("image/")) {
-                mediaTypeInput.value = file.type.endsWith('/gif') ? 'gif' : 'image';
-                previewImage.src = url;
-                previewImage.style.display = "block";
-                previewVideo.style.display = "none";
-                cameraPreview.style.display = "none";
-            } else if (file.type.startsWith("video/")) {
-                mediaTypeInput.value = 'video';
-                previewVideo.src = url;
-                previewVideo.style.display = "block";
-                previewImage.style.display = "none";
-                cameraPreview.style.display = "none";
-            } else {
-                mediaTypeInput.value = '';
-                previewContainer.style.display = "none";
-            }
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-            previewContainer.style.display = "none";
-            mediaTypeInput.value = '';
-        }
-    });
-
-    cameraBtn.addEventListener('click', async function() {
-        try {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert('Camera access is not supported in your browser.');
-                return;
-            }
-
-            cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-            cameraPreview.srcObject = cameraStream;
-            cameraPreview.style.display = "block";
-            cameraControls.style.display = "block";
-            previewContainer.style.display = "block";
-            previewImage.style.display = "none";
-            previewVideo.style.display = "none";
-            removeBtn.style.display = "none";
-            mediaTypeInput.value = '';
-            imageInput.value = "";
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        } catch (err) {
-            alert('Unable to access camera: ' + err.message);
-        }
-    });
-
-    captureBtn.addEventListener('click', function() {
-        const context = cameraCanvas.getContext('2d');
-        cameraCanvas.width = cameraPreview.videoWidth;
-        cameraCanvas.height = cameraPreview.videoHeight;
-        context.drawImage(cameraPreview, 0, 0, cameraCanvas.width, cameraCanvas.height);
-
-        cameraCanvas.toBlob(function(blob) {
-            const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            imageInput.files = dataTransfer.files;
-            mediaTypeInput.value = 'image';
-
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
-
-            previewImage.src = URL.createObjectURL(blob);
-            previewImage.style.display = "block";
-            cameraPreview.style.display = "none";
-            cameraControls.style.display = "none";
-            removeBtn.style.display = "inline-block";
-        }, 'image/jpeg', 0.95);
-    });
-
-    cancelCameraBtn.addEventListener('click', function() {
-        if (cameraStream) {
-            cameraStream.getTracks().forEach(track => track.stop());
-            cameraStream = null;
-        }
-        cameraPreview.style.display = "none";
-        cameraControls.style.display = "none";
-        previewContainer.style.display = "none";
-        mediaTypeInput.value = '';
-    });
-
-    removeBtn.addEventListener('click', function() {
-        imageInput.value = "";
-        mediaTypeInput.value = "";
-        previewImage.src = "";
-        previewVideo.src = "";
-        previewImage.style.display = "none";
-        previewVideo.style.display = "none";
-        previewContainer.style.display = "none";
-
-        if (cameraStream) {
-            cameraStream.getTracks().forEach(track => track.stop());
-            cameraStream = null;
-        }
-    });
+    handleOther(accidentType, otherType);
+    handleOther(location, otherLocation);
 
     form.addEventListener('submit', function(){
-        if (cameraStream) {
-            cameraStream.getTracks().forEach(track => track.stop());
-            cameraStream = null;
-        }
+        // Set hidden inputs for saving
+        finalAccidentType.value = (accidentType.value==="Others" ? otherType.value.trim() : accidentType.value);
+        finalLocation.value = (location.value==="Others" ? otherLocation.value.trim() : location.value);
+
         postBtn.disabled = true;
         postBtn.textContent = 'Posting...';
     });
