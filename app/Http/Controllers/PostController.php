@@ -129,6 +129,10 @@ class PostController extends Controller
         $request->validate(['vote' => 'required|in:up,down']);
         $post = Post::findOrFail($id);
 
+        if (!Auth::check()) {
+            return response()->json(['error' => 'You must be logged in to vote.'], 401);
+        }
+
         $existingVote = $post->likes()->where('user_id', Auth::id())->first();
 
         // Undo vote
@@ -225,9 +229,47 @@ class PostController extends Controller
             'id'             => $comment->id,
             'parent_id'      => $comment->parent_id,
             'user'           => Auth::user()->name,
-            'avatar'         => Auth::user()->avatar ?? 'https://bootdey.com/img/Content/avatar/avatar1.png',
+            'avatar'         => Auth::user()->avatar_url,
             'comment'        => $comment->content,
             'comments_count' => Comment::where('post_id', $id)->count(),
+        ]);
+    }
+
+    /**
+     * Reply to a comment
+     */
+    public function reply(Request $request, $commentId)
+    {
+        $request->validate(['content' => 'required|string|max:300']);
+
+        $parentComment = Comment::findOrFail($commentId);
+
+        $reply = Comment::create([
+            'user_id'   => Auth::id(),
+            'post_id'   => $parentComment->post_id,
+            'content'   => $request->content,
+            'parent_id' => $commentId,
+        ]);
+
+        if ($parentComment->user_id !== Auth::id()) {
+            Notification::create([
+                'user_id'    => $parentComment->user_id,
+                'actor_id'   => Auth::id(),
+                'post_id'    => $parentComment->post_id,
+                'comment_id' => $reply->id,
+                'type'       => 'reply',
+                'is_read'    => false,
+            ]);
+        }
+
+        return response()->json([
+            'success'        => true,
+            'id'             => $reply->id,
+            'parent_id'      => $reply->parent_id,
+            'user'           => Auth::user()->name,
+            'avatar'         => Auth::user()->avatar_url,
+            'comment'        => $reply->content,
+            'comments_count' => Comment::where('post_id', $parentComment->post_id)->count(),
         ]);
     }
 

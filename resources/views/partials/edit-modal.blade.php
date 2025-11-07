@@ -8,66 +8,67 @@
           <h1><strong>Edit Personal Info</strong></h1>
           <div class="subtitle">Update your personal information</div>
 
-```
-      {{-- Success alert --}}
-      @if (session('success'))
-        <div class="alert alert-success" style="font-size: 14px; margin-bottom: 16px;">
-          {{ session('success') }}
+          {{-- Success alert --}}
+          @if (session('success'))
+            <div class="alert alert-success" style="font-size: 14px; margin-bottom: 16px;">
+              {{ session('success') }}
+            </div>
+          @endif
+
+          {{-- Display validation errors --}}
+          @if ($errors->any())
+            <div class="alert alert-danger" style="font-size: 14px; margin-bottom: 16px;">
+              <ul style="margin-bottom: 0;">
+                @foreach ($errors->all() as $error)
+                  <li>{{ $error }}</li>
+                @endforeach
+              </ul>
+            </div>
+          @endif
+
+          <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" novalidate>
+            @csrf
+            @method('PATCH')
+
+            <label for="editName">Full Name (Required)</label>
+            <input type="text" id="editName" name="name" value="{{ old('name', Auth::user()->name) }}" required>
+
+            <label for="editEmail">Email (Required)</label>
+            <input type="email" id="editEmail" name="email" value="{{ old('email', Auth::user()->email) }}" required>
+
+            <label for="editPassword">New Password</label>
+            <input type="password" id="editPassword" name="password" placeholder="Leave empty to keep current password">
+
+            <label for="editPasswordConfirmation">Confirm New Password</label>
+            <input type="password" id="editPasswordConfirmation" name="password_confirmation" placeholder="Confirm new password">
+            <small class="form-text text-muted">Leave both password fields empty to keep your current password.</small>
+
+            <label for="editPhone">Phone Number</label>
+            <input type="tel" id="editPhone" name="phone" value="{{ old('phone', Auth::user()->phone ?? '') }}" placeholder="Enter your phone number">
+
+            <label for="editLocation">Location</label>
+            <input type="text" id="editLocation" name="location" value="{{ old('location', Auth::user()->location ?? '') }}" placeholder="Enter your location">
+
+            <label for="editBio">Bio</label>
+            <textarea id="editBio" name="bio" rows="3" placeholder="Tell us about yourself">{{ old('bio', Auth::user()->bio ?? '') }}</textarea>
+
+            <label for="editAvatar">Profile Picture</label>
+            <input type="file" id="editAvatar" name="avatar" accept="image/*">
+            <small class="form-text text-muted">Leave empty to keep current avatar. Max 2MB, JPEG/PNG/GIF only.</small>
+
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#editProfileModal').modal('hide')">Cancel</button>
+          </form>
+
+          <footer class="small">
+            Your information is kept private and secure.
+          </footer>
         </div>
-      @endif
-
-      {{-- Display validation errors --}}
-      @if ($errors->any())
-        <div class="alert alert-danger" style="font-size: 14px; margin-bottom: 16px;">
-          <ul style="margin-bottom: 0;">
-            @foreach ($errors->all() as $error)
-              <li>{{ $error }}</li>
-            @endforeach
-          </ul>
-        </div>
-      @endif
-
-      <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" novalidate>
-        @csrf
-        @method('PATCH')
-
-        <label for="editName">Full Name (Required)</label>
-        <input type="text" id="editName" name="name" value="{{ old('name', Auth::user()->name) }}" required>
-
-        <label for="editEmail">Email (Required)</label>
-        <input type="email" id="editEmail" name="email" value="{{ old('email', Auth::user()->email) }}" required>
-
-        <label for="editPassword">New Password</label>
-        <input type="password" id="editPassword" name="password" placeholder="Leave empty to keep current password">
-
-        <label for="editPasswordConfirmation">Confirm New Password</label>
-        <input type="password" id="editPasswordConfirmation" name="password_confirmation" placeholder="Confirm new password">
-        <small class="form-text text-muted">Leave both password fields empty to keep your current password.</small>
-
-        <label for="editPhone">Phone Number</label>
-        <input type="tel" id="editPhone" name="phone" value="{{ old('phone', Auth::user()->phone ?? '') }}" placeholder="Enter your phone number">
-
-        <label for="editBio">Bio</label>
-        <textarea id="editBio" name="bio" rows="3" placeholder="Tell us about yourself">{{ old('bio', Auth::user()->bio ?? '') }}</textarea>
-
-        <label for="editAvatar">Profile Picture</label>
-        <input type="file" id="editAvatar" name="avatar" accept="image/*">
-        <small class="form-text text-muted">Leave empty to keep current avatar. Max 2MB, JPEG/PNG/GIF only.</small>
-
-        <button type="submit" class="btn btn-primary">Save Changes</button>
-        <button type="button" class="btn btn-secondary" onclick="$('#editProfileModal').modal('hide')">Cancel</button>
-      </form>
-
-      <footer class="small">
-        Your information is kept private and secure.
-      </footer>
+      </div>
     </div>
   </div>
 </div>
-```
 
-  </div>
-</div>
 
 <style>
   :root {

@@ -75,7 +75,7 @@
 
         <div class="btn-group">
             <button type="submit" class="btn btn-primary">Update Post</button>
-            <a href="{{ route('timeline') }}" class="btn btn-secondary">Cancel</a>
+            <button type="button" class="btn btn-secondary" onclick="window.history.back()">Cancel</button>
         </div>
     </form>
 

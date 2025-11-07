@@ -24,7 +24,7 @@
               <form id="deleteForm" method="POST" action="">
                   @csrf
                   @method('DELETE')
-                  <button type="submit" class="btn btn-danger">Delete</button>
+                  <button type="submit" class="btn btn-danger" data-dismiss="modal">Delete</button>
               </form>
           </div>
       </div>
@@ -84,7 +84,7 @@
 
                   <div class="text-end">
                       <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                      <button type="submit" class="btn btn-warning" id="reportSubmitBtn">Submit Report</button>
+                      <button type="submit" class="btn btn-warning" id="reportSubmitBtn" data-dismiss="modal">Submit Report</button>
                   </div>
               </form>
           </div>
@@ -111,6 +111,19 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#deleteForm').attr('action', '');
     });
 
+    // Close modal on form submission
+    $('#deleteForm').on('submit', function() {
+        $('#deleteModal').modal('hide');
+    });
+
+    // Ensure modal is properly cleaned up when hidden
+    $('#deleteModal').on('hidden.bs.modal', function () {
+        // Remove modal backdrop and reset body classes
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open');
+        $('body').css('padding-right', '');
+    });
+
     // REPORT modal: set action to POST /posts/{id}/report
     $('#reportModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget);
@@ -128,6 +141,19 @@ document.addEventListener('DOMContentLoaded', function () {
     $('#reportModal').on('hidden.bs.modal', function () {
         $('#reportForm').attr('action', '');
         $('input[name="reason"]').prop('checked', false);
+    });
+
+    // Close modal on form submission
+    $('#reportForm').on('submit', function() {
+        $('#reportModal').modal('hide');
+    });
+
+    // Ensure modal is properly cleaned up when hidden
+    $('#reportModal').on('hidden.bs.modal', function () {
+        // Remove modal backdrop and reset body classes
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open');
+        $('body').css('padding-right', '');
     });
 });
 </script>
