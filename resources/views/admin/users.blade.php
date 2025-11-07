@@ -10,216 +10,569 @@
 @endphp
 
 <style>
-/* Reuse admin dashboard variables (keeps look consistent) */
 :root {
-  --bg: #071018;
-  --panel: rgba(255,255,255,0.02);
-  --muted: #98a0a8;
-  --accent: #CF0F47;
-  --green: #17b06b;
-  --red: #ea4d4d;
-  --blue: #1482e8;
-  --card-radius: 12px;
-  --card-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  --bg-primary: #0B1416;
+  --bg-secondary: #1A1A1B;
+  --bg-hover: #272729;
+  --border: #343536;
+  --text-primary: #D7DADC;
+  --text-secondary: #818384;
+  --accent-blue: #0079D3;
+  --accent-red: #FF4500;
+  --accent-green: #46D160;
+  --card-radius: 8px;
 }
 
-.users-wrap { display:block; }
-.header-row { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; }
-.header-row h1 { margin:0; font-size:20px; }
-.header-row .meta { color:var(--muted); font-size:13px; }
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
 
-.users-card { background:var(--panel); border-radius:12px; padding:12px; box-shadow:var(--card-shadow); }
+.users-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
 
-/* table */
-.users-table { width:100%; border-collapse:collapse; color:#eaf2fa; font-weight:700; }
-.users-table th, .users-table td { padding:10px 12px; border-top:1px solid rgba(255,255,255,0.02); text-align:left; vertical-align:middle; }
-.users-table th { color:var(--muted); font-weight:800; font-size:13px; }
-.avatar { width:40px; height:40px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; overflow:hidden; background:rgba(255,255,255,0.02); color:var(--muted); margin-right:8px; }
-.user-row { transition: background .08s ease; }
-.user-row:hover { background: rgba(255,255,255,0.01); }
+/* Header Section */
+.page-header {
+  margin-bottom: 24px;
+}
 
-/* badges */
-.badge { display:inline-block; padding:6px 8px; border-radius:8px; font-size:12px; font-weight:800; }
-.badge.active { background: rgba(23,176,107,0.12); color:var(--green); }
-.badge.suspended { background: rgba(234,77,77,0.08); color:var(--red); }
-.badge.banned { background: rgba(255,100,100,0.06); color:var(--red); }
-.role-pill { background: rgba(255,255,255,0.02); color:var(--muted); padding:4px 8px; border-radius:8px; font-weight:700; font-size:12px; }
+.page-header h1 {
+  font-size: 28px;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+}
 
-/* action buttons */
-.actions { display:flex; gap:8px; justify-content:flex-end; }
-.action-btn {
+.page-header .subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Filter Bar */
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-bar input[type="search"],
+.filter-bar select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 8px 16px;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.filter-bar input[type="search"] {
+  flex: 1;
+  min-width: 200px;
+  max-width: 400px;
+}
+
+.filter-bar input[type="search"]:focus,
+.filter-bar select:focus {
+  border-color: var(--accent-blue);
+  background: var(--bg-hover);
+}
+
+.filter-bar select {
+  padding-right: 32px;
+  cursor: pointer;
+}
+
+.filter-btn {
+  background: var(--accent-blue);
+  color: white;
   border: none;
-  padding:8px 10px;
-  border-radius:8px;
-  cursor:pointer;
-  background: rgba(255,255,255,0.03);
-  color:#fff;
-  font-weight:700;
-  display:inline-flex;
-  gap:8px;
-  align-items:center;
+  border-radius: 20px;
+  padding: 8px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
 }
-.action-btn:disabled { opacity:0.5; cursor:not-allowed; }
 
-/* colored actions */
-.action-suspend { background: linear-gradient(180deg,var(--blue), #076fb8); }
-.action-ban { background: linear-gradient(180deg,var(--red), #c43932); }
-.action-restore { background: linear-gradient(180deg,var(--green), #12a85b); }
-.action-delete { background: rgba(255,255,255,0.02); color:var(--red); border:1px solid rgba(255,255,255,0.03); }
+.filter-btn:hover {
+  background: #0068B8;
+}
 
-/* responsive - stack on small screens */
-@media (max-width:920px) {
-  .users-table thead { display:none; }
-  .users-table tr { display:block; margin-bottom:12px; border-radius:10px; background:var(--panel); padding:10px; }
-  .users-table td { display:flex; justify-content:space-between; padding:8px 10px; border-top:0; }
-  .actions { justify-content:flex-start; margin-top:8px; }
+/* User Cards */
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  padding: 16px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-card:hover {
+  background: var(--bg-hover);
+  border-color: var(--text-secondary);
+}
+
+/* Avatar */
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF4500, #FF8717);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* User Info */
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-email {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0 0 4px 0;
+}
+
+.user-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Badges & Pills */
+.role-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-badge.active {
+  background: rgba(70, 209, 96, 0.15);
+  color: var(--accent-green);
+}
+
+.status-badge.suspended {
+  background: rgba(255, 159, 10, 0.15);
+  color: #FF9F0A;
+}
+
+.status-badge.banned {
+  background: rgba(255, 69, 0, 0.15);
+  color: var(--accent-red);
+}
+
+.status-badge::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Stats */
+.user-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+}
+
+.stat-item {
+  text-align: center;
+  min-width: 60px;
+}
+
+.stat-value {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* Actions */
+.user-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.action-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--text-primary);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.action-btn.view {
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.action-btn.view:hover:not(:disabled) {
+  background: rgba(0, 121, 211, 0.1);
+}
+
+.action-btn.suspend {
+  color: #FF9F0A;
+  border-color: #FF9F0A;
+}
+
+.action-btn.suspend:hover:not(:disabled) {
+  background: rgba(255, 159, 10, 0.1);
+}
+
+.action-btn.ban {
+  color: var(--accent-red);
+  border-color: var(--accent-red);
+}
+
+.action-btn.ban:hover:not(:disabled) {
+  background: rgba(255, 69, 0, 0.1);
+}
+
+.action-btn.restore {
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+.action-btn.restore:hover:not(:disabled) {
+  background: rgba(70, 209, 96, 0.1);
+}
+
+.action-btn.delete {
+  color: var(--accent-red);
+}
+
+.action-btn .material-icons {
+  font-size: 16px;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-state .material-icons {
+  font-size: 64px;
+  opacity: 0.3;
+  margin-bottom: 16px;
+}
+
+/* Pagination */
+.pagination-wrapper {
+  margin-top: 24px;
+  padding: 16px;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .user-stats {
+    display: none;
+  }
+  
+  .user-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .action-btn {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .users-container {
+    padding: 12px;
+  }
+  
+  .page-header h1 {
+    font-size: 22px;
+  }
+  
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-bar input[type="search"],
+  .filter-bar select {
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .user-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+  }
+  
+  .user-info {
+    width: 100%;
+  }
+  
+  .user-actions {
+    width: 100%;
+    margin-top: 8px;
+  }
+  
+  .user-meta {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  
+  .action-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .action-btn .material-icons {
+    font-size: 14px;
+  }
 }
 </style>
 
-<div class="users-wrap">
-  <div class="header-row">
-    <div>
-      <h1>Manage Users</h1>
-      <div class="meta">List users, suspend, ban, restore, or remove accounts</div>
-    </div>
-
-    <div style="display:flex; gap:8px; align-items:center;">
-      <form method="get" action="{{ route('admin.users.index') }}" style="display:flex; gap:8px; align-items:center;">
-        <input type="search" name="q" placeholder="Search name or email" value="{{ request('q') }}" style="background:transparent; border:1px solid rgba(255,255,255,0.03); padding:8px 10px; border-radius:8px; color:#fff;">
-        <select name="status" style="background:transparent; border:1px solid rgba(255,255,255,0.03); padding:8px 10px; border-radius:8px; color:#fff;">
-          <option value="">All status</option>
-          <option value="active" {{ request('status')=='active' ? 'selected' : '' }}>Active</option>
-          <option value="suspended" {{ request('status')=='suspended' ? 'selected' : '' }}>Suspended</option>
-          <option value="banned" {{ request('status')=='banned' ? 'selected' : '' }}>Banned</option>
-        </select>
-        <button type="submit" class="action-btn" style="padding:8px 12px;">Filter</button>
-      </form>
-    </div>
+<div class="users-container">
+  <div class="page-header">
+    <h1>Manage Users</h1>
+    <div class="subtitle">View and moderate user accounts across your platform</div>
   </div>
 
-  <div class="users-card" role="region" aria-label="User management">
-    @if(empty($users) || ($users instanceof \Illuminate\Support\Collection && $users->isEmpty()))
-      <div style="padding:18px; color:var(--muted)">No users found.</div>
-    @else
-      <table class="users-table" role="table" aria-label="Users table">
-        <thead>
-          <tr>
-            <th style="width:36px"></th>
-            <th>Name / Email</th>
-            <th style="width:140px">Role</th>
-            <th style="width:120px">Status</th>
-            <th style="width:110px; text-align:right;">Posts</th>
-            <th style="width:190px; text-align:right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @foreach($users as $user)
-            @php
-              $status = $user->status ?? 'active';
-              $isSelfAdmin = ($adminId && ($adminId === ($user->id ?? null)));
-            @endphp
-            <tr class="user-row" id="user-row-{{ $user->id }}">
-              <td>
-                <div class="avatar" aria-hidden="true">
-                  @if(!empty($user->avatar))
-                    <img src="{{ asset('storage/'.$user->avatar) }}" alt="{{ $user->name }}" style="width:100%; height:100%; object-fit:cover;">
-                  @else
-                    {{ strtoupper(substr($user->name ?? 'U',0,1)) }}
-                  @endif
-                </div>
-              </td>
+  <form method="get" action="{{ route('admin.users.index') }}">
+    <div class="filter-bar">
+      <input 
+        type="search" 
+        name="q" 
+        placeholder="Search users..." 
+        value="{{ request('q') }}"
+        aria-label="Search users by name or email"
+      >
+      
+      <select name="status" aria-label="Filter by status">
+        <option value="">All Status</option>
+        <option value="active" {{ request('status')=='active' ? 'selected' : '' }}>Active</option>
+        <option value="suspended" {{ request('status')=='suspended' ? 'selected' : '' }}>Suspended</option>
+        <option value="banned" {{ request('status')=='banned' ? 'selected' : '' }}>Banned</option>
+      </select>
+      
+      <button type="submit" class="filter-btn">Filter</button>
+    </div>
+  </form>
 
-              <td>
-                <div style="font-weight:800;">{{ $user->name ?? '—' }}</div>
-                <div style="color:var(--muted); font-size:13px;">{{ $user->email ?? '—' }}</div>
-                <div style="color:var(--muted); font-size:12px; margin-top:6px;">Joined {{ optional($user->created_at)->diffForHumans() }}</div>
-              </td>
+  @if(empty($users) || ($users instanceof \Illuminate\Support\Collection && $users->isEmpty()))
+    <div class="empty-state">
+      <span class="material-icons">people_outline</span>
+      <div>No users found</div>
+    </div>
+  @else
+    <div class="users-list" role="list" aria-label="Users list">
+      @foreach($users as $user)
+        @php
+          $status = $user->status ?? 'active';
+          $isSelfAdmin = ($adminId && ($adminId === ($user->id ?? null)));
+        @endphp
+        
+        <div class="user-card" id="user-row-{{ $user->id }}" role="listitem">
+          <div class="user-avatar" aria-hidden="true">
+            @if(!empty($user->avatar))
+              <img src="{{ asset('storage/'.$user->avatar) }}" alt="{{ $user->name }}">
+            @else
+              {{ strtoupper(substr($user->name ?? 'U',0,1)) }}
+            @endif
+          </div>
 
-              <td>
-                <span class="role-pill">{{ $user->role ?? 'user' }}</span>
-              </td>
+          <div class="user-info">
+            <div class="user-name">
+              {{ $user->name ?? '—' }}
+              <span class="role-badge">{{ $user->role ?? 'user' }}</span>
+            </div>
+            <div class="user-email">{{ $user->email ?? '—' }}</div>
+            <div class="user-meta">
+              <span>Joined {{ optional($user->created_at)->diffForHumans() }}</span>
+              <span>•</span>
+              <span>{{ $user->posts_count ?? ($user->posts->count() ?? 0) }} posts</span>
+            </div>
+          </div>
 
-              <td>
-                @if($status === 'active')
-                  <span class="badge active">Active</span>
-                @elseif($status === 'suspended')
-                  <span class="badge suspended">Suspended</span>
-                @elseif($status === 'banned')
-                  <span class="badge banned">Banned</span>
-                @else
-                  <span class="badge" style="background:rgba(255,255,255,0.02)">{{ ucfirst($status) }}</span>
-                @endif
-              </td>
+          <div class="user-stats">
+            <div class="stat-item">
+              <span class="stat-value">{{ $user->posts_count ?? ($user->posts->count() ?? 0) }}</span>
+              <span class="stat-label">Posts</span>
+            </div>
+          </div>
 
-              <td style="text-align:right;">
-                <div>{{ $user->posts_count ?? ($user->posts->count() ?? 0) }}</div>
-              </td>
+          <div class="status-badge {{ $status }}">
+            {{ ucfirst($status) }}
+          </div>
 
-              <td style="text-align:right;">
-                <div class="actions" role="group" aria-label="User actions for {{ $user->name }}">
-                  {{-- View (non-destructive) --}}
-                  <a href="{{ route('admin.users.show', ['user' => $user->id]) ?? '#' }}" class="action-btn" title="View user details">
-                    <span class="material-icons" aria-hidden="true">visibility</span> View
-                  </a>
+          <div class="user-actions" role="group" aria-label="Actions for {{ $user->name }}">
+            <a 
+              href="{{ route('admin.users.show', ['user' => $user->id]) ?? '#' }}" 
+              class="action-btn view"
+              title="View user"
+            >
+              <span class="material-icons">visibility</span>
+              <span>View</span>
+            </a>
 
-                  {{-- Suspend --}}
-                  <button
-                    class="action-btn action-suspend btn-suspend"
-                    title="Suspend user"
-                    data-action="{{ route('admin.users.suspend', ['user' => $user->id]) }}"
-                    data-user-id="{{ $user->id }}"
-                    {{ $isSelfAdmin ? 'disabled' : '' }}
-                    aria-disabled="{{ $isSelfAdmin ? 'true' : 'false' }}"
-                  >
-                    <span class="material-icons" aria-hidden="true">pause_circle</span> Suspend
-                  </button>
+            <button
+              class="action-btn suspend btn-suspend"
+              title="Suspend user"
+              data-action="{{ route('admin.users.suspend', ['user' => $user->id]) }}"
+              data-user-id="{{ $user->id }}"
+              {{ $isSelfAdmin ? 'disabled' : '' }}
+            >
+              <span class="material-icons">pause_circle</span>
+              <span>Suspend</span>
+            </button>
 
-                  {{-- Ban --}}
-                  <button
-                    class="action-btn action-ban btn-ban"
-                    title="Ban user"
-                    data-action="{{ route('admin.users.ban', ['user' => $user->id]) }}"
-                    data-user-id="{{ $user->id }}"
-                    {{ $isSelfAdmin ? 'disabled' : '' }}
-                    aria-disabled="{{ $isSelfAdmin ? 'true' : 'false' }}"
-                  >
-                    <span class="material-icons" aria-hidden="true">gavel</span> Ban
-                  </button>
+            <button
+              class="action-btn ban btn-ban"
+              title="Ban user"
+              data-action="{{ route('admin.users.ban', ['user' => $user->id]) }}"
+              data-user-id="{{ $user->id }}"
+              {{ $isSelfAdmin ? 'disabled' : '' }}
+            >
+              <span class="material-icons">block</span>
+              <span>Ban</span>
+            </button>
 
-                  {{-- Restore --}}
-                  <button
-                    class="action-btn action-restore btn-restore"
-                    title="Restore user"
-                    data-action="{{ route('admin.users.restore', ['user' => $user->id]) }}"
-                    data-user-id="{{ $user->id }}"
-                    {{ ($status === 'active' || $isSelfAdmin) ? 'disabled' : '' }}
-                    aria-disabled="{{ ($status === 'active' || $isSelfAdmin) ? 'true' : 'false' }}"
-                  >
-                    <span class="material-icons" aria-hidden="true">autorenew</span> Restore
-                  </button>
+            <button
+              class="action-btn restore btn-restore"
+              title="Restore user"
+              data-action="{{ route('admin.users.restore', ['user' => $user->id]) }}"
+              data-user-id="{{ $user->id }}"
+              {{ ($status === 'active' || $isSelfAdmin) ? 'disabled' : '' }}
+            >
+              <span class="material-icons">refresh</span>
+              <span>Restore</span>
+            </button>
 
-                  {{-- Delete (destructive) --}}
-                  <form method="POST" action="{{ route('admin.users.destroy', ['user' => $user->id]) }}" style="display:inline-block;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="action-btn action-delete" title="Delete user" onclick="return confirm('Delete this user? This action cannot be undone.');" {{ $isSelfAdmin ? 'disabled' : '' }}>
-                      <span class="material-icons" aria-hidden="true">delete</span> Delete
-                    </button>
-                  </form>
-                </div>
-              </td>
-            </tr>
-          @endforeach
-        </tbody>
-      </table>
+            <form 
+              method="POST" 
+              action="{{ route('admin.users.destroy', ['user' => $user->id]) }}" 
+              style="display:inline-block; margin: 0;"
+            >
+              @csrf
+              @method('DELETE')
+              <button 
+                type="submit" 
+                class="action-btn delete" 
+                title="Delete user" 
+                onclick="return confirm('Delete this user? This action cannot be undone.');" 
+                {{ $isSelfAdmin ? 'disabled' : '' }}
+              >
+                <span class="material-icons">delete_outline</span>
+                <span>Delete</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      @endforeach
+    </div>
 
-      <div style="margin-top:10px; color:var(--muted);">
-        @if(method_exists($users,'links'))
-          {{ $users->links() }}
-        @endif
-      </div>
-    @endif
-  </div>
+    <div class="pagination-wrapper">
+      @if(method_exists($users,'links'))
+        {{ $users->links() }}
+      @endif
+    </div>
+  @endif
 </div>
 
 @push('scripts')
@@ -232,7 +585,6 @@
     return;
   }
 
-  // Setup CSRF header for AJAX requests
   $.ajaxSetup({
     headers: {
       'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -240,7 +592,6 @@
     }
   });
 
-  // Generic action helper
   function handleAction($btn, opts) {
     opts = opts || {};
     const action = $btn.data('action');
@@ -254,7 +605,7 @@
     const defaultConfirm = opts.confirmMessage || 'Are you sure you want to perform this action?';
     if (!confirm(defaultConfirm)) return;
 
-    $btn.prop('disabled', true).css('opacity',0.6);
+    $btn.prop('disabled', true).css('opacity', 0.6);
 
     $.ajax({
       url: action,
@@ -262,20 +613,23 @@
       dataType: 'json',
       success: function(res) {
         if (res && res.success) {
+          const $statusBadge = $('#user-row-' + userId + ' .status-badge');
+          
           if ($btn.hasClass('btn-suspend')) {
-            $('#user-row-' + userId + ' .badge').removeClass('active suspended banned').addClass('suspended').text('Suspended');
+            $statusBadge.removeClass('active banned').addClass('suspended').text('Suspended');
             $btn.prop('disabled', true);
-            $('#user-row-' + userId + ' .btn-restore').prop('disabled', false).css('opacity',1);
+            $('#user-row-' + userId + ' .btn-restore').prop('disabled', false).css('opacity', 1);
           } else if ($btn.hasClass('btn-ban')) {
-            $('#user-row-' + userId + ' .badge').removeClass('active suspended banned').addClass('banned').text('Banned');
+            $statusBadge.removeClass('active suspended').addClass('banned').text('Banned');
             $('#user-row-' + userId + ' .btn-suspend').prop('disabled', true);
-            $('#user-row-' + userId + ' .btn-restore').prop('disabled', false);
+            $('#user-row-' + userId + ' .btn-restore').prop('disabled', false).css('opacity', 1);
           } else if ($btn.hasClass('btn-restore')) {
-            $('#user-row-' + userId + ' .badge').removeClass('suspended banned active').addClass('active').text('Active');
-            $('#user-row-' + userId + ' .btn-suspend, #user-row-' + userId + ' .btn-ban').prop('disabled', false).css('opacity',1);
+            $statusBadge.removeClass('suspended banned').addClass('active').text('Active');
+            $('#user-row-' + userId + ' .btn-suspend, #user-row-' + userId + ' .btn-ban').prop('disabled', false).css('opacity', 1);
             $btn.prop('disabled', true);
           }
-          alert(res.message || 'Action completed.');
+          
+          alert(res.message || 'Action completed successfully.');
         } else {
           alert(res && res.message ? res.message : 'Unexpected response from server.');
         }
@@ -290,12 +644,11 @@
         alert(msg);
       },
       complete: function() {
-        $btn.prop('disabled', false).css('opacity',1);
+        $btn.prop('disabled', false).css('opacity', 1);
       }
     });
   }
 
-  // Bind actions
   $(document).on('click', '.btn-suspend', function(e){
     e.preventDefault();
     handleAction($(this), { confirmMessage: 'Suspend this user? They will be prevented from logging in.' });
@@ -303,7 +656,7 @@
 
   $(document).on('click', '.btn-ban', function(e){
     e.preventDefault();
-    handleAction($(this), { confirmMessage: 'Ban this user? This will permanently disable the account.' });
+    handleAction($(this), { confirmMessage: 'Ban this user permanently?' });
   });
 
   $(document).on('click', '.btn-restore', function(e){
@@ -311,7 +664,6 @@
     handleAction($(this), { confirmMessage: 'Restore this user to active status?' });
   });
 
-  // Keyboard accessibility
   $(document).on('keydown', '.action-btn', function(e){
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
