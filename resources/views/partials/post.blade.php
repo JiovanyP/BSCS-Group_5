@@ -278,34 +278,20 @@
         <!-- HEADER -->
         <div class="post-header">
             <div class="report-details">
-                {{ strtoupper($post->accident_type ?? 'Incident') }} • 
+                {{ strtoupper($post->accident_type ?? 'Incident') }} •
                 <span class="location">{{ $post->location ?? 'Unknown' }}</span>
                 @if($post->other_type)
                     <small class="text-muted">({{ $post->other_type }})</small>
                 @endif
             </div>
             <div class="dropdown">
-                <a href="#" class="text-muted" data-bs-toggle="dropdown">
-                    <span class="material-icons">more_horiz</span>
-                </a>
+                <a href="#" class="text-muted" data-bs-toggle="dropdown"><span class="material-icons">more_horiz</span></a>
                 <div class="dropdown-menu dropdown-menu-end">
                     @if(auth()->id() === $post->user_id)
-                        <a class="dropdown-item" href="{{ route('posts.edit', $post->id) }}">
-                            <span class="material-icons">edit</span> Edit
-                        </a>
-                        <button class="dropdown-item text-danger delete-post-btn" 
-                                data-id="{{ $post->id }}" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#deleteModal">
-                            <span class="material-icons">delete</span> Delete
-                        </button>
+                        <a class="dropdown-item" href="{{ route('posts.edit', $post->id) }}"><span class="material-icons">edit</span> Edit</a>
+                        <button class="dropdown-item text-danger delete-post-btn" data-id="{{ $post->id }}" data-bs-toggle="modal" data-bs-target="#deleteModal"><span class="material-icons">delete</span> Delete</button>
                     @else
-                        <button class="dropdown-item report-post-btn" 
-                                data-id="{{ $post->id }}" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#reportModal">
-                            <span class="material-icons">flag</span> Report
-                        </button>
+                        <button class="dropdown-item report-post-btn" data-id="{{ $post->id }}" data-bs-toggle="modal" data-bs-target="#reportModal"><span class="material-icons">flag</span> Report</button>
                     @endif
                 </div>
             </div>
@@ -313,16 +299,12 @@
 
         <!-- BODY -->
         <div class="post-body">
-            @if(!empty($post->content))
-                <p>{{ $post->content }}</p>
-            @endif
+            @if(!empty($post->content)) <p>{{ $post->content }}</p> @endif
             @if(!empty($post->image_url))
                 @if($post->media_type === 'image' || $post->media_type === 'gif')
                     <img src="{{ $post->image_url }}" alt="Post image">
                 @elseif($post->media_type === 'video')
-                    <video controls>
-                        <source src="{{ $post->image_url }}" type="video/mp4">
-                    </video>
+                    <video controls><source src="{{ $post->image_url }}" type="video/mp4"></video>
                 @endif
             @endif
         </div>
@@ -330,7 +312,7 @@
         <!-- SIGNATURE -->
         <div class="post-signature">
             <div class="user-info">
-                <img src="{{ $post->user->avatar_url ?? asset('images/avatar.png') }}" width="32" height="32" class="rounded-circle">
+                <img src="{{ $post->user->avatar_url }}" class="user-avatar-{{ $post->user->id }}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
                 <strong>{{ $post->user->name ?? 'Unknown User' }}</strong>
                 <small>{{ $post->created_at->diffForHumans() }}</small>
             </div>
@@ -346,15 +328,9 @@
             </div>
 
             <div class="vote-container">
-                <a href="#" class="upvote-btn footer-action {{ $userVote === 'up' ? 'voted-up' : '' }}" data-id="{{ $post->id }}">
-                    <span class="material-icons">arrow_upward</span>
-                </a>
-                <div class="vote-count" id="upvote-count-{{ $post->id }}">
-                    {{ $post->upvotes()->count() - $post->downvotes()->count() }}
-                </div>
-                <a href="#" class="downvote-btn footer-action {{ $userVote === 'down' ? 'voted-down' : '' }}" data-id="{{ $post->id }}">
-                    <span class="material-icons">arrow_downward</span>
-                </a>
+                <a href="#" class="upvote-btn footer-action {{ $userVote === 'up' ? 'voted-up' : '' }}" data-id="{{ $post->id }}"><span class="material-icons">arrow_upward</span></a>
+                <div class="vote-count" id="upvote-count-{{ $post->id }}">{{ $post->upvotes()->count() - $post->downvotes()->count() }}</div>
+                <a href="#" class="downvote-btn footer-action {{ $userVote === 'down' ? 'voted-down' : '' }}" data-id="{{ $post->id }}"><span class="material-icons">arrow_downward</span></a>
             </div>
         </div>
 
@@ -371,7 +347,7 @@
                     @foreach($post->comments as $comment)
                         <div class="comment" id="comment-{{ $comment->id }}">
                             <img src="{{ $comment->user->avatar_url ?? asset('images/avatar.png') }}" width="28" height="28" class="rounded-circle">
-                            <div style="flex: 1;">
+                            <div style="flex:1;">
                                 <div><strong>{{ $comment->user->name }}</strong> {{ $comment->content }}</div>
                                 <a href="#" class="reply-btn small" data-id="{{ $comment->id }}">Reply</a>
                                 <div class="replies">
@@ -390,90 +366,3 @@
         </div>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // Toggle comment section
-    document.querySelectorAll('.toggle-comments').forEach(btn => {
-        btn.addEventListener('click', e => {
-            e.preventDefault();
-            e.stopPropagation(); // <-- STOP click from reaching .post-card-link
-            const id = btn.dataset.id;
-            const section = document.getElementById(`comments-section-${id}`);
-            section.style.display = (section.style.display === 'block') ? 'none' : 'block';
-        });
-    });
-
-    // Enable send button only when input not empty
-    document.querySelectorAll('.comment-input').forEach(input => {
-        input.addEventListener('input', e => {
-            const id = e.target.id.split('-').pop();
-            const send = document.getElementById(`comment-send-${id}`);
-            send.disabled = e.target.value.trim() === '';
-        });
-    });
-
-    // Prevent clicks on other interactive elements from triggering card link
-    document.querySelectorAll('.footer-action, .dropdown-item, .comment-send, .reply-btn').forEach(el => {
-        el.addEventListener('click', e => e.stopPropagation());
-    });
-
-    // Reply button click handler
-document.addEventListener('click', e => {
-    if (e.target.closest('.reply-btn')) {
-        e.preventDefault();
-        e.stopPropagation();
-        const btn = e.target.closest('.reply-btn');
-        const commentId = btn.dataset.id;
-
-        // Check if input already exists
-        if (btn.nextElementSibling?.classList.contains('reply-input-group')) return;
-
-        const replyGroup = document.createElement('div');
-        replyGroup.className = 'reply-input-group';
-        replyGroup.innerHTML = `
-            <input type="text" class="form-control reply-input" placeholder="Write a reply...">
-            <button class="reply-send" disabled>Send</button>
-        `;
-
-        btn.insertAdjacentElement('afterend', replyGroup);
-
-        const input = replyGroup.querySelector('.reply-input');
-        const sendBtn = replyGroup.querySelector('.reply-send');
-
-        // Enable send button
-        input.addEventListener('input', () => {
-            sendBtn.disabled = input.value.trim() === '';
-        });
-
-        // Stop propagation on send click
-        sendBtn.addEventListener('click', e => {
-            e.stopPropagation();
-            const value = input.value.trim();
-            if (!value) return;
-            console.log(`Reply to comment ${commentId}:`, value);
-
-            // TODO: Send AJAX request here
-            // Example:
-            // axios.post('/comments/reply', { comment_id: commentId, content: value })
-            //     .then(res => { ... });
-
-            // For demo: append reply
-            const repliesContainer = btn.parentElement.querySelector('.replies');
-            const newReply = document.createElement('div');
-            newReply.className = 'comment';
-            newReply.innerHTML = `
-                <img src="/images/avatar.png" width="25" height="25" class="rounded-circle">
-                <div><strong>You</strong> ${value}</div>
-            `;
-            repliesContainer.appendChild(newReply);
-
-            // Clear and remove input
-            input.value = '';
-            sendBtn.disabled = true;
-            replyGroup.remove();
-        });
-    }
-
-});
-</script>
