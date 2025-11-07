@@ -237,7 +237,13 @@ Route::prefix('admin')
          * ---------------------- */
         Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
         Route::get('/posts/accident/{type}', [AdminController::class, 'postsByAccidentType'])->name('posts.byAccidentType');
+
+        // Settings (GET already present)
         Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
+
+        // Settings actions (non-invasive, per-admin JSON persistence + password change)
+        Route::post('/settings/password', [AdminController::class, 'updatePassword'])->name('settings.updatePassword');
+        Route::post('/settings/theme', [AdminController::class, 'updateTheme'])->name('settings.updateTheme');
 
         /** -----------------------
          * ADMIN NOTIFICATIONS
