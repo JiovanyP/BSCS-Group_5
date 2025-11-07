@@ -71,10 +71,10 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'content'       => 'nullable|string|max:1000',
-            'location'      => 'nullable|string|max:255',
-            'accident_type' => 'required|string|max:100',
-            'image'         => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
+            'content'             => 'required|string|max:1000',
+            'final_accident_type' => 'required|string|max:100',
+            'final_location'      => 'required|string|max:255',
+            'image'               => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
         ]);
 
         $imagePath = null;
@@ -84,24 +84,20 @@ class PostController extends Controller
             $file = $request->file('image');
             $extension = strtolower($file->getClientOriginalExtension());
 
-            if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
-                $mediaType = 'image';
-            } elseif ($extension === 'gif') {
-                $mediaType = 'gif';
-            } elseif (in_array($extension, ['mp4', 'mov', 'avi', 'webm'])) {
-                $mediaType = 'video';
-            }
+            if (in_array($extension, ['jpg', 'jpeg', 'png'])) $mediaType = 'image';
+            elseif ($extension === 'gif') $mediaType = 'gif';
+            elseif (in_array($extension, ['mp4', 'mov', 'avi', 'webm'])) $mediaType = 'video';
 
             $imagePath = $file->store('posts', 'public');
         }
 
         $post = Post::create([
-            'user_id'      => Auth::id(),
-            'content'      => $request->content,
-            'location'     => $request->location,
-            'accident_type'=> $request->accident_type,
-            'image'        => $imagePath,
-            'media_type'   => $mediaType,
+            'user_id'       => Auth::id(),
+            'content'       => $request->content,
+            'accident_type' => $request->final_accident_type,
+            'location'      => $request->final_location,
+            'image'         => $imagePath,
+            'media_type'    => $mediaType,
         ]);
 
         \App\Http\Controllers\NotificationController::createLocationNotifications($post);
