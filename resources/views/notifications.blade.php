@@ -10,6 +10,31 @@
                 {{ session('success') }}
             </div>
         @endif
+    
+        {{-- No location warning --}}
+        @if(auth()->user() && empty(auth()->user()->location))
+            <div class="notification-item unread" onclick="loadEditModal()">
+                <span class="unread-dot"></span>
+                <div class="notification-time">
+                    <span class="material-icons">schedule</span> {{ now()->diffForHumans() }}
+                </div>
+                <div class="notification-content">
+                    <div class="notification-meta-top">
+                        <div class="notification-badges">
+                            <span class="badge priority-badge">
+                                <span class="material-icons" style="font-size:11px; vertical-align: bottom;">warning</span> Priority
+                            </span>
+                        </div>
+                    </div>
+                    <div class="notification-message">
+                        <strong>No location set!</strong> <br>You haven't added your location in your profile. 
+                        <span style="text-decoration: underline; color: var(--primary-color); cursor: pointer;" onclick="loadEditModal(); event.stopPropagation();">
+                            Edit your profile
+                        </span> to add your location and get local notifications.
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <div class="categories-tabs">
             <div class="tabs-header">
@@ -618,60 +643,124 @@
 (function() {
     'use strict';
     
+    // Tab switching functionality
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const type = this.dataset.type;
             const url = new URL(window.location.href);
+            
+            // Set the type parameter
             url.searchParams.set('type', type);
+            
+            // Reset accident_type filter for non-relevant tabs
             if (type === 'all' || type === 'social') {
                 url.searchParams.delete('accident_type');
+            } else if (type === 'priority' || type === 'general') {
+                // Keep current accident_type if it exists, otherwise set to 'all'
+                if (!url.searchParams.has('accident_type')) {
+                    url.searchParams.set('accident_type', 'all');
+                }
             }
+            
             window.location.href = url.toString();
         });
     });
 
+    // Accident type filter functionality
     const accidentTypeFilter = document.getElementById('accidentTypeFilter');
     if (accidentTypeFilter) {
         accidentTypeFilter.addEventListener('change', function() {
             const url = new URL(window.location.href);
+            const currentType = url.searchParams.get('type') || 'all';
+            
+            // Set accident_type parameter
             url.searchParams.set('accident_type', this.value);
             
-            if (!url.searchParams.has('type') || url.searchParams.get('type') === 'all' || url.searchParams.get('type') === 'social') {
-                url.searchParams.set('type', 'priority'); 
+            // Ensure we're on a tab that supports accident_type filtering
+            if (currentType === 'all' || currentType === 'social') {
+                url.searchParams.set('type', 'priority'); // Default to priority when filtering
             }
             
             window.location.href = url.toString();
         });
     }
 
+    // Mark as read and navigate function
     window.markAsReadAndNavigate = function(notificationId, postUrl) {
         if (!postUrl || postUrl === '#' || postUrl === '') {
             console.log('No valid post URL');
             return;
         }
 
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
-        fetch(`/notifications/${notificationId}/mark-read`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            }
-        })
-        .then(response => {
-            if (response.ok) {
+        if (csrfToken) {
+            fetch(`/notifications/${notificationId}/mark-read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = postUrl;
+                } else {
+                    console.error('Failed to mark notification as read');
+                    window.location.href = postUrl;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
                 window.location.href = postUrl;
-            } else {
-                console.error('Failed to mark notification as read');
-                window.location.href = postUrl;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+            });
+        } else {
+            // Fallback if CSRF token not found
             window.location.href = postUrl;
-        });
+        }
     };
+
+    let autoRefreshInterval;
+    let lastNotificationCount = {{ $notifications->count() }}; // Initial count from server
+    
+    function startSmartAutoRefresh() {
+        autoRefreshInterval = setInterval(() => {
+            // Check for new notifications via AJAX without full page reload
+            fetch(window.location.href + '&check_only=1', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                // Simple check - if the HTML contains notification items, count them
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const currentCount = doc.querySelectorAll('.notification-item').length;
+                
+                if (currentCount !== lastNotificationCount) {
+                    // Only reload if count changed
+                    lastNotificationCount = currentCount;
+                    window.location.reload();
+                }
+            })
+            .catch(error => console.error('Error checking notifications:', error));
+        }, 1000); // Check every 1 second, but only reload if changes
+    }
+    
+    function stopSimpleAutoRefresh() {
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        startSmartAutoRefresh();
+    });
+
+    window.addEventListener('beforeunload', stopSimpleAutoRefresh);
+
 })();
 </script>
 @endsection

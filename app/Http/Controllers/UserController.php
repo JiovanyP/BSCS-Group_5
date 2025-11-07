@@ -4,139 +4,79 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cookie;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use App\Models\User;
-use App\Models\Post;
 
 class UserController extends Controller
 {
     /**
-     * Handle registration.
+     * Show login form
      */
-    public function register(Request $request)
+    public function showLoginForm()
     {
-        $incoming = $request->validate([
-            'name'      => ['required', 'max:100'],
-            'email'     => ['required', 'email', 'max:100', 'unique:users,email'],
-            'location'  => ['nullable', 'string', 'max:255'],
-            'password'  => ['required', 'min:8', 'max:200', 'confirmed'],
-        ]);
-
-        $incoming['password'] = bcrypt($incoming['password']);
-        $user = User::create($incoming);
-
-        // Reset session + login
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        Auth::login($user);
-        $request->session()->regenerate();
-
-        // Queue session cookie manually
-        Cookie::queue(Cookie::make(
-            config('session.cookie'),
-            $request->session()->getId(),
-            config('session.lifetime'),
-            config('session.path'),
-            config('session.domain'),
-            config('session.secure'),
-            config('session.http_only'),
-            false,
-            config('session.same_site', 'lax')
-        ));
-
-        return redirect()->route('timeline')
-            ->with('success', 'Account created and logged in!');
+        return view('login');
     }
 
     /**
-     * Handle login (email or username + password).
+     * Handle login
      */
     public function login(Request $request)
     {
-        $request->validate([
-            'email'    => 'required',
-            'password' => 'required',
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|min:6',
         ]);
 
-        $loginField = filter_var($request->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
-        $credentials = [
-            $loginField => $request->email,
-            'password'  => $request->password,
-        ];
+        // Check if user exists and is not banned/suspended
+        $user = User::where('email', $credentials['email'])->first();
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        if ($user) {
+            if ($user->isBanned()) {
+                return back()->withErrors([
+                    'email' => 'Your account has been banned. Please contact support.',
+                ])->withInput($request->only('email'));
+            }
+
+            if ($user->isSuspended()) {
+                return back()->withErrors([
+                    'email' => 'Your account has been suspended. Please contact support.',
+                ])->withInput($request->only('email'));
+            }
+        }
+
+        // Attempt login
+        if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
 
-            Cookie::queue(Cookie::make(
-                config('session.cookie'),
-                $request->session()->getId(),
-                config('session.lifetime'),
-                config('session.path'),
-                config('session.domain'),
-                config('session.secure'),
-                config('session.http_only'),
-                false,
-                config('session.same_site', 'lax')
-            ));
+            // Update last login
+            Auth::user()->update(['last_login_at' => now()]);
 
-            return redirect()->route('timeline')->with('success', 'Welcome back!');
+            return redirect()->intended(route('timeline'))->with('success', 'Welcome back!');
         }
 
         return back()->withErrors([
-            'email' => 'Invalid login credentials.',
-        ])->withInput();
+            'email' => 'The provided credentials do not match our records.',
+        ])->withInput($request->only('email'));
     }
 
     /**
-     * Logout user and redirect to the public homepage (welcome).
+     * Handle logout
      */
     public function logout(Request $request)
     {
+        \Log::info('Logout method called'); // ✅ Add this line
+        
         Auth::logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        Cookie::queue(Cookie::forget(config('session.cookie')));
-
-        // 👇 Redirect to the homepage (welcome)
-        return redirect()->route('welcome')->with('success', 'You have been logged out successfully.');
+        
+        \Log::info('Logout completed'); // ✅ Add this line
+        
+        return redirect()->route('login')->with('success', 'You have been logged out successfully.');
     }
-
     /**
-     * Update profile.
-     */
-    public function update(Request $request, User $user)
-    {
-        $this->authorize('update', $user);
-
-        $validated = $request->validate([
-            'name'     => ['required', 'min:1', 'max:100', Rule::unique('users')->ignore($user->id)],
-            'email'    => ['required', 'email', Rule::unique('users')->ignore($user->id)],
-            'location' => ['nullable', 'max:100'],
-            'password' => ['nullable', 'min:8', 'max:200', 'confirmed'],
-        ]);
-
-        if ($request->filled('password')) {
-            $validated['password'] = bcrypt($request->password);
-        }
-
-        $user->update($validated);
-
-        return back()->with('success', 'Profile updated successfully.');
-    }
-
-    /**
-     * Timeline page.
-     */
-    public function timeline()
-    {
-        $posts = Post::with('user', 'comments.user')->latest()->get();
-        return view('timeline', compact('posts'));
-    }
-
-    /**
-     * AJAX helper — check if email exists.
+     * AJAX: Check if email exists
      */
     public function checkEmail(Request $request)
     {
@@ -145,11 +85,111 @@ class UserController extends Controller
     }
 
     /**
-     * AJAX helper — check if username exists.
+     * AJAX: Check if username exists
      */
     public function checkUsername(Request $request)
     {
-        $exists = User::where('name', $request->name)->exists();
+        $exists = User::where('name', $request->username)->exists();
         return response()->json(['exists' => $exists]);
+    }
+
+    /**
+     * Show user profile
+     */
+    public function profile()
+    {
+        return view('profile', [
+            'user' => Auth::user()
+        ]);
+    }
+
+    /**
+     * Update user profile
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'bio' => 'nullable|string|max:500',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $data = $request->only(['name', 'email', 'phone', 'address', 'bio']);
+
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            // Delete old avatar if exists
+            if ($user->avatar && !Str::startsWith($user->avatar, ['http://', 'https://'])) {
+                $oldPath = storage_path('app/public/' . ltrim($user->avatar, 'storage/'));
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
+                }
+            }
+
+            // Store new avatar
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $data['avatar'] = $avatarPath;
+        }
+
+        $user->update($data);
+
+        return back()->with('success', 'Profile updated successfully!');
+    }
+
+    /**
+     * Change password
+     */
+    public function changePassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator);
+        }
+
+        $user = Auth::user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Current password is incorrect.']);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        return back()->with('success', 'Password changed successfully!');
+    }
+
+    /**
+     * Delete account
+     */
+    public function deleteAccount(Request $request)
+    {
+        $user = Auth::user();
+
+        // Verify password before deletion
+        if (!Hash::check($request->password, $user->password)) {
+            return back()->withErrors(['password' => 'Password is incorrect.']);
+        }
+
+        Auth::logout();
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('success', 'Your account has been deleted.');
     }
 }

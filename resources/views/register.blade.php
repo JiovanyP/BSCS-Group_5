@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Register</title>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <style>
     :root {
@@ -17,12 +18,10 @@
       height: 100%;
       margin: 0;
       font-family: "Helvetica Neue", Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
     }
 
     body {
-      background-color: var(--accent-2); /* Solid pink background */
+      background-color: var(--accent-2);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -43,7 +42,6 @@
       margin: 0 0 14px 0;
       color: var(--accent);
       font-size: 24px;
-      letter-spacing: 0.2px;
     }
 
     .subtitle {
@@ -52,12 +50,12 @@
       font-size: 13px;
     }
 
-    form { width: 100%; margin-top: 6px; text-align: left; }
+    form { width: 100%; text-align: left; }
 
     label { display: block; font-size: 13px; color: #444; margin-bottom: 6px; }
     input[type="text"], input[type="password"], input[type="email"] {
       width: 100%;
-      padding: 12px 12px;
+      padding: 12px;
       border-radius: 10px;
       border: 1px solid #ddd;
       margin-bottom: 12px;
@@ -86,6 +84,7 @@
       font-size: 15px;
       transition: 0.25s;
     }
+
     .btn:hover { background: var(--accent-2); }
 
     .links {
@@ -97,10 +96,7 @@
     .links a { color: var(--accent); text-decoration: none; }
     .links a:hover { text-decoration: underline; }
 
-    .error-box {
-      background: #fff0f0;
-      border: 1px solid #ffd0d0;
-      color: #a00000;
+    .error-box, .success-box {
       padding: 10px 12px;
       border-radius: 8px;
       margin-bottom: 12px;
@@ -108,16 +104,8 @@
       text-align: left;
     }
 
-    .success-box {
-      background: #f1fff1;
-      border: 1px solid #cfeecf;
-      color: #0a7a0a;
-      padding: 10px 12px;
-      border-radius: 8px;
-      margin-bottom: 12px;
-      font-size: 13px;
-      text-align: left;
-    }
+    .error-box { background: #fff0f0; border: 1px solid #ffd0d0; color: #a00000; }
+    .success-box { background: #f1fff1; border: 1px solid #cfeecf; color: #0a7a0a; }
 
     footer.small {
       margin-top: 18px;
@@ -127,18 +115,18 @@
   </style>
 </head>
 <body>
-  <main class="register-container" role="main" aria-labelledby="registerTitle">
-    <h1 id="registerTitle">Create an Account</h1>
+  <main class="register-container">
+    <h1>Create an Account</h1>
     <div class="subtitle">Join our community and get started today</div>
 
     {{-- Success message --}}
     @if(session('success'))
-      <div class="success-box" role="status">{{ session('success') }}</div>
+      <div class="success-box">{{ session('success') }}</div>
     @endif
 
     {{-- Validation errors --}}
     @if ($errors->any())
-      <div class="error-box" role="alert">
+      <div class="error-box">
         <strong>There was a problem:</strong>
         <ul style="margin:8px 0 0 18px; padding:0;">
           @foreach ($errors->all() as $error)
@@ -148,53 +136,80 @@
       </div>
     @endif
 
-    <form method="POST" action="{{ route('register.post') }}" novalidate>
+    <form id="registerForm">
       @csrf
 
       <label for="name">Full Name</label>
-      <input id="name" name="name" type="text" value="{{ old('name') }}" required aria-required="true" />
+      <input id="name" name="name" type="text" required />
 
       <label for="email">Email Address</label>
-      <input id="email" name="email" type="email" value="{{ old('email') }}" required aria-required="true" />
+      <input id="email" name="email" type="email" required />
 
       <label for="location">Location</label>
-      <input id="location" name="location" type="text" value="{{ old('location') }}" required aria-required="true" />
+      <input id="location" name="location" type="text" required />
 
       <label for="password">Password</label>
-      <input id="password" name="password" type="password" required aria-required="true" />
+      <input id="password" name="password" type="password" required />
 
       <label for="password_confirmation">Confirm Password</label>
-      <input id="password_confirmation" name="password_confirmation" type="password" required aria-required="true" />
+      <input id="password_confirmation" name="password_confirmation" type="password" required />
 
-      <button type="submit" class="btn">Register</button>
+      <button type="submit" class="btn" id="registerBtn">Register</button>
     </form>
 
-    <div class="links" style="margin-top:14px;">
+    <div class="links">
       <a href="{{ route('login') }}">Already have an account? Log In</a>
       <a href="{{ url('/') }}">Back to home</a>
     </div>
-
-    <footer class="small">
-      By registering, you agree to our
-      <a href="#" style="color:var(--accent)">Terms</a> and
-      <a href="#" style="color:var(--accent)">Privacy Policy</a>.
-    </footer>
+    <footer class="small">By registering, you agree to our <a href="{{ route('terms') }}" style="color:var(--accent)">Terms</a> and <a href="{{ route('privacy') }}" style="color:var(--accent)">Privacy Policy</a>.</footer>
   </main>
 
   <script>
-    (function(){
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("registerForm");
+    const btn = document.getElementById("registerBtn");
+    const token = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      btn.disabled = true;
+      btn.textContent = "Registering...";
+
+      const formData = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        location: document.getElementById("location").value,
+        password: document.getElementById("password").value,
+        password_confirmation: document.getElementById("password_confirmation").value,
+      };
+
       try {
-        const form = document.querySelector('form');
-        if (!form) return;
-        form.addEventListener('submit', function(){
-          const btn = document.querySelector('.btn');
-          if (btn) {
-            btn.disabled = true;
-            btn.textContent = 'Creating account...';
-          }
+        const res = await fetch("{{ route('register.sendCode') }}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": token,
+          },
+          body: JSON.stringify(formData),
         });
-      } catch(e) { /* ignore */ }
-    })();
+
+        const data = await res.json();
+
+        if (data.success) {
+          alert("Verification code sent to your email! Please check your inbox.");
+          window.location.href = "{{ route('verify.show') }}"; // redirect to verification page
+        } else {
+          alert(data.message || "Registration failed.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error sending verification code.");
+      }
+
+      btn.disabled = false;
+      btn.textContent = "Register";
+    });
+  });
   </script>
 </body>
 </html>

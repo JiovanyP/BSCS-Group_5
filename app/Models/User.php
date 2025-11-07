@@ -19,8 +19,15 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'location',
+        'phone',
+        'address',
+        'bio',
         'avatar',
+        'location',
+        'status',
+        'suspended_at',
+        'banned_at',
+        'last_login_at',
     ];
 
     /**
@@ -36,17 +43,13 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'last_login_at' => 'datetime',
+        'suspended_at' => 'datetime',
+        'banned_at' => 'datetime',
     ];
 
     /**
      * Accessor: avatar_url
-     *
-     * Returns a valid public URL for the user's avatar regardless of how it's stored:
-     * - remote absolute URLs (Google / Socialite) are returned untouched,
-     * - storage-relative values (avatars/xxx.jpg or storage/avatars/xxx.jpg) become asset('storage/...')
-     * - null/empty returns a default placeholder.
-     *
-     * Use in Blade: $user->avatar_url
      */
     public function getAvatarUrlAttribute()
     {
@@ -54,10 +57,10 @@ class User extends Authenticatable
 
         // Default fallback
         if (!$avatar) {
-            return 'https://bootdey.com/img/Content/avatar/avatar1.png';
+            return asset('images/default-avatar.png');
         }
 
-        // If it's already an absolute URL (Google OAuth, CDN, etc.), use it as-is
+        // If it's already an absolute URL (Google OAuth, CDN, etc.)
         if (Str::startsWith($avatar, ['http://', 'https://'])) {
             return $avatar;
         }
@@ -65,12 +68,53 @@ class User extends Authenticatable
         // Normalize leading slashes
         $avatar = ltrim($avatar, '/');
 
-        // If string already starts with 'storage/', it's directly usable by asset()
+        // If string already starts with 'storage/'
         if (Str::startsWith($avatar, 'storage/')) {
             return asset($avatar);
         }
 
-        // Otherwise, assume it's a path saved under storage/app/public (e.g. avatars/...)
+        // Otherwise, assume it's under storage/app/public
         return asset('storage/' . $avatar);
+    }
+
+    /**
+     * Relationships
+     */
+    public function posts()
+    {
+        return $this->hasMany(Post::class, 'user_id', 'id');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class, 'user_id', 'id');
+    }
+
+    public function votes()
+    {
+        return $this->hasMany(Vote::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    /**
+     * Helper methods
+     */
+    public function isSuspended()
+    {
+        return $this->status === 'suspended' && $this->suspended_at !== null;
+    }
+
+    public function isBanned()
+    {
+        return $this->status === 'banned' && $this->banned_at !== null;
+    }
+
+    public function isActive()
+    {
+        return $this->status === 'active';
     }
 }

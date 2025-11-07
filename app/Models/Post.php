@@ -149,17 +149,32 @@ class Post extends Model
         return $this->likes()->where('user_id', $userId)->value('vote_type') ?? 'none';
     }
 
-    // Automatically delete related comments, likes and media file when deleting a post
+    /*
+    |--------------------------------------------------------------------------
+    | Model Events (Cascade Deletes)
+    |--------------------------------------------------------------------------
+    */
+
     protected static function booted()
     {
         static::deleting(function ($post) {
-            // delete related comments and likes (keeps current behaviour)
-            $post->comments()->delete();
+            // Delete all comments (including replies) related to this post.
+            Comment::where('post_id', $post->id)->delete();
+
+            // Delete likes related to this post
             $post->likes()->delete();
 
-            // delete stored media file if it exists in public disk
-            if ($post->image && Storage::disk('public')->exists($this->image)) {
-                Storage::disk('public')->delete($this->image);
+            // Delete reports related to this post (prevent orphaned reports)
+            $post->reports()->delete();
+
+            // Delete stored media file if it exists in public disk (safe check)
+            if (!empty($post->image) && Storage::disk('public')->exists($post->image)) {
+                try {
+                    Storage::disk('public')->delete($post->image);
+                } catch (\Throwable $e) {
+                    // Prevent fatal if file delete fails (e.g., permission or missing file)
+                    // Optionally log this in production.
+                }
             }
         });
     }
