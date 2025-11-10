@@ -374,6 +374,40 @@ class PostController extends Controller
         ], 201);
     }
 
+    public function explore(Request $request)
+    {
+        $query = Post::query();
+
+        // Filters
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->where('content', 'like', "%{$search}%")
+                ->orWhere('accident_type', 'like', "%{$search}%")
+                ->orWhere('location', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('location')) {
+            $query->where('location', $request->location);
+        }
+
+        if ($request->filled('accident_type')) {
+            $query->where('accident_type', $request->accident_type);
+        }
+
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        $posts = $query->latest()->paginate(10);
+        $uniqueLocations = Post::pluck('location')->filter()->unique()->values();
+        $uniqueAccidents = Post::pluck('accident_type')->filter()->unique()->values();
+
+        return view('userExplore', compact('posts', 'uniqueLocations', 'uniqueAccidents'));
+    }
+
+
     /**
      * Admin Dashboard
      */

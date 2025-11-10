@@ -746,7 +746,7 @@
                 }
             })
             .catch(error => console.error('Error checking notifications:', error));
-        }, 1000); // Check every 1 second, but only reload if changes
+        }, 50000); // Check every 1 second, but only reload if changes
     }
     
     function stopSimpleAutoRefresh() {

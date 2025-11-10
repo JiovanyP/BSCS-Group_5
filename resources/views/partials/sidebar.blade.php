@@ -109,7 +109,7 @@ body {
 /* Material icons */
 .material-icons,
 .material-symbols-outlined {
-    font-size: 22px !important;
+    font-size: 20px !important;
     flex-shrink: 0;
     line-height: 1 !important;
     vertical-align: middle !important;
@@ -159,10 +159,9 @@ body {
     overflow: hidden;
     max-height: 0;
     opacity: 0;
-    transition: all 0.3s ease;
-    border-left: 2px solid var(--accent);
+    transition: all 0.5s ease;
     margin-left: 15px;
-    padding-left: 10px;
+    padding-left: 20px;
     position: relative;
     z-index: 100;
     background: var(--sidebar-bg);
@@ -171,9 +170,9 @@ body {
 .profile-section button {
     display: flex;
     align-items: center;
-    gap: 4px !important;
+    gap: 6px !important;
     font-size: 10px !important;
-    padding: 4px 0;
+    padding: 4px 0 !important;
     color: var(--text-muted);
     border: none;
     text-decoration: none;
@@ -270,14 +269,50 @@ body {
     box-shadow: 0 8px 30px rgba(0,0,0,0.2);
     padding: 16px;
 }
+
+/* Align logo and search icon neatly */
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.search-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    background: transparent;
+    size: 30px !important;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 0px !important;
+    border-radius: 50%;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.search-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--accent);
+}
+
 </style>
 </head>
 <body>
 
 <div class="sidebar" id="sidebar">
     <div class="sidebar-content">
-        <h1><a href="#" class="logo">Publ.</a></h1>
-        <p><br>Be part of keeping our community safe. Publish your report with Publ.</p>
+        <div class="logo-container">
+            <h1><a href="#" class="logo">Publ.</a></h1>
+
+            <!-- Search Icon Button -->
+            <a href="{{ route('userExplore') }}" class="search-btn" title="Explore Users">
+                <span class="material-icons">search</span>
+            </a>
+        </div>
 
         <ul class="components">
             <li class="{{ request()->routeIs('timeline') ? 'active' : '' }}">
@@ -316,10 +351,14 @@ body {
                         <span class="material-icons">visibility</span>
                         View Profile
                     </a>
-                    <button type="button" id="open-edit-profile" onclick="loadEditModal()">
+                    <a href="{{ route('profile.modal') }}">
                         <span class="material-icons">edit</span>
-                        Edit Personal Info
-                    </button>
+                        Edit Info
+                    </a>
+                    <a href="{{ route('profile.modal') }}">
+                        <span class="material-icons">settings</span>
+                        Settings
+                    </a>
                 </div>
             </li>
         </ul>
@@ -349,89 +388,89 @@ body {
   - tries to use bootstrap.Modal if available (Bootstrap 5)
   - fallback: toggles a simple modal display/show classes for the inserted element
 */
-async function loadEditModal() {
-    try {
-        // if modal already exists, try to show it using bootstrap or fallback
-        const existing = document.getElementById('editProfileModal');
-        if (existing) {
-            showModalElement(existing);
-            return;
-        }
+// async function loadEditModal() {
+//     try {
+//         // if modal already exists, try to show it using bootstrap or fallback
+//         const existing = document.getElementById('editProfileModal');
+//         if (existing) {
+//             showModalElement(existing);
+//             return;
+//         }
 
-        const res = await fetch('/profile/modal', { credentials: 'same-origin' });
-        if (!res.ok) throw new Error('Failed to fetch modal HTML');
+//         const res = await fetch('/profile/modal', { credentials: 'same-origin' });
+//         if (!res.ok) throw new Error('Failed to fetch modal HTML');
 
-        const html = await res.text();
-        // append HTML to body
-        const container = document.createElement('div');
-        container.innerHTML = html;
-        document.body.appendChild(container);
+//         const html = await res.text();
+//         // append HTML to body
+//         const container = document.createElement('div');
+//         container.innerHTML = html;
+//         document.body.appendChild(container);
 
-        const modalEl = document.getElementById('editProfileModal') || container.querySelector('.modal') || container.firstElementChild;
-        if (!modalEl) {
-            // If the returned HTML doesn't contain an element with id 'editProfileModal',
-            // wrap returned content inside a fallback modal container.
-            const fallbackBackdrop = document.createElement('div');
-            fallbackBackdrop.className = 'fallback-modal-backdrop';
-            fallbackBackdrop.addEventListener('click', () => {
-                fallbackBackdrop.remove();
-                fallbackModal.remove();
-            });
+//         const modalEl = document.getElementById('editProfileModal') || container.querySelector('.modal') || container.firstElementChild;
+//         if (!modalEl) {
+//             // If the returned HTML doesn't contain an element with id 'editProfileModal',
+//             // wrap returned content inside a fallback modal container.
+//             const fallbackBackdrop = document.createElement('div');
+//             fallbackBackdrop.className = 'fallback-modal-backdrop';
+//             fallbackBackdrop.addEventListener('click', () => {
+//                 fallbackBackdrop.remove();
+//                 fallbackModal.remove();
+//             });
 
-            const fallbackModal = document.createElement('div');
-            fallbackModal.className = 'fallback-modal';
-            fallbackModal.innerHTML = html;
+//             const fallbackModal = document.createElement('div');
+//             fallbackModal.className = 'fallback-modal';
+//             fallbackModal.innerHTML = html;
 
-            document.body.appendChild(fallbackBackdrop);
-            document.body.appendChild(fallbackModal);
-            return;
-        }
+//             document.body.appendChild(fallbackBackdrop);
+//             document.body.appendChild(fallbackModal);
+//             return;
+//         }
 
-        // Try to show via Bootstrap's JS if available (Bootstrap 5)
-        showModalElement(modalEl);
+//         // Try to show via Bootstrap's JS if available (Bootstrap 5)
+//         showModalElement(modalEl);
 
-    } catch (err) {
-        console.error('loadEditModal error:', err);
-        alert('Could not load profile editor. Try again or check your network.');
-    }
-}
+//     } catch (err) {
+//         console.error('loadEditModal error:', err);
+//         alert('Could not load profile editor. Try again or check your network.');
+//     }
+// }
 
-function showModalElement(modalEl) {
-    // If bootstrap modal is available (Bootstrap 5), use it
-    try {
-        if (window.bootstrap && typeof window.bootstrap.Modal === 'function') {
-            // If modal instance exists, reuse it
-            let instance = window.bootstrap.Modal.getInstance(modalEl);
-            if (!instance) instance = new window.bootstrap.Modal(modalEl, {});
-            instance.show();
-            return;
-        }
-    } catch (e) {
-        console.warn('bootstrap.Modal failed, falling back:', e);
-    }
+// function showModalElement(modalEl) {
+//     // If bootstrap modal is available (Bootstrap 5), use it
+//     try {
+//         if (window.bootstrap && typeof window.bootstrap.Modal === 'function') {
+//             // If modal instance exists, reuse it
+//             let instance = window.bootstrap.Modal.getInstance(modalEl);
+//             if (!instance) instance = new window.bootstrap.Modal(modalEl, {});
+//             instance.show();
+//             return;
+//         }
+//     } catch (e) {
+//         console.warn('bootstrap.Modal failed, falling back:', e);
+//     }
 
-    // Fallback for environments without bootstrap JS:
-    // - Add a backdrop if none
-    // - Add .show and inline styles to simulate modal open
-    const backdrop = document.createElement('div');
-    backdrop.className = 'fallback-modal-backdrop';
-    backdrop.addEventListener('click', () => {
-        backdrop.remove();
-        modalEl.classList.remove('show');
-        modalEl.style.display = 'none';
-    });
+//     // Fallback for environments without bootstrap JS:
+//     // - Add a backdrop if none
+//     // - Add .show and inline styles to simulate modal open
+//     const backdrop = document.createElement('div');
+//     backdrop.className = 'fallback-modal-backdrop';
+//     backdrop.addEventListener('click', () => {
+//         backdrop.remove();
+//         modalEl.classList.remove('show');
+//         modalEl.style.display = 'none';
+//     });
 
-    document.body.appendChild(backdrop);
+//     document.body.appendChild(backdrop);
 
-    // Make sure modalEl is visible and on top
-    modalEl.style.display = 'block';
-    modalEl.style.position = 'fixed';
-    modalEl.style.zIndex = 1060;
-    modalEl.style.left = '50%';
-    modalEl.style.top = '50%';
-    modalEl.style.transform = 'translate(-50%, -50%)';
-    modalEl.classList.add('show');
-}
+//     // Make sure modalEl is visible and on top
+//     modalEl.style.display = 'block';
+//     modalEl.style.position = 'fixed';
+//     modalEl.style.zIndex = 1060;
+//     modalEl.style.left = '50%';
+//     modalEl.style.top = '50%';
+//     modalEl.style.transform = 'translate(-50%, -50%)';
+//     modalEl.classList.add('show');
+// }
 
 /* Weather fetch (unchanged logic) */
 async function fetchWeather() {
@@ -468,6 +507,6 @@ async function fetchWeather() {
 fetchWeather();
 setInterval(fetchWeather, 600000);
 </script>
-
 </body>
+
 </html>
