@@ -1,8 +1,63 @@
-<!-- resources/views/partials/post.blade.php -->
+<!-- resources/views/partials/post.blade.php - FIXED DROPDOWN POSITIONING -->
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 
+<script>
+// Initialize dropdowns with proper positioning - FIXED VERSION
+$(document).ready(function() {
+    // Remove any conflicting click handlers
+    $(document).off('click', '.dropdown-toggle');
+    
+    // Let Bootstrap handle the dropdown natively
+    if ($.fn.dropdown) {
+        $('.dropdown-toggle').dropdown();
+    }
+    
+    // Force dropdown positioning on show
+    $(document).on('show.bs.dropdown', '.dropdown', function(e) {
+        const $dropdown = $(this);
+        const $menu = $dropdown.find('.dropdown-menu');
+        const $toggle = $dropdown.find('.dropdown-toggle');
+        
+        // Get the position of the toggle button
+        const toggleOffset = $toggle.offset();
+        const toggleHeight = $toggle.outerHeight();
+        const toggleWidth = $toggle.outerWidth();
+        
+        // Position dropdown below the button
+        setTimeout(() => {
+            $menu.css({
+                'position': 'absolute',
+                'top': toggleHeight + 'px',
+                'right': '0',
+                'left': 'auto',
+                'transform': 'none',
+                'will-change': 'auto'
+            });
+        }, 0);
+    });
+    
+    // Make sure dropdown items work
+    $(document).on('click', '.dropdown-item', function(e) {
+        // Close the dropdown after clicking
+        $(this).closest('.dropdown-menu').removeClass('show');
+        $(this).closest('.dropdown').find('.dropdown-toggle').removeClass('show').attr('aria-expanded', 'false');
+    });
+});
+</script>
+
 <style>
+/* CRITICAL: Force all avatars to be circular - MUST BE FIRST */
+.avatar-circle,
+.user-avatar,
+.post-card .user-info img,
+.post-signature img,
+.comment img {
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
 :root {
     --primary: #494ca2;
     --accent: #CF0F47;
@@ -16,6 +71,43 @@
     --reply-btn-default: #888;
     --upvote-color: #28a745;
     --downvote-color: #dc3545;
+    --admin-pink: #FF69B4;
+}
+
+/* === FORCE ALL AVATARS TO BE CIRCULAR === */
+.post-card .avatar-circle,
+.post-card .user-avatar,
+.user-info .avatar-circle,
+.comment .avatar-circle,
+.avatar-circle,
+.user-avatar {
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    display: block !important;
+    flex-shrink: 0 !important;
+}
+
+.post-card .avatar-circle,
+.post-card .user-avatar,
+.user-info .avatar-circle {
+    width: 28px !important;
+    height: 28px !important;
+}
+
+.comment .avatar-circle {
+    width: 24px !important;
+    height: 24px !important;
+}
+
+.replies .comment .avatar-circle {
+    width: 22px !important;
+    height: 22px !important;
+}
+
+/* Override any conflicting styles */
+.post-card img[width] {
+    border-radius: 50% !important;
+    object-fit: cover !important;
 }
 
 /* === POST CARD === */
@@ -58,6 +150,7 @@
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 0.25rem;
+    position: relative;
 }
 
 .report-details {
@@ -106,6 +199,11 @@
 .user-info strong {
     font-size: 14px;
     font-weight: 600;
+}
+.user-info strong.admin-name {
+    color: var(--admin-pink);
+    font-weight: 700;
+    letter-spacing: 0.3px;
 }
 .user-info small {
     color: var(--text-muted);
@@ -177,7 +275,7 @@
     padding: 1rem 1.5rem;
     border-radius: 0 0 12px 12px;
     margin: 0 -1.5rem -1rem -1.5rem;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .comments-header {
@@ -193,7 +291,6 @@
     margin-bottom: 0.4rem;
     gap: 6px;
 }
-.comment img { border-radius: 50%; flex-shrink: 0; width: 24px; height: 24px; }
 .comment strong { font-weight: 600; margin-right: 3px; }
 
 .replies .comment {
@@ -271,12 +368,118 @@
     margin-top: 0.5rem;
 }
 
+/* === CRITICAL DROPDOWN FIXES - PROPER POSITIONING === */
+.dropdown {
+    position: relative !important;
+    z-index: 1000;
+}
+
+.dropdown-toggle {
+    background: transparent !important;
+    border: none !important;
+    padding: 4px !important;
+    cursor: pointer !important;
+    color: var(--text-muted) !important;
+    transition: color 0.2s;
+    box-shadow: none !important;
+    position: relative;
+}
+
+.dropdown-toggle:hover,
+.dropdown-toggle:focus,
+.dropdown-toggle:active {
+    color: #333 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.dropdown-toggle::after {
+    display: none !important;
+}
+
+/* CRITICAL: Fixed dropdown menu positioning */
+.dropdown-menu {
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    left: auto !important;
+    margin: 4px 0 0 0 !important;
+    transform: none !important;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 8px 0;
+    min-width: 180px;
+    z-index: 1050 !important;
+    display: none;
+    background: white;
+    will-change: auto !important;
+}
+
+.dropdown-menu.show {
+    display: block !important;
+}
+
+/* Ensure dropdown stays in place */
+.dropdown.show .dropdown-menu {
+    position: absolute !important;
+    transform: none !important;
+    top: 100% !important;
+    right: 0 !important;
+    left: auto !important;
+}
+
 .dropdown-item {
-    display: flex;
+    display: flex !important;
     align-items: center;
     gap: 6px;
+    padding: 8px 16px;
+    transition: background 0.15s ease;
+    cursor: pointer;
+    font-size: 14px;
+    border: none;
+    width: 100%;
+    background: transparent;
+    text-align: left;
+    color: #333;
 }
-.dropdown-item .material-icons { font-size: 16px; }
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background: #f8f9fa !important;
+    text-decoration: none;
+    outline: none;
+    color: #333;
+}
+
+.dropdown-item.text-danger {
+    color: #dc3545;
+}
+
+.dropdown-item.text-danger:hover {
+    background: #fff5f5 !important;
+    color: #dc3545 !important;
+}
+
+.dropdown-item .material-icons { 
+    font-size: 16px; 
+}
+
+/* Ensure dropdowns work in all containers */
+.post-card,
+.post-header,
+.posts-container,
+.main-content,
+.container {
+    overflow: visible !important;
+}
+
+/* Fix for nested flex containers */
+.post-header {
+    position: relative;
+    z-index: 1;
+}
 </style>
 
 @php $userVote = $post->userVote(auth()->id()); @endphp
@@ -294,26 +497,31 @@
                     <small class="text-muted">({{ $post->other_type }})</small>
                 @endif
             </div>
+            
+            <!-- DROPDOWN MENU - FIXED POSITIONING -->
             <div class="dropdown">
-                <a href="#" class="text-muted" data-bs-toggle="dropdown">
+                <button class="dropdown-toggle" 
+                        type="button" 
+                        id="dropdownMenuButton-{{ $post->id }}" 
+                        data-toggle="dropdown" 
+                        aria-haspopup="true" 
+                        aria-expanded="false">
                     <span class="material-icons">more_horiz</span>
-                </a>
-                <div class="dropdown-menu dropdown-menu-end">
-                    @if(auth()->id() === $post->user_id)
+                </button>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton-{{ $post->id }}">
+                    @if(auth()->id() === $post->user_id || auth()->guard('admin')->check())
                         <a class="dropdown-item" href="{{ route('posts.edit', $post->id) }}">
                             <span class="material-icons">edit</span> Edit
                         </a>
-                        <button class="dropdown-item text-danger delete-post-btn"
-                                data-id="{{ $post->id }}"
-                                data-toggle="modal"
-                                data-target="#deleteModal">
+                        <button class="dropdown-item text-danger delete-post-btn" 
+                                data-id="{{ $post->id }}" 
+                                type="button">
                             <span class="material-icons">delete</span> Delete
                         </button>
                     @else
-                        <button class="dropdown-item report-post-btn"
-                                data-id="{{ $post->id }}"
-                                data-toggle="modal"
-                                data-target="#reportModal">
+                        <button class="dropdown-item report-post-btn" 
+                                data-id="{{ $post->id }}" 
+                                type="button">
                             <span class="material-icons">flag</span> Report
                         </button>
                     @endif
@@ -326,12 +534,14 @@
             @if(!empty($post->content))
                 <p>{{ $post->content }}</p>
             @endif
-            @if(!empty($post->image_url))
+
+            @if($post->image_url)
                 @if($post->media_type === 'image' || $post->media_type === 'gif')
-                    <img src="{{ $post->image_url }}" alt="Post image">
+                    <img src="{{ $post->image_url }}" alt="Post image" onerror="console.error('Failed to load image:', this.src)">
                 @elseif($post->media_type === 'video')
                     <video controls>
                         <source src="{{ $post->image_url }}" type="video/mp4">
+                        Your browser does not support the video tag.
                     </video>
                 @endif
             @endif
@@ -340,8 +550,18 @@
         <!-- SIGNATURE -->
         <div class="post-signature">
             <div class="user-info">
-                <img src="{{ $post->user->avatar_url ?? asset('images/avatar.png') }}" width="28" height="28" class="rounded-circle user-avatar-{{ $post->user_id }}">
-                <strong>{{ $post->user->name ?? 'Unknown User' }}</strong>
+                @if($post->is_admin_post)
+                    <img src="{{ asset('images/admin-avatar.png') }}" 
+                         class="avatar-circle user-avatar"
+                         alt="Admin Avatar"
+                         onerror="this.src='{{ asset('images/avatar.png') }}'">
+                    <strong class="admin-name">Admin</strong>
+                @else
+                    <img src="{{ $post->user->avatar_url ?? asset('images/avatar.png') }}" 
+                         class="avatar-circle user-avatar"
+                         alt="{{ $post->user->name ?? 'User' }} Avatar">
+                    <strong>{{ $post->user->name ?? 'Unknown User' }}</strong>
+                @endif
                 <small>{{ $post->created_at->diffForHumans() }}</small>
             </div>
         </div>
@@ -380,14 +600,18 @@
                 <div class="comments-list mb-3">
                     @foreach($post->comments as $comment)
                         <div class="comment" id="comment-{{ $comment->id }}">
-                            <img src="{{ $comment->user->avatar_url ?? asset('images/avatar.png') }}" width="24" height="24" class="rounded-circle">
+                            <img src="{{ $comment->user->avatar_url ?? asset('images/avatar.png') }}" 
+                                 class="avatar-circle"
+                                 alt="{{ $comment->user->name }} Avatar">
                             <div style="flex: 1;">
                                 <div><strong>{{ $comment->user->name }}</strong> {{ $comment->content }}</div>
                                 <a href="#" class="reply-btn small" data-id="{{ $comment->id }}">Reply</a>
                                 <div class="replies">
                                     @foreach($comment->replies as $reply)
                                         <div class="comment" id="comment-{{ $reply->id }}">
-                                            <img src="{{ $reply->user->avatar_url ?? asset('images/avatar.png') }}" width="22" height="22" class="rounded-circle">
+                                            <img src="{{ $reply->user->avatar_url ?? asset('images/avatar.png') }}" 
+                                                 class="avatar-circle"
+                                                 alt="{{ $reply->user->name }} Avatar">
                                             <div><strong>{{ $reply->user->name }}</strong> {{ $reply->content }}</div>
                                         </div>
                                     @endforeach
@@ -400,5 +624,3 @@
         </div>
     </div>
 </div>
-
-{{-- NO JAVASCRIPT HERE - All handled by parent pages (timeline.blade.php / profile.blade.php) --}}

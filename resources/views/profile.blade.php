@@ -9,7 +9,27 @@
 
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
+<!-- Load jQuery FIRST, before any other scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Popper (required for Bootstrap dropdowns) -->
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+
 <style>
+/* === CRITICAL: FORCE CIRCULAR AVATARS FIRST === */
+.avatar-wrapper img,
+.user-info img,
+.comment img,
+.post-signature img,
+.post-card img[alt*="Avatar"],
+img[src*="avatar"],
+.avatar-circle,
+.user-avatar {
+    border-radius: 50% !important;
+    object-fit: cover !important;
+}
+
 /* === VARIABLES & BASE STYLES === */
 :root {
     --primary: #494ca2;
@@ -64,12 +84,13 @@
     margin-bottom: 20px;
 }
 .avatar-wrapper img {
-    width: 160px;
-    height: 160px;
-    border-radius: 50%;
+    width: 160px !important;
+    height: 160px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
     border: 6px solid #fff;
-    object-fit: cover;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: block !important;
 }
 
 .camera-icon {
@@ -89,12 +110,12 @@
     border: 3px solid #fff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
-.camera-icon:hover { 
-    background-color: #222; 
-    transform: scale(1.05); 
+.camera-icon:hover {
+    background-color: #222;
+    transform: scale(1.05);
 }
-.camera-icon .material-icons { 
-    font-size: 20px; 
+.camera-icon .material-icons {
+    font-size: 20px;
 }
 
 /* === ALERT === */
@@ -107,6 +128,185 @@
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* === FIXED MODAL CLOSE BUTTON - NO WHITE BACKGROUND === */
+.modal-header .close {
+    background: transparent !important;
+    border: none !important;
+    opacity: 0.5;
+    padding: 0 !important;
+    margin: -1rem -1rem -1rem auto !important;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #000 !important;
+    text-shadow: none !important;
+    transition: opacity 0.2s ease;
+    box-shadow: none !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+.modal-header .close:hover,
+.modal-header .close:focus {
+    opacity: 0.75;
+    background: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Remove any button styling from close button */
+button.close {
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+}
+
+/* Ensure modal backdrop works properly */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Modal styling improvements */
+.modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9ecef;
+    padding: 1.25rem 1.5rem;
+    background: #fff;
+    border-radius: 12px 12px 0 0;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 1rem 1.5rem;
+    background: #f8f9fa;
+    border-radius: 0 0 12px 12px;
+}
+
+/* Delete modal specific styles */
+#deleteModal .modal-header {
+    background-color: #dc3545;
+    color: white;
+}
+
+#deleteModal .modal-header .close {
+    color: white !important;
+    opacity: 1;
+    text-shadow: none;
+}
+
+#deleteModal .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+#deleteModal .btn-secondary {
+    background: #6c757d;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+#deleteModal .btn-secondary:hover {
+    background: #5a6268;
+}
+
+#deleteModal .btn-danger {
+    background: var(--accent);
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+#deleteModal .btn-danger:hover {
+    background: var(--accent-2);
+}
+
+/* Report modal specific styles */
+#reportModal .modal-header {
+    background: #ffc107;
+    color: #000;
+}
+
+#reportModal .modal-header .close {
+    color: #000 !important;
+}
+
+#reportModal .form-check {
+    padding: 12px;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+}
+
+#reportModal .form-check:hover {
+    background: #f8f9fa;
+}
+
+#reportModal .form-check-input {
+    margin-top: 0.3em;
+}
+
+#reportModal .form-check-label {
+    cursor: pointer;
+    font-weight: 500;
+}
+
+#reportModal .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+#reportModal .btn-secondary {
+    background: #6c757d;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+#reportModal .btn-warning {
+    background: #ffc107;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    color: #000;
+}
+
+/* Ensure containers don't clip dropdowns */
+.posts-container,
+.main-content,
+.container,
+.post-card,
+.row {
+    overflow: visible !important;
+}
+
+/* Timeline label */
+.timeline-label {
+    background: #fff;
+    color: var(--accent);
+    font-weight: 700;
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 </style>
 
@@ -174,17 +374,17 @@
 
 </div>
 
+{{-- CRITICAL: Include modal partials --}}
 @include('partials.delete-report-modals')
 @include('partials.edit-modal')
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-{{-- ===== AVATAR UPLOAD + ALL INTERACTIONS ===== --}}
 <script>
+// ===== COMPLETE FIXED JAVASCRIPT FOR PROFILE PAGE =====
+
 $(document).ready(function() {
     // ===== GLOBAL AJAX SETUP =====
-    $.ajaxSetup({ 
-        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } 
+    $.ajaxSetup({
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
     });
 
     // ===== AVATAR UPLOAD =====
@@ -213,7 +413,7 @@ $(document).ready(function() {
 
                     if (response.avatar) {
                         $('#avatarPreview').attr('src', response.avatar);
-                        const userId = {{ Auth::id() }};
+                        const userId = response.user_id || {{ Auth::id() }};
                         $(`.user-avatar-${userId}`).attr('src', response.avatar);
                     }
                 },
@@ -249,11 +449,11 @@ $(document).ready(function() {
     $(document).on('click', '.comment-send', function() {
         const btn = $(this);
         if (btn.prop('disabled')) return;
-        
+
         const id = btn.data('id');
         const input = $(`#comment-input-${id}`);
         const content = input.val().trim();
-        
+
         if (!content) return;
 
         btn.prop('disabled', true).text('Sending...');
@@ -261,7 +461,7 @@ $(document).ready(function() {
         $.post(`/posts/${id}/comments`, { content: content })
             .done(function(res) {
                 const html = `<div class="comment" id="comment-${res.id}">
-                    <img src="${res.avatar}" width="28" height="28" class="rounded-circle">
+                    <img src="${res.avatar}" class="avatar-circle" alt="Avatar">
                     <div style="flex: 1;">
                         <div><strong>${res.user}</strong> ${res.comment}</div>
                         <a href="#" class="reply-btn small" data-id="${res.id}">Reply</a>
@@ -276,11 +476,11 @@ $(document).ready(function() {
                 }
 
                 $(`#comments-section-${id} .comments-list`).append(html);
-                
+
                 const countEl = $(`#comment-count-${id}`);
                 const count = parseInt(countEl.text() || '0') + 1;
                 countEl.text(count);
-                
+
                 input.val('');
                 btn.prop('disabled', false).text('Send');
             })
@@ -305,7 +505,7 @@ $(document).ready(function() {
                 <input type="text" class="form-control reply-input" id="${replyInputId}" placeholder="Write a reply...">
                 <button class="reply-send btn btn-sm btn-primary" data-comment-id="${commentId}" id="${replySendId}" disabled>Send</button>
             </div>`;
-            
+
             repliesDiv.append(replyInput);
             $(`#${replyInputId}`).trigger('input').focus();
         }
@@ -315,11 +515,11 @@ $(document).ready(function() {
     $(document).on('click', '.reply-send', function() {
         const btn = $(this);
         if (btn.prop('disabled')) return;
-        
+
         const commentId = btn.data('comment-id');
         const input = $(`#reply-input-${commentId}`);
         const content = input.val().trim();
-        
+
         if (!content) return;
 
         btn.prop('disabled', true).text('Sending...');
@@ -327,10 +527,10 @@ $(document).ready(function() {
         $.post(`/comments/${commentId}/reply`, { content: content })
             .done(function(res) {
                 const html = `<div class="comment" id="comment-${res.id}">
-                    <img src="${res.avatar}" width="25" height="25" class="rounded-circle">
+                    <img src="${res.avatar}" class="avatar-circle" alt="Avatar">
                     <div><strong>${res.user}</strong> ${res.content}</div>
                 </div>`;
-                
+
                 $(`#comment-${commentId} .replies`).prepend(html);
 
                 const postId = $(`#comment-${commentId}`).closest('.post-content').find('.toggle-comments').data('id');
@@ -350,21 +550,21 @@ $(document).ready(function() {
     $(document).on('click', '.upvote-btn, .downvote-btn', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const btn = $(this);
         const postId = btn.data('id');
         const isUpvote = btn.hasClass('upvote-btn');
         const upvoteBtn = $(`.upvote-btn[data-id="${postId}"]`);
         const downvoteBtn = $(`.downvote-btn[data-id="${postId}"]`);
         const voteCountEl = $(`#upvote-count-${postId}`);
-        
+
         const wasUpvoted = upvoteBtn.hasClass('voted-up');
         const wasDownvoted = downvoteBtn.hasClass('voted-down');
         const currentCount = parseInt(voteCountEl.text());
-        
+
         let newCount = currentCount;
         let newVoteState = null;
-        
+
         if (isUpvote) {
             if (wasUpvoted) {
                 newCount = currentCount - 1;
@@ -388,19 +588,19 @@ $(document).ready(function() {
                 newVoteState = 'down';
             }
         }
-        
+
         voteCountEl.text(newCount);
         upvoteBtn.removeClass('voted-up');
         downvoteBtn.removeClass('voted-down');
-        
+
         if (newVoteState === 'up') {
             upvoteBtn.addClass('voted-up');
         } else if (newVoteState === 'down') {
             downvoteBtn.addClass('voted-down');
         }
-        
+
         const vote = isUpvote ? 'up' : 'down';
-        
+
         $.post(`/posts/${postId}/vote`, { vote: vote })
             .done(function(res) {
                 const serverCount = (res.upvotes_count || 0) - (res.downvotes_count || 0);
@@ -420,13 +620,200 @@ $(document).ready(function() {
                 voteCountEl.text(currentCount);
                 upvoteBtn.toggleClass('voted-up', wasUpvoted);
                 downvoteBtn.toggleClass('voted-down', wasDownvoted);
-                
+
                 if (xhr.responseJSON && xhr.responseJSON.error) {
                     alert(xhr.responseJSON.error);
                 } else {
                     alert('Failed to register vote. Please try again.');
                 }
             });
+    });
+
+    // ===== DELETE POST =====
+    $(document).on('click', '.delete-post-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const postId = $(this).data('id');
+
+        $('#deleteForm').attr('action', `/posts/${postId}`);
+        $('#deleteModal').modal('show');
+    });
+
+    $(document).on('submit', '#deleteForm', function(e) {
+        e.preventDefault();
+
+        const form = $(this);
+        const action = form.attr('action');
+        const postId = action.split('/').pop();
+
+        $.ajax({
+            url: action,
+            type: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                _method: 'DELETE'
+            },
+            success: function(response) {
+                $('#deleteModal').modal('hide');
+
+                $(`#post-${postId}`).fadeOut(300, function() {
+                    $(this).remove();
+                });
+
+                $('#profileSuccessContainer').html(`
+                    <div class="alert alert-success text-center" id="successAlert">
+                        Post deleted successfully!
+                    </div>
+                `);
+                setTimeout(() => $('#successAlert').fadeOut(500, function() {
+                    $(this).remove();
+                }), 3000);
+            },
+            error: function(xhr) {
+                console.error('Delete failed:', xhr.responseText);
+                $('#deleteModal').modal('hide');
+                alert('Failed to delete post. Please try again.');
+            }
+        });
+    });
+
+    // ===== REPORT POST =====
+    $(document).on('click', '.report-post-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const postId = $(this).data('id');
+
+        $('#reportForm').attr('action', `/posts/${postId}/report`);
+        $('input[name="reason"]').prop('checked', false);
+        $('#reportModal').modal('show');
+    });
+
+    $(document).on('submit', '#reportForm', function(e) {
+        e.preventDefault();
+
+        const form = $(this);
+        const action = form.attr('action');
+        const reason = $('input[name="reason"]:checked').val();
+
+        if (!reason) {
+            alert('Please select a reason for reporting.');
+            return;
+        }
+
+        const submitBtn = $('#reportSubmitBtn');
+        submitBtn.prop('disabled', true).text('Submitting...');
+
+        $.ajax({
+            url: action,
+            type: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                reason: reason
+            },
+            success: function(response) {
+                $('#reportModal').modal('hide');
+                $('input[name="reason"]').prop('checked', false);
+
+                $('#profileSuccessContainer').html(`
+                    <div class="alert alert-success text-center" id="successAlert">
+                        Post reported successfully!
+                    </div>
+                `);
+                setTimeout(() => $('#successAlert').fadeOut(500, function() {
+                    $(this).remove();
+                }), 3000);
+
+                submitBtn.prop('disabled', false).text('Submit Report');
+            },
+            error: function(xhr) {
+                console.error('Report failed:', xhr.responseText);
+                $('#reportModal').modal('hide');
+
+                if (xhr.status === 409) {
+                    alert('You have already reported this post.');
+                } else {
+                    alert('Failed to report post. Please try again.');
+                }
+
+                submitBtn.prop('disabled', false).text('Submit Report');
+            }
+        });
+    });
+
+    // ===== EDIT POST =====
+    $(document).on('click', '.edit-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const postId = $(this).data('id');
+
+        $.get(`/posts/${postId}/edit`, function(response) {
+            $('#editPostId').val(postId);
+            $('#editContent').val(response.content);
+
+            if (response.image) {
+                $('#currentImage').attr('src', `/storage/${response.image}`).show();
+                $('#removeImageCheckbox').parent().show();
+            } else {
+                $('#currentImage').hide();
+                $('#removeImageCheckbox').parent().hide();
+            }
+
+            $('#editModal').modal('show');
+        }).fail(function(xhr) {
+            console.error('Failed to load post:', xhr.responseText);
+            alert('Failed to load post data.');
+        });
+    });
+
+    $(document).on('submit', '#editPostForm', function(e) {
+        e.preventDefault();
+
+        const postId = $('#editPostId').val();
+        const formData = new FormData(this);
+        formData.append('_method', 'PUT');
+
+        const submitBtn = $(this).find('button[type="submit"]');
+        submitBtn.prop('disabled', true).text('Updating...');
+
+        $.ajax({
+            url: `/posts/${postId}`,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                $('#editModal').modal('hide');
+
+                $(`#post-${postId} .post-body p`).text(response.content);
+
+                if (response.image) {
+                    const imgHtml = `<img src="/storage/${response.image}" alt="Post image" class="post-image">`;
+                    if ($(`#post-${postId} .post-body img`).length) {
+                        $(`#post-${postId} .post-body img`).attr('src', `/storage/${response.image}`);
+                    } else {
+                        $(`#post-${postId} .post-body`).append(imgHtml);
+                    }
+                } else if (response.image_removed) {
+                    $(`#post-${postId} .post-body img`).remove();
+                }
+
+                $('#profileSuccessContainer').html(`
+                    <div class="alert alert-success text-center" id="successAlert">
+                        Post updated successfully!
+                    </div>
+                `);
+                setTimeout(() => $('#successAlert').fadeOut(500, function() {
+                    $(this).remove();
+                }), 3000);
+
+                submitBtn.prop('disabled', false).text('Update Post');
+            },
+            error: function(xhr) {
+                console.error('Update failed:', xhr.responseText);
+                alert('Failed to update post. Please try again.');
+                submitBtn.prop('disabled', false).text('Update Post');
+            }
+        });
     });
 });
 </script>

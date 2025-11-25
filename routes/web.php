@@ -6,6 +6,7 @@ use Laravel\Socialite\Facades\Socialite;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AdminPostController; // ADDED
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\AccidentReportController;
 use App\Http\Controllers\ProfileController;
@@ -87,14 +88,22 @@ Route::middleware('guest')->group(function () {
     /** -----------------------
      * GOOGLE OAUTH LOGIN
      * ---------------------- */
-    Route::get('/auth/google', fn() => Socialite::driver('google')->redirect())->name('google.login');
+    /** GOOGLE LOGIN */
+    Route::get('/auth/google', function () {
+        return Socialite::driver('google')->stateless()->redirect();
+    })->name('google.login');
 
     Route::get('/auth/google/callback', function () {
-        $googleUser = Socialite::driver('google')->user();
+        $googleUser = Socialite::driver('google')->stateless()->user();
+
         $user = User::firstOrCreate(
             ['email' => $googleUser->getEmail()],
-            ['name' => $googleUser->getName(), 'password' => bcrypt(str()->random(16))]
+            [
+                'name' => $googleUser->getName(),
+                'password' => bcrypt(str()->random(16)),
+            ]
         );
+
         Auth::login($user);
         return redirect()->route('timeline')->with('success', 'Logged in with Google!');
     })->name('google.callback');
@@ -202,9 +211,14 @@ Route::prefix('admin')
         Route::get('/dashboard', [PostController::class, 'adminDashboard'])->name('dashboard');
 
         /** -----------------------
-         * ADMIN POSTS
+         * ADMIN POSTS - ADDED NEW ROUTES
          * ---------------------- */
-        Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
+        Route::get('/posts/create', [AdminPostController::class, 'create'])->name('posts.create');
+        Route::post('/posts', [AdminPostController::class, 'store'])->name('posts.store');
+        Route::get('/posts', [AdminPostController::class, 'index'])->name('posts.index');
+        Route::delete('/posts/{post}', [AdminPostController::class, 'destroy'])->name('posts.destroy');
+        
+        // View posts (existing routes)
         Route::get('/posts/{id}/view', [PostController::class, 'viewPost'])->name('posts.view');
         Route::get('/viewpost/{id}', function ($id) {
             return redirect()->route('admin.posts.view', ['id' => $id]);

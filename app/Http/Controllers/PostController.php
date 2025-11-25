@@ -68,7 +68,7 @@ class PostController extends Controller
     /**
      * Store new post (with optional media and location).
      */
-    public function store(Request $request)
+        public function store(Request $request)
     {
         $request->validate([
             'content'             => 'required|string|max:1000',
@@ -96,7 +96,7 @@ class PostController extends Controller
             'content'       => $request->content,
             'accident_type' => $request->final_accident_type,
             'location'      => $request->final_location,
-            'image'         => $imagePath,
+            'image_url'     => $imagePath, // ✅ changed from 'image'
             'media_type'    => $mediaType,
         ]);
 
@@ -104,7 +104,6 @@ class PostController extends Controller
 
         return redirect()->route('timeline')->with('success', 'Post created successfully!');
     }
-
     /**
      * Show a single post view.
      */
@@ -290,47 +289,46 @@ class PostController extends Controller
      * Update post.
      */
     public function update(Request $request, Post $post)
-    {
-        $this->authorize('update', $post);
+{
+    $this->authorize('update', $post);
 
-        $request->validate([
-            'content'  => 'required|string|max:1000',
-            'location' => 'nullable|string|max:255',
-            'image'    => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
-        ]);
+    $request->validate([
+        'content'  => 'required|string|max:1000',
+        'location' => 'nullable|string|max:255',
+        'image'    => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
+    ]);
 
-        $imagePath = $post->image;
-        $mediaType = $post->media_type;
+    $imagePath = $post->image_url; // ✅ changed from $post->image
+    $mediaType = $post->media_type;
 
-        if ($request->hasFile('image')) {
-            if ($post->image && Storage::disk('public')->exists($post->image)) {
-                Storage::disk('public')->delete($post->image);
-            }
-
-            $file = $request->file('image');
-            $extension = strtolower($file->getClientOriginalExtension());
-
-            if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
-                $mediaType = 'image';
-            } elseif ($extension === 'gif') {
-                $mediaType = 'gif';
-            } elseif (in_array($extension, ['mp4', 'mov', 'avi', 'webm'])) {
-                $mediaType = 'video';
-            }
-
-            $imagePath = $file->store('posts', 'public');
+    if ($request->hasFile('image')) {
+        if ($post->image_url && Storage::disk('public')->exists($post->image_url)) {
+            Storage::disk('public')->delete($post->image_url);
         }
 
-        $post->update([
-            'content'    => $request->input('content'),
-            'location'   => $request->input('location'),
-            'image'      => $imagePath,
-            'media_type' => $mediaType,
-        ]);
+        $file = $request->file('image');
+        $extension = strtolower($file->getClientOriginalExtension());
 
-        return redirect()->route('timeline')->with('success', 'Post updated successfully!');
+        if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
+            $mediaType = 'image';
+        } elseif ($extension === 'gif') {
+            $mediaType = 'gif';
+        } elseif (in_array($extension, ['mp4', 'mov', 'avi', 'webm'])) {
+            $mediaType = 'video';
+        }
+
+        $imagePath = $file->store('posts', 'public');
     }
 
+    $post->update([
+        'content'    => $request->input('content'),
+        'location'   => $request->input('location'),
+        'image_url'  => $imagePath, // ✅ changed from 'image'
+        'media_type' => $mediaType,
+    ]);
+
+    return redirect()->route('timeline')->with('success', 'Post updated successfully!');
+}
     /**
      * Delete a post (uses policy for auth + model cascade cleanup).
      */

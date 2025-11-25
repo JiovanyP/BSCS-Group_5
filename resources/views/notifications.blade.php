@@ -13,7 +13,7 @@
     
         {{-- No location warning --}}
         @if(auth()->user() && empty(auth()->user()->location))
-            <div class="notification-item unread" onclick="loadEditModal()">
+                        <div class="notification-item unread" style="cursor: default;">
                 <span class="unread-dot"></span>
                 <div class="notification-time">
                     <span class="material-icons">schedule</span> {{ now()->diffForHumans() }}
@@ -27,13 +27,16 @@
                         </div>
                     </div>
                     <div class="notification-message">
-                        <strong>No location set!</strong> <br>You haven't added your location in your profile. 
-                        <span style="text-decoration: underline; color: var(--primary-color); cursor: pointer;" onclick="loadEditModal(); event.stopPropagation();">
+                        <strong>No location set!</strong> <br>
+                        You haven't added your location in your profile. 
+                        <span style="text-decoration: underline; color: var(--primary-color); cursor: pointer; font-weight: 600;" 
+                            onclick="openEditProfileModal(); event.stopPropagation();">
                             Edit your profile
                         </span> to add your location and get local notifications.
                     </div>
                 </div>
             </div>
+
         @endif
 
         <div class="categories-tabs">
@@ -195,6 +198,9 @@
         @endif
     </div>
 </div>
+
+{{-- Include the edit profile modal --}}
+@include('partials.edit-modal')
 
 <style>
 :root {
@@ -497,6 +503,18 @@
     color: var(--primary-color);
 }
 
+.notification-message span[onclick] {
+    color: var(--primary-color);
+    text-decoration: underline;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.notification-message span[onclick]:hover {
+    color: #a91b2c;
+}
+
 .notification-post-preview {
     font-size: 13px;
     color: #999;
@@ -642,6 +660,11 @@
 <script>
 (function() {
     'use strict';
+    
+    // Function to open edit profile modal
+    window.openEditProfileModal = function() {
+        $('#editProfileModal').modal('show');
+    };
     
     // Tab switching functionality
     document.querySelectorAll('.tab-btn').forEach(btn => {

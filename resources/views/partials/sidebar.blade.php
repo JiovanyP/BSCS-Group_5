@@ -248,7 +248,7 @@ body {
     .sidebar.active { margin-left: 0; }
 }
 
-/* Fallback modal helper (unchanged) */
+/* Fallback modal helper */
 .fallback-modal-backdrop {
     position: fixed;
     inset: 0;
@@ -304,10 +304,15 @@ body {
             <!-- Profile Expandable -->
             <li class="profile-item {{ request()->routeIs('profile') ? 'active' : '' }}">
                 <button type="button" aria-expanded="false" aria-controls="profile-section" onclick="/* noop */">
-                    <!-- Replace icon with avatar -->
-                    <img src="{{ auth()->user()->avatar_url ?? asset('images/avatar.png') }}" 
+                    <!-- Avatar with fallback -->
+                    @php
+                        $avatarUrl = auth()->check() 
+                            ? (auth()->user()->avatar_url ?? asset('images/avatar.png'))
+                            : asset('images/avatar.png');
+                    @endphp
+                    <img src="{{ $avatarUrl }}" 
                         alt="Avatar" 
-                        style="width:22px; height:22px; border-radius:50%; flex-shrink:0;">
+                        style="width:22px; height:22px; border-radius:50%; flex-shrink:0; object-fit:cover;">
                     <span>Profile</span>
                 </button>
 

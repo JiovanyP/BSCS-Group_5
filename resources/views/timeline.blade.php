@@ -7,6 +7,13 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
+<!-- Load jQuery FIRST, before any other scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Popper (required for Bootstrap dropdowns) -->
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+
 <style>
 /* === VARIABLES & BASE STYLES === */
 :root {
@@ -65,19 +72,31 @@
 .post-card {
     display: block;
 }
+
+/* Ensure containers don't clip dropdowns */
+.posts-container,
+.main-content,
+.container {
+    overflow: visible !important;
+}
 </style>
 
 <div class="main-content">
     <div class="container mt-4">
         <div class="col-xl-8 mx-auto posts-container">
 
-            {{-- Success Alert --}}
+            {{-- Success Alert Container --}}
+            <div id="timelineSuccessContainer"></div>
+
+            {{-- Success Alert from Server --}}
             @if (session('success'))
                 <div class="alert alert-success text-center" id="successAlert">
                     {{ session('success') }}
                 </div>
                 <script>
-                    setTimeout(() => document.getElementById('successAlert').style.display = 'none', 3000);
+                    setTimeout(() => {
+                        $('#successAlert').fadeOut(500, function() { $(this).remove(); });
+                    }, 3000);
                 </script>
             @endif
 
@@ -124,9 +143,6 @@
 {{-- Modals --}}
 @include('partials.delete-report-modals')
 
-{{-- jQuery --}}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 {{-- ===== CONSOLIDATED JAVASCRIPT ===== --}}
 <script>
 $(function() {
@@ -134,8 +150,6 @@ $(function() {
     $.ajaxSetup({ 
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } 
     });
-
-    let currentPostId = null;
 
     // ===== PREVENT ANCHOR SCROLL =====
     $(document).on('click', 'a[href="#"]', function(e) {
@@ -200,7 +214,7 @@ $(function() {
         $.post(`/posts/${id}/comments`, { content: content })
             .done(function(res) {
                 const html = `<div class="comment" id="comment-${res.id}">
-                    <img src="${res.avatar}" width="28" height="28" class="rounded-circle">
+                    <img src="${res.avatar}" class="avatar-circle" alt="Avatar">
                     <div style="flex: 1;">
                         <div><strong>${res.user}</strong> ${res.comment}</div>
                         <a href="#" class="reply-btn small" data-id="${res.id}">Reply</a>
@@ -236,7 +250,6 @@ $(function() {
         const commentId = $(this).data('id');
         const repliesDiv = $(`#comment-${commentId} .replies`);
 
-        // Only add input if it doesn't exist
         if (repliesDiv.find('.reply-input-group').length === 0) {
             const replyInputId = `reply-input-${commentId}`;
             const replySendId = `reply-send-${commentId}`;
@@ -267,13 +280,12 @@ $(function() {
         $.post(`/comments/${commentId}/reply`, { content: content })
             .done(function(res) {
                 const html = `<div class="comment" id="comment-${res.id}">
-                    <img src="${res.avatar}" width="25" height="25" class="rounded-circle">
+                    <img src="${res.avatar}" class="avatar-circle" alt="Avatar">
                     <div><strong>${res.user}</strong> ${res.content}</div>
                 </div>`;
                 
                 $(`#comment-${commentId} .replies`).prepend(html);
 
-                // Update comment count
                 const postId = $(`#comment-${commentId}`).closest('.post-content').find('.toggle-comments').data('id');
                 const countSpan = $(`#comment-count-${postId}`);
                 countSpan.text(parseInt(countSpan.text() || '0') + 1);
@@ -288,37 +300,71 @@ $(function() {
     });
 
     // ===== DELETE POST =====
-    $(document).on('click', '.delete-post-btn', function() {
-        currentPostId = $(this).data('id');
+    $(document).on('click', '.delete-post-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const postId = $(this).data('id');
+        
+        $('#deleteForm').attr('action', `/posts/${postId}`);
+        $('#deleteModal').modal('show');
     });
 
-    $('#deleteModal').on('hidden.bs.modal', function() {
-        $('#deleteForm').attr('action', '');
-        currentPostId = null;
+    $(document).on('submit', '#deleteForm', function(e) {
+        e.preventDefault();
+
+        const form = $(this);
+        const action = form.attr('action');
+        const postId = action.split('/').pop();
+
+        $.ajax({
+            url: action,
+            type: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                _method: 'DELETE'
+            },
+            success: function(response) {
+                $('#deleteModal').modal('hide');
+
+                $(`#post-${postId}`).fadeOut(300, function() {
+                    $(this).remove();
+                });
+
+                $('#timelineSuccessContainer').html(`
+                    <div class="alert alert-success text-center" id="successAlert">
+                        Post deleted successfully!
+                    </div>
+                `);
+                setTimeout(() => $('#successAlert').fadeOut(500, function() {
+                    $(this).remove();
+                }), 3000);
+            },
+            error: function(xhr) {
+                console.error('Delete failed:', xhr.responseText);
+                $('#deleteModal').modal('hide');
+                alert('Failed to delete post. Please try again.');
+            }
+        });
     });
 
     // ===== REPORT POST =====
     $(document).on('click', '.report-post-btn', function(e) {
         e.preventDefault();
-        const id = $(this).data('id');
-        currentPostId = id;
+        e.stopPropagation();
+        const postId = $(this).data('id');
 
-        if (!$(this).data('toggle')) {
-            $('#reportForm').attr('action', `/posts/${id}/report`);
-            $('#reportModal').modal('show');
-        }
+        $('#reportForm').attr('action', `/posts/${postId}/report`);
+        $('input[name="reason"]').prop('checked', false);
+        $('#reportModal').modal('show');
     });
 
-    $('#reportForm').on('submit', function(e) {
+    $(document).on('submit', '#reportForm', function(e) {
         e.preventDefault();
 
-        const action = $(this).attr('action') || (currentPostId ? `/posts/${currentPostId}/report` : null);
-        if (!action) {
-            alert('Unable to determine which post to report. Please try again.');
-            return;
-        }
-
+        const form = $(this);
+        const action = form.attr('action');
         const reason = $('input[name="reason"]:checked').val();
+
         if (!reason) {
             alert('Please select a reason for the report.');
             return;
@@ -327,32 +373,43 @@ $(function() {
         const btn = $('#reportSubmitBtn');
         btn.prop('disabled', true).text('Reporting...');
 
-        $.post(action, { reason: reason })
-            .done(function(res) {
+        $.ajax({
+            url: action,
+            type: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                reason: reason
+            },
+            success: function(response) {
                 $('#reportModal').modal('hide');
-                alert(res.message || 'Thank you for your report.');
                 $('input[name="reason"]').prop('checked', false);
-                currentPostId = null;
-            })
-            .fail(function(xhr) {
-                const json = xhr.responseJSON;
-                if (json && json.errors && json.errors.reason) {
-                    alert(json.errors.reason.join(' '));
-                } else if (json && json.message) {
-                    alert(json.message);
-                } else {
-                    alert('Could not submit report. Please try again.');
-                }
-            })
-            .always(function() {
+                
+                $('#timelineSuccessContainer').html(`
+                    <div class="alert alert-success text-center" id="successAlert">
+                        ${response.message || 'Post reported successfully!'}
+                    </div>
+                `);
+                setTimeout(() => $('#successAlert').fadeOut(500, function() {
+                    $(this).remove();
+                }), 3000);
+                
                 btn.prop('disabled', false).text('Submit Report');
-            });
-    });
+            },
+            error: function(xhr) {
+                console.error('Report failed:', xhr.responseText);
+                $('#reportModal').modal('hide');
 
-    $('#reportModal').on('hidden.bs.modal', function() {
-        $('input[name="reason"]').prop('checked', false);
-        $('#reportForm').attr('action', '');
-        currentPostId = null;
+                if (xhr.status === 409) {
+                    alert('You have already reported this post.');
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    alert(xhr.responseJSON.message);
+                } else {
+                    alert('Failed to report post. Please try again.');
+                }
+
+                btn.prop('disabled', false).text('Submit Report');
+            }
+        });
     });
 
     // ===== VOTING LOGIC (Reddit-style) =====
@@ -398,7 +455,6 @@ $(function() {
             }
         }
         
-        // Optimistic UI update
         voteCountEl.text(newCount);
         upvoteBtn.removeClass('voted-up');
         downvoteBtn.removeClass('voted-down');
