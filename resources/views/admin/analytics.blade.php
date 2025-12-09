@@ -80,17 +80,91 @@
   <div class="charts-section">
     <div class="chart-card">
       <h3>Posts by Accident Type</h3>
-      <ul class="chart-list">
-        @forelse($postsByType as $type)
-          <li>
-            <span class="label">{{ ucfirst($type->accident_type) }}</span>
-            <span class="value">{{ $type->count }}</span>
-          </li>
-        @empty
-          <li><span class="label">No data available</span></li>
-        @endforelse
-      </ul>
+
+      <canvas id="accidentTypeChart" height="180" style="margin-bottom: 10px;"></canvas>
+
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+      <script>
+        const accidentLabels = [
+          @foreach ($postsByType as $type)
+            "{{ ucfirst($type->accident_type) }}",
+          @endforeach
+        ];
+
+        const accidentCounts = [
+          @foreach ($postsByType as $type)
+            {{ $type->count }},
+          @endforeach
+        ];
+
+        const totalPostsType = accidentCounts.reduce((a, b) => a + b, 0);
+
+        const accidentPercentages = accidentCounts.map(count =>
+          ((count / totalPostsType) * 100).toFixed(1)
+        );
+
+        const ctxA = document.getElementById('accidentTypeChart').getContext('2d');
+
+        new Chart(ctxA, {
+          type: 'doughnut',
+          data: {
+            labels: accidentLabels.map((label, index) =>
+              `${label} — ${accidentCounts[index]} (${accidentPercentages[index]}%)`
+            ),
+            datasets: [{
+              data: accidentCounts,
+              backgroundColor: [
+                "#CF0F47",
+                "#1482e8",
+                "#17b06b",
+                "#d98f39",
+                "#6f42c1",
+                "#ea4d4d",
+                "#3ba0ff",
+                "#ffa600"
+              ],
+
+              borderColor: "rgba(0,0,0,0)",
+              borderWidth: 0,
+              borderRadius: 6,
+              spacing: 4
+            }]
+          },
+
+          options: {
+            cutout: "70%",
+
+            responsive: true,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  color: "#eaf2fa",
+                  font: { size: 12 },
+                  padding: 16
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return context.label;
+                  }
+                }
+              }
+            },
+            layout: {
+              padding: {
+                top: 10,
+                bottom: 10
+              }
+            }
+          }
+        });
+      </script>
     </div>
+
+
 
     <div class="chart-card">
       <h3>Reports by Reason</h3>

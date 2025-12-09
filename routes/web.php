@@ -143,6 +143,11 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('posts.view', ['id' => $id]);
     })->name('viewpost');
 
+    // Search
+    Route::get('/user-explore', function () {
+        return view('userExplore');
+    })->name('userExplore');
+
     /** -----------------------
      * POST INTERACTIONS
      * ---------------------- */
@@ -150,6 +155,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts/{id}/comments', [PostController::class, 'addComment'])->name('posts.comment');
     Route::post('/comments/{comment}/reply', [PostController::class, 'reply'])->name('comments.reply');
     Route::post('/posts/{post}/report', [PostController::class, 'report'])->name('posts.report');
+    Route::get('/user-explore', [PostController::class, 'explore'])->name('userExplore');
 
     /** -----------------------
      * ACCIDENT REPORTS

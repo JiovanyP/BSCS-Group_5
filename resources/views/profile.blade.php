@@ -175,7 +175,6 @@
 </div>
 
 @include('partials.delete-report-modals')
-@include('partials.edit-modal')
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
