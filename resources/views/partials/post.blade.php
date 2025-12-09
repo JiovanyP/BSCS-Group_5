@@ -1,4 +1,3 @@
-<!-- resources/views/partials/post.blade.php -->
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 
@@ -23,11 +22,18 @@
     background: var(--card-bg);
     border-radius: 12px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-    margin-bottom: 15px;
+    /* margin-bottom: 15px;  <-- Removed old margin */
     transition: all 0.25s ease;
     position: relative;
     font-size: 14px;
+    
+    /* --- NEW WIDTH SETTINGS --- */
+    max-width: 550px;       /* Constrains the width */
+    width: 100%;            /* Ensures it fits on smaller screens */
+    margin: 0 auto 15px auto; /* Centers the card and keeps bottom margin */
+    /* -------------------------- */
 }
+
 .post-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 28px rgba(0,0,0,0.1);
@@ -39,7 +45,10 @@
     top: 0; left: 0; right: 0; bottom: 0;
     z-index: 0;
     text-decoration: none;
-    pointer-events: none;
+    
+    /* REMOVED: pointer-events: none; */
+    /* This allows the link to actually accept the click */
+    cursor: pointer; 
 }
 
 /* Keep interactive elements above overlay */
@@ -119,7 +128,6 @@
     align-items: center;
     margin-top: 0.75rem;
     padding-top: 0.5rem;
-    padding-bottom: 10px;
     border-top: 1px solid #f0f0f0;
     gap: 10px;
 }
@@ -133,7 +141,6 @@
     font-weight: 500;
     transition: color 0.2s;
     cursor: pointer;
-    padding-bottom: 10px;
 }
 
 /* Comment */
@@ -279,56 +286,14 @@
     gap: 6px;
 }
 .dropdown-item .material-icons { font-size: 16px; }
-
-/* Transparent buttons, no border */
-.post-card button,
-.post-card .footer-action,
-.post-card .reply-btn {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    color: inherit;
-    cursor: pointer;
-    font: inherit;
-    transition: color 0.2s ease, background 0.2s ease;
-}
-
-/* Optional: remove focus outline */
-.post-card button:focus,
-.post-card .footer-action:focus,
-.post-card .reply-btn:focus {
-    outline: none;
-}
-
-/* Hover effect only changes color if needed */
-.post-card button:hover,
-.post-card .footer-action:hover,
-.post-card .reply-btn:hover {
-    background: transparent !important;
-    border: none !important;
-}
-
-.post-link {?"
-    .;23l012"
-    font-size: small;
-    font-style: bold;
-    text-decoration: none;
-}
 </style>
 
-<!-- resources/views/partials/post.blade.php -->
 @php $userVote = $post->userVote(auth()->id()); @endphp
 
 <div class="post-card" id="post-{{ $post->id }}">
-    {{-- Only add overlay link for single post page --}}
-    @if($singlePost ?? false)
-        <a href="{{ route('posts.view', $post->id) }}" class="post-card-link"></a>
-    @endif
+    <a href="{{ route('posts.view', $post->id) }}" class="post-card-link"></a>
 
     <div class="post-content">
-        <!-- HEADER -->
         <div class="post-header">
             <div class="report-details">
                 {{ strtoupper($post->accident_type ?? 'Incident') }} • 
@@ -364,19 +329,13 @@
             </div>
         </div>
 
-        <!-- BODY -->
         <div class="post-body">
             @if(!empty($post->content))
-                <a href="{{ route('posts.view', $post->id) }}" class="post-link">
-                    <p>{{ $post->content }}</p>
-                </a>
+                <p>{{ $post->content }}</p>
             @endif
-
             @if(!empty($post->image_url))
                 @if($post->media_type === 'image' || $post->media_type === 'gif')
-                    <a href="{{ route('posts.view', $post->id) }}">
-                        <img src="{{ $post->image_url }}" alt="Post image" style="cursor:pointer; max-width:220px; max-height:150px; border-radius:8px;">
-                    </a>
+                    <img src="{{ $post->image_url }}" alt="Post image">
                 @elseif($post->media_type === 'video')
                     <video controls>
                         <source src="{{ $post->image_url }}" type="video/mp4">
@@ -385,43 +344,39 @@
             @endif
         </div>
 
-
-        <!-- SIGNATURE -->
         <div class="post-signature">
             <div class="user-info">
                 <img src="{{ $post->user->avatar_url ?? asset('images/avatar.png') }}" width="28" height="28" class="rounded-circle user-avatar-{{ $post->user_id }}">
                 <strong>{{ $post->user->name ?? 'Unknown User' }}</strong>
-                <small>{{ $post->created_at->diffForHumans() }}</small>
+                <small>{{ $post->created_at->format('M j, Y g:i A') }}</small>            
             </div>
         </div>
 
-        <!-- FOOTER -->
         <div class="post-footer">
             <div class="comment-container">
-                <button type="button" class="toggle-comments footer-action" data-id="{{ $post->id }}">
+                <a href="#" class="toggle-comments footer-action" data-id="{{ $post->id }}">
                     <span class="material-icons-outlined">chat_bubble_outline</span>
                     <span id="comment-count-{{ $post->id }}">{{ $post->total_comments_count }}</span>
-                </button>
+                </a>
             </div>
 
             <div class="vote-container">
-                <button type="button" class="upvote-btn footer-action {{ $userVote === 'up' ? 'voted-up' : '' }}" data-id="{{ $post->id }}">
+                <a href="#" class="upvote-btn footer-action {{ $userVote === 'up' ? 'voted-up' : '' }}" data-id="{{ $post->id }}">
                     <span class="material-icons">arrow_upward</span>
-                </button>
+                </a>
                 <div class="vote-count" id="upvote-count-{{ $post->id }}">
                     {{ $post->upvotes()->count() - $post->downvotes()->count() }}
                 </div>
-                <button type="button" class="downvote-btn footer-action {{ $userVote === 'down' ? 'voted-down' : '' }}" data-id="{{ $post->id }}">
+                <a href="#" class="downvote-btn footer-action {{ $userVote === 'down' ? 'voted-down' : '' }}" data-id="{{ $post->id }}">
                     <span class="material-icons">arrow_downward</span>
-                </button>
+                </a>
             </div>
         </div>
 
-        <!-- COMMENTS -->
         <div class="comments-section" id="comments-section-{{ $post->id }}">
             <div class="input-group">
                 <input type="text" class="form-control comment-input" id="comment-input-{{ $post->id }}" placeholder="Add a comment...">
-                <button type="button" class="comment-send" data-id="{{ $post->id }}" id="comment-send-{{ $post->id }}" disabled>Send</button>
+                <button class="comment-send" data-id="{{ $post->id }}" id="comment-send-{{ $post->id }}" disabled>Send</button>
             </div>
 
             @if($post->comments->count() > 0)
@@ -432,7 +387,7 @@
                             <img src="{{ $comment->user->avatar_url ?? asset('images/avatar.png') }}" width="24" height="24" class="rounded-circle">
                             <div style="flex: 1;">
                                 <div><strong>{{ $comment->user->name }}</strong> {{ $comment->content }}</div>
-                                <button type="button" class="reply-btn small" data-id="{{ $comment->id }}">Reply</button>
+                                <a href="#" class="reply-btn small" data-id="{{ $comment->id }}">Reply</a>
                                 <div class="replies">
                                     @foreach($comment->replies as $reply)
                                         <div class="comment" id="comment-{{ $reply->id }}">

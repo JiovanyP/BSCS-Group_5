@@ -5,300 +5,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Publ</title>
+    <title>Publ.</title>
     
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+        :root {
+            /* --- MD3 Color Tokens (Generated based on Seed #FF0B55) --- */
+            --md-sys-color-primary: #B90044;
+            --md-sys-color-on-primary: #FFFFFF;
+            --md-sys-color-primary-container: #FFD9DF; /* This is the pink highlighter color */
+            --md-sys-color-on-primary-container: #3F0012;
+            
+            --md-sys-color-secondary: #75565D;
+            --md-sys-color-secondary-container: #FFD9E0;
+            --md-sys-color-on-secondary-container: #2B151A;
+
+            --md-sys-color-surface: #FFFBFF;
+            --md-sys-color-on-surface: #201A1B;
+            
+            --md-sys-color-surface-variant: #F3DDE0;
+            --md-sys-color-on-surface-variant: #514346;
+            
+            --md-sys-color-outline: #847376;
+            --md-sys-color-background: #FFFBFF;
+
+            /* --- Elevation --- */
+            --md-sys-elevation-1: 0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
+            --md-sys-elevation-3: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px 0px rgba(0, 0, 0, 0.3);
+
+            /* --- Shapes --- */
+            --md-sys-shape-corner-extra-large: 28px;
+            --md-sys-shape-corner-full: 100px;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
         }
 
         html, body {
-        color: #333;
-        line-height: 1.6;
-        overflow-x: hidden;
-        scrollbar-width: none;            /* Firefox */
-        -ms-overflow-style: none;         /* Internet Explorer 10+ */
+            background-color: var(--md-sys-color-background);
+            color: var(--md-sys-color-on-surface);
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
         }
 
-        /* Chrome, Safari, Edge */
-        html::-webkit-scrollbar,
-        body::-webkit-scrollbar {
-        display: none;                   /* Chrome, Safari, Edge */
+        h1, h2, h3, .logo, .btn-text {
+            font-family: 'Outfit', sans-serif;
         }
 
-        .header {
-            min-height: 100vh;
-            width: 100%;
-            background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0)), url('assets/img/landingbgwhite.png');
-            background-position: center;
-            background-size: cover;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            
-            /* for masking*/
-            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);
-            -webkit-mask-repeat: no-repeat;
-            -webkit-mask-size: cover;
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);
-            mask-repeat: no-repeat;
-            mask-size: cover;
-        }
-
+        /* --- Navigation Bar (Top App Bar Style) --- */
         nav {
             display: flex;
-            padding: 1.5% 4%;
+            padding: 20px 4%;
             justify-content: space-between;
             align-items: center;
-            width: 100%;
+            background: var(--md-sys-color-surface); /* Solid background for legibility */
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         nav .logo {
-            color: #FF0B55;
-            font-size: 32px;
+            color: var(--md-sys-color-primary);
+            font-size: 28px;
             font-weight: 700;
             text-decoration: none;
-            margin-left: 0;
+            letter-spacing: -0.5px;
         }
 
-        .nav-links {
-            flex: 1;
-            text-align: right;
+        .nav-links ul {
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
 
         .nav-links ul li {
             list-style: none;
-            display: inline-block;
-            padding: 8px 16px;
-            position: relative;
         }
 
+        /* MD3 Navigation Pills */
         .nav-links ul li a,
         .nav-links ul li form button {
-            color: #fff;
+            display: inline-block;
+            padding: 10px 24px;
+            border-radius: var(--md-sys-shape-corner-full);
+            color: var(--md-sys-color-on-surface-variant);
             text-decoration: none;
-            font-size: 16px;
             font-weight: 500;
-            transition: 0.3s;
-            background: none;
+            font-size: 14px;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.2s ease;
+            background: transparent;
             border: none;
             cursor: pointer;
-            font-family: inherit;
         }
 
         .nav-links ul li a:hover,
         .nav-links ul li form button:hover {
-            color: #FF0B55;
+            background-color: var(--md-sys-color-surface-variant);
+            color: var(--md-sys-color-on-surface);
         }
 
-        .nav-links ul li::after {
-            content: '';
-            width: 0%;
-            height: 2px;
-            background: #FF0B55;
-            display: block;
-            margin: auto;
-            transition: 0.5s;
-        }
+        /* --- Hero Section --- */
+        .header {
+            min-height: 90vh;
+            width: 96%; /* Margin on sides */
+            margin: 0 auto 20px auto;
+            border-radius: var(--md-sys-shape-corner-extra-large);
+            
+            /* Background image with no overlay */
+            background-image: url('assets/img/landingbgwhite.png');
+            background-size: cover;
+            background-position: center;
 
-        .nav-links ul li:hover::after {
-            width: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
         }
 
         .text-box {
+            position: relative;
+            z-index: 2;
             width: 100%;
-            color: #fff;
-            text-align: left;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 0 80px;
-            max-width: 600px;
-        }
-
-        .text-box h2 {
-            font-size: 50px;
-            font-weight: 400;
-            margin-bottom: 10px;
-            letter-spacing: 1.5px;
-            line-height: 2px;
-            color: white;
+            max-width: 800px;
+            padding: 0 60px;
         }
 
         .text-box h1 {
-            font-size: 80px;
-            color: #FF0B55;
-            margin-bottom: 20px;
-            letter-spacing: 2px;
-            line-height: 1;
-        }
-
-        /* ✅ Unified paragraph style */
-        .text-box p,
-        .services-col p,
-        .step-col p,
-        .section-description,
-        footer p {
-            font-size: 16px;
-            color: #555;
-            line-height: 1.8;
-            font-weight: 400;
-        }
-
-        .auth-buttons {
-            margin-top: 30px;
-            display: flex;
-            gap: 25px;
-            justify-content: center;
-        }
-
-        /* ✅ Auth buttons always white */
-        .auth-buttons a {
-            display: inline-block;
-            padding: 16px 42px;
-            font-size: 18px;
+            font-size: 64px;
+            color: #000000;
+            line-height: 1.1;
+            margin-bottom: 24px;
             font-weight: 600;
-            color: #FF0B55;
-            border-radius: 30px;
+            /* WIDE SPREAD SHADOW: 3 layers for maximum spread */
+            text-shadow: 
+                0 0 20px rgba(255, 255, 255, 1), 
+                0 0 40px rgba(255, 255, 255, 0.9), 
+                0 0 80px rgba(255, 255, 255, 0.8);
+        }
+
+
+        .text-box p {
+            font-size: 20px;
+            color: #000000;
+            margin-bottom: 40px;
+            max-width: 600px;
+            /* WIDE SPREAD SHADOW for paragraph?
+            */
+            text-shadow: 
+                0 0 15px rgba(255, 255, 255, 1),
+                0 0 20px rgba(255, 255, 255, 0.9),
+                0 0 25px rgba(255, 255, 255, 0.9), 
+                0 0 30px rgba(255, 255, 255, 0.9),
+                0 0 35px rgba(255, 255, 255, 0.9),
+                0 0 40px rgba(255, 255, 255, 0.9);
+        }
+
+        /* --- MD3 Buttons --- */
+        .auth-buttons {
+            display: flex;
+            gap: 16px;
+        }
+
+        .auth-buttons a {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 32px;
+            height: 48px; /* Standard MD3 touch target */
+            border-radius: var(--md-sys-shape-corner-full);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            font-size: 16px;
             text-decoration: none;
-            transition: all 0.3s ease;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            background: #fff;
-            border: 2px solid #FF0B55;
+            transition: 0.2s ease;
         }
 
-        .auth-buttons a:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-            background: #fff;
-            color: #CF0F47;
+        /* Filled Button (Primary) */
+        .auth-buttons a:last-child {
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            box-shadow: var(--md-sys-elevation-1);
         }
 
+        .auth-buttons a:last-child:hover {
+            box-shadow: var(--md-sys-elevation-3);
+            background-color: #9F003A; /* Slightly darker on hover */
+        }
+
+        /* Outlined/Tonal Button (Secondary) */
+        .auth-buttons a:first-child {
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white bg for readability */
+            backdrop-filter: blur(4px); /* Adds a glass effect */
+            color: var(--md-sys-color-primary);
+            border: 2px solid var(--md-sys-color-primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .auth-buttons a:first-child:hover {
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        /* --- Services Section --- */
         .services {
-            width: 80%;
-            margin: auto;
+            width: 92%;
+            max-width: 1200px;
+            margin: 80px auto;
+        }
+
+        .section-header {
             text-align: center;
-            padding: 80px 0;
+            margin-bottom: 60px;
         }
 
         .section-title {
             font-size: 36px;
-            font-weight: 600;
-            color: #000;
-            margin-bottom: 20px;
-            position: relative;
-            padding-bottom: 15px;
+            color: var(--md-sys-color-on-surface);
+            margin-bottom: 16px;
         }
 
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 4px;
-            background: #FF0B55;
+        .section-description {
+            max-width: 700px;
+            margin: 0 auto;
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 18px;
         }
 
         .row {
-            margin-top: 40px;
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
         }
 
+        /* MD3 Cards */
         .services-col {
-            flex-basis: 30%;
-            min-width: 300px;
-            background: #fff;
-            border-radius: 8px;
-            padding: 30px 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: 0.4s;
-            border-top: 4px solid #FF0B55;
+            background: var(--md-sys-color-surface-variant); /* Surface variant fill */
+            border-radius: var(--md-sys-shape-corner-extra-large);
+            padding: 32px;
+            transition: transform 0.3s ease;
+            color: var(--md-sys-color-on-surface-variant);
+            border: none; /* No borders in MD3 cards usually */
         }
 
         .services-col:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+            /* Optional: Add elevation on hover */
+            /* box-shadow: var(--md-sys-elevation-1); */
         }
 
         .services-col h3 {
-            text-align: center;
-            font-weight: 600;
-            margin: 15px 0;
-            color: #000;
-            font-size: 22px;
+            margin-bottom: 12px;
+            font-size: 24px;
+            color: var(--md-sys-color-on-surface);
         }
 
+        /* --- How It Works --- */
         .how-it-works {
-            background-color: #f9f9f9;
-            padding: 0px 0;
+            padding: 80px 0;
+            /* Alternating background using a very light surface tint */
+            background-color: linear-gradient(0deg, rgba(185, 0, 68, 0.05), rgba(185, 0, 68, 0.05)), #FFFBFF; 
         }
 
         .steps-row {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
             margin-top: 40px;
         }
 
         .step-col {
-            flex-basis: 30%;
-            min-width: 300px;
-            background: #fff;
-            border-radius: 8px;
-            padding: 30px 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: 0.4s;
+            background: var(--md-sys-color-surface);
+            border-radius: var(--md-sys-shape-corner-extra-large);
+            padding: 32px;
+            border: 1px solid var(--md-sys-color-outline); /* Outlined card style */
             position: relative;
-            border-left: 4px solid #CF0F47;
+            /* Remove left border, use MD3 styling */
+            border-left: 1px solid var(--md-sys-color-outline); 
         }
 
         .step-number {
-            position: absolute;
-            top: -20px;
-            left: 20px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
             width: 40px;
             height: 40px;
-            background: #CF0F47;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 18px;
+            border-radius: 12px; /* Squircle */
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            margin-bottom: 16px;
         }
 
-        .step-col h3 {
-            margin-top: 15px;
-            margin-bottom: 15px;
-            color: #000;
-            font-size: 20px;
-        }
-
+        /* --- Footer --- */
         footer {
-            background-color: #000;
-            color: white;
-            padding: 60px 50px 30px;
+            background-color: var(--md-sys-color-on-surface); /* Dark background */
+            color: var(--md-sys-color-surface);
+            padding: 60px 4% 30px;
+            border-top-left-radius: var(--md-sys-shape-corner-extra-large);
+            border-top-right-radius: var(--md-sys-shape-corner-extra-large);
+            margin-top: 40px;
         }
 
         .footer-container {
@@ -306,133 +322,106 @@
             margin: 0 auto;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 50px;
-            align-items: start;
+            gap: 60px;
         }
 
         footer h2 {
-            margin: 0 0 20px 0;
-            color: #FF0B55;
+            color: var(--md-sys-color-primary-container);
             font-size: 24px;
-            font-weight: 600;
+            margin-bottom: 16px;
         }
 
         footer p {
-            color: #ccc;
+            color: #E6E1E5; /* Light grey for dark bg */
             font-size: 16px;
-            line-height: 1.8;
         }
 
         .footer-bottom {
-            text-align: center;
             margin-top: 60px;
-            padding-top: 30px;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 20px;
+            border-top: 1px solid #49454F;
+            text-align: center;
         }
 
-        .footer-bottom p {
-            margin: 0;
-            opacity: 0.7;
-            font-size: 14px;
-        }
-
+        /* --- Loading Bar --- */
         #loading-bar-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 6px;
-        background-color: black;
-        z-index: 9999;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background-color: var(--md-sys-color-surface-variant);
+            z-index: 9999;
         }
 
         #loading-bar {
-        height: 100%;
-        width: 0%;
-        background-color: #FF0B55;
-        transition: width 0.2s ease;
+            height: 100%;
+            width: 0%;
+            background-color: var(--md-sys-color-primary);
+            transition: width 0.2s ease;
+            border-radius: 0 2px 2px 0;
         }
 
-
-        /* Responsive design */
-        @media(max-width: 900px) {
-            .text-box h1 {
-                font-size: 42px;
-            }
-            
-            .services-col, .step-col {
-                flex-basis: 45%;
-            }
-            
-            .footer-container {
-                grid-template-columns: 1fr;
-                gap: 40px;
-            }
-        }
-
-        @media(max-width: 700px) {
-            .text-box h1 {
-                font-size: 36px;
-            }
-            
-            .text-box h2 {
-                font-size: 22px;
-            }
-            
-            .nav-links {
-                position: fixed;
-                background: #000;
-                height: 100vh;
-                width: 200px;
-                top: 0;
-                right: -200px;
-                text-align: left;
-                z-index: 2;
-                transition: 0.5s;
-                padding-top: 60px;
-            }
-            
-            .nav-links ul li {
-                display: block;
-                margin: 15px 0;
-            }
-            
-            nav .fa {
-                display: block;
-                color: #fff;
-                margin: 10px;
-                font-size: 24px;
-                cursor: pointer;
-            }
-            
-            .nav-links ul {
-                padding: 30px;
-            }
-            
-            .services-col, .step-col {
-                flex-basis: 100%;
-            }
-            
-            .auth-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .auth-buttons a {
-                width: 220px;
-                text-align: center;
-            }
-        }
-
-        /* Menu icon styling */
-        nav .fa {
+        /* --- Mobile Responsive --- */
+        .fa-bars, .fa-times {
+            color: var(--md-sys-color-on-surface);
+            font-size: 24px;
+            cursor: pointer;
             display: none;
         }
 
+        @media(max-width: 900px) {
+            .text-box h1 { font-size: 48px; }
+            .header { min-height: 80vh; }
+        }
+
         @media(max-width: 700px) {
-            nav .fa {
-                display: block;
+            nav .fa-bars { display: block; }
+            
+            .nav-links {
+                position: fixed;
+                background: var(--md-sys-color-surface-variant); /* Drawer color */
+                height: 100vh;
+                width: 280px; /* Standard drawer width */
+                top: 0;
+                right: -280px;
+                z-index: 2000;
+                transition: 0.3s cubic-bezier(0.2, 0.0, 0, 1.0); /* Standard ease */
+                padding: 24px;
+                border-top-left-radius: var(--md-sys-shape-corner-extra-large);
+                border-bottom-left-radius: var(--md-sys-shape-corner-extra-large);
+                box-shadow: -2px 0 8px rgba(0,0,0,0.1);
             }
+
+            .nav-links ul {
+                flex-direction: column;
+                align-items: flex-start;
+                margin-top: 40px;
+            }
+
+            .nav-links ul li {
+                width: 100%;
+                margin-bottom: 8px;
+            }
+
+            .nav-links ul li a, .nav-links ul li form button {
+                width: 100%;
+                text-align: left;
+                padding: 16px 24px; /* Larger touch target for mobile */
+            }
+
+            .nav-links .fa-times {
+                display: block;
+                margin-left: auto;
+            }
+
+            .text-box { padding: 0 24px; }
+            .text-box h1 { font-size: 40px; }
+            
+            .auth-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            .auth-buttons a { width: 100%; }
+
+            .footer-container { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -440,34 +429,34 @@
 <body>
 
     <div id="loading-bar-container">
-    <div id="loading-bar"></div>
+        <div id="loading-bar"></div>
     </div>
 
-    <section class="header">
-        <nav>
-            <h1 class="logo">Publ.</h1>
-            <div class="nav-links" id="navLinks">
-                <i class="fa fa-times" onclick="hideMenu()"></i>
-                <ul>
-                    @guest
-                        <li><a href="{{ route('login') }}">Log In</a></li>
-                        <li><a href="{{ route('register') }}">Register</a></li>
-                    @else
-                        <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                        <li>
-                            <form method="POST" action="{{ url('/logout') }}">
-                                @csrf
-                                <button type="submit">Log Out</button>
-                            </form>
-                        </li>
-                    @endguest
-                </ul>
-            </div>
-            <i class="fa fa-bars" onclick="showMenu()"></i>
-        </nav>
+    <nav>
+        <a href="#" class="logo">Publ.</a>
+        <div class="nav-links" id="navLinks">
+            <i class="fa fa-times" onclick="hideMenu()"></i>
+            <ul>
+                @guest
+                    <li><a href="{{ route('login') }}">Log In</a></li>
+                    <li><a href="{{ route('register') }}" style="background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);">Register</a></li>
+                @else
+                    <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                    <li>
+                        <form method="POST" action="{{ url('/logout') }}">
+                            @csrf
+                            <button type="submit">Log Out</button>
+                        </form>
+                    </li>
+                @endguest
+            </ul>
+        </div>
+        <i class="fa fa-bars" onclick="showMenu()"></i>
+    </nav>
 
+    <section class="header">
         <div class="text-box">
-            <h1>Report with Publ.</h1>
+            <h1><span class="text-highlight">Report with Publ.</span></h1>
             <p>A crowdsourced platform for reporting incidents and verifying their authenticity through community collaboration.</p>
 
             <div class="auth-buttons">
@@ -481,46 +470,51 @@
         </div>
     </section>
 
-    <!-----------Services----------->
     <section class="services">
-        <h1 class="section-title"><b>Our Services</b></h1>
-        <p class="section-description">Publ provides a comprehensive platform for incident reporting and verification, empowering communities to collaborate on safety issues.</p>
+        <div class="section-header">
+            <h1 class="section-title">Our Services</h1>
+            <p class="section-description">Publ provides a comprehensive platform for incident reporting and verification, empowering communities to collaborate.</p>
+        </div>
 
         <div class="row">
             <div class="services-col">
+                <i class="fa-solid fa-bullhorn" style="font-size: 32px; color: var(--md-sys-color-primary); margin-bottom: 16px;"></i>
                 <h3>Incident Reporting</h3>
-                <p>Quickly and easily report incidents in your community with our intuitive reporting system. Provide details, location, and media evidence.</p>
+                <p>Quickly and easily report incidents in your community with our intuitive reporting system.</p>
             </div>
 
             <div class="services-col">
+                <i class="fa-solid fa-users-viewfinder" style="font-size: 32px; color: var(--md-sys-color-primary); margin-bottom: 16px;"></i>
                 <h3>Witness Verification</h3>
-                <p>Witnesses can confirm or deny reported incidents, adding credibility through crowd-sourced verification of events.</p>
+                <p>Witnesses can confirm or deny reported incidents, adding credibility through crowd-sourced verification.</p>
             </div>
 
             <div class="services-col">
-                <h3>Enhance Public Awareness</h3>
-                <p>Allow for broader information dissimination and enhance public awareness on incidents.</p>
+                <i class="fa-solid fa-earth-americas" style="font-size: 32px; color: var(--md-sys-color-primary); margin-bottom: 16px;"></i>
+                <h3>Public Awareness</h3>
+                <p>Allow for broader information dissemination and enhance public awareness on incidents.</p>
             </div>
         </div>
     </section>
 
-    <!-----------How it Works----------->
     <section class="how-it-works">
         <div class="services">
-            <h1 class="section-title">How Publ Works</h1>
-            <p class="section-description">Our process ensures that reported incidents are efficiently verified and dissiminated.</p>
+            <div class="section-header">
+                <h1 class="section-title">How Publ Works</h1>
+                <p class="section-description">Our process ensures that reported incidents are efficiently verified.</p>
+            </div>
 
             <div class="steps-row">
                 <div class="step-col">
                     <div class="step-number">1</div>
                     <h3>Report an Incident</h3>
-                    <p>Users submit detailed reports of incidents they've witnessed, including location, description, and any supporting media.</p>
+                    <p>Users submit detailed reports of incidents they've witnessed, including location and media.</p>
                 </div>
 
                 <div class="step-col">
                     <div class="step-number">2</div>
                     <h3>Witness Verification</h3>
-                    <p>Other users who witnessed the incident can confirm or deny the report, establishing credibility through crowd-sourced verification.</p>
+                    <p>Other users who witnessed the incident can confirm or deny the report, establishing credibility.</p>
                 </div>
 
                 <div class="step-col">
@@ -544,28 +538,25 @@
                 <div class="step-col">
                     <div class="step-number">6</div>
                     <h3>Community Awareness</h3>
-                    <p>Resolved incidents contribute to community awareness and help prevent similar issues in the future.</p>
+                    <p>Resolved incidents contribute to community awareness and help prevent similar issues.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-----Footer---->
     <footer>
         <div class="footer-container">
             <div>
                 <h2>Our Mission</h2>
                 <p>
                     At Publ, our mission is to create safer communities by enabling transparent incident reporting and verification. 
-                    We believe in the power of collective awareness and responsible authority engagement to address community concerns effectively.
                 </p>
             </div>
 
             <div>
                 <h2>Our Vision</h2>
                 <p>
-                    We envision a world where community members and authorities collaborate seamlessly to create safer environments, 
-                    leveraging technology to verify and respond to incidents quickly and effectively, fostering trust and transparency.
+                    We envision a world where community members and authorities collaborate seamlessly to create safer environments.
                 </p>
             </div>
         </div>
@@ -575,7 +566,6 @@
         </div>
     </footer>
 
-    <!--------Javascript for toggle Menu--------->
     <script>
         var navLinks = document.getElementById("navLinks");
 
@@ -583,7 +573,7 @@
             navLinks.style.right = "0";
         }
         function hideMenu(){
-            navLinks.style.right = "-200px";
+            navLinks.style.right = "-280px";
         }
     </script>
 </body>

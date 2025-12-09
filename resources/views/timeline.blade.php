@@ -127,9 +127,17 @@
 {{-- jQuery --}}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+{{-- Setup CSRF Token for AJAX --}}
+<script>
+$.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    }
+});
+</script>
+
 {{-- Post Interactions --}}
 <script src="{{ asset('js/post-interactions.js') }}"></script>
-
 {{-- Timeline Filters + Labels --}}
 <script>
 

@@ -4,249 +4,421 @@
 
 @section('content')
 
-<div class="post-container" role="main" aria-labelledby="editPostTitle">
-    <h1 id="editPostTitle"><strong>Edit Report</strong></h1>
-    <div class="subtitle">Modify your report details or replace the attached media</div>
+{{-- Import the fonts used in your post card --}}
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 
-    <form id="update-post-form" action="{{ route('posts.update', $post) }}" method="POST" enctype="multipart/form-data" novalidate>
-        @csrf
-        @method('PUT')
+<div class="edit-wrapper">
+    <div class="post-card edit-mode">
+        
+        {{-- Main Update Form --}}
+        <form id="update-post-form" action="{{ route('posts.update', $post) }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
+            
+            <div class="post-content">
+                <div class="post-header">
+                    <div class="report-details-edit">
+                        <label class="edit-label">INCIDENT TYPE</label>
+                        <div class="input-row">
+                            <select id="accident_type" name="accident_type" class="edit-select required-field" required>
+                                <option value="Fire" {{ old('accident_type', $post->accident_type) == 'Fire' ? 'selected' : '' }}>FIRE</option>
+                                <option value="Crime" {{ old('accident_type', $post->accident_type) == 'Crime' ? 'selected' : '' }}>CRIME</option>
+                                <option value="Traffic" {{ old('accident_type', $post->accident_type) == 'Traffic' ? 'selected' : '' }}>TRAFFIC</option>
+                                <option value="Others" {{ old('accident_type', $post->accident_type) == 'Others' ? 'selected' : '' }}>OTHERS</option>
+                            </select>
+                            
+                            <span class="separator">•</span>
+                            
+                            <select id="location" name="location" class="edit-select location-select required-field" required>
+                                @php
+                                    $locations = ['Bonifacio','Sinamar 1','Sinamar 2','Guiang','Avenue','Sunset','Sunrise','Villanueva','Abellera','Miracle','Others'];
+                                @endphp
+                                @foreach($locations as $loc)
+                                    <option value="{{ $loc }}" {{ old('location', $post->location) == $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-        <label for="accident_type">Accident Type (Required)</label>
-        <select id="accident_type" name="accident_type" required>
-            <option value="" disabled>Select Type</option>
-            <option value="Fire" {{ old('accident_type', $post->accident_type) == 'Fire' ? 'selected' : '' }}>Fire</option>
-            <option value="Crime" {{ old('accident_type', $post->accident_type) == 'Crime' ? 'selected' : '' }}>Crime</option>
-            <option value="Traffic" {{ old('accident_type', $post->accident_type) == 'Traffic' ? 'selected' : '' }}>Traffic</option>
-            <option value="Others" {{ old('accident_type', $post->accident_type) == 'Others' ? 'selected' : '' }}>Others</option>
-        </select>
+                        {{-- Hidden "Other" Inputs --}}
+                        <input id="other_type" name="other_type" type="text" class="edit-input-underlined" placeholder="Specify Incident..." 
+                               value="{{ old('other_type', $post->other_type) }}" style="display:none;" />
 
-        <input id="other_type" name="other_type" type="text" placeholder="Please specify"
-               value="{{ old('other_type', $post->other_type) }}"
-               style="{{ old('accident_type', $post->accident_type) == 'Others' ? '' : 'display:none;' }}" />
+                        <input id="other_location" name="other_location" type="text" class="edit-input-underlined" placeholder="Specify Location..." 
+                               value="{{ old('other_location', $post->other_location) }}" style="display:none;" />
+                    </div>
 
-        <label for="content">Your Report (Required)</label>
-        <textarea id="content" name="content" rows="4" required>{{ old('content', $post->content) }}</textarea>
+                    {{-- Top Right: Delete Option --}}
+                    <div class="dropdown">
+                        <button type="button" class="btn-icon text-danger" onclick="if(confirm('Delete this post? Cannot be undone.')) document.getElementById('delete-post-form').submit();">
+                            <span class="material-icons">delete</span>
+                        </button>
+                    </div>
+                </div>
 
-        <label for="location">Location (Required)</label>
-        <select id="location" name="location" required>
-            <option value="" disabled>Select Location</option>
-            @php
-                $locations = ['Bonifacio','Sinamar 1','Sinamar 2','Guiang','Avenue','Sunset','Sunrise','Villanueva','Abellera','Miracle','Others'];
-            @endphp
-            @foreach($locations as $loc)
-                <option value="{{ $loc }}" {{ old('location', $post->location) == $loc ? 'selected' : '' }}>{{ $loc }}</option>
-            @endforeach
-        </select>
+                <div class="post-body">
+                    <textarea id="content" name="content" class="edit-textarea required-field" rows="3" placeholder="What happened?" required>{{ old('content', $post->content) }}</textarea>
 
-        <input id="other_location" name="other_location" type="text" placeholder="Please specify"
-               value="{{ old('other_location', $post->other_location) }}"
-               style="{{ old('location', $post->location) == 'Others' ? '' : 'display:none;' }}" />
+                    <div class="media-edit-area">
+                        {{-- Hidden File Input --}}
+                        <input id="image" name="image" type="file" accept="image/*,video/*,image/gif" style="display: none;" />
+                        <input type="hidden" id="media_type_input" name="media_type" value="{{ $post->media_type ?? '' }}">
 
-        <label for="image">Replace Image/Video (optional)</label>
-        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-            <input id="image" name="image" type="file" accept="image/*,video/*,image/gif" style="flex: 1; margin-bottom: 0;" />
-            <button type="button" id="cameraBtn" class="btn-camera" style="width: auto; padding: 12px 16px; background: #eee; color: #444; margin: 0;">📷</button>
-        </div>
+                        {{-- Toolbar --}}
+                        <div class="media-toolbar">
+                            <button type="button" class="media-btn" onclick="document.getElementById('image').click()">
+                                <span class="material-icons">image</span> Change Media
+                            </button>
+                            <button type="button" id="cameraBtn" class="media-btn">
+                                <span class="material-icons">photo_camera</span> Camera
+                            </button>
+                            @if($post->image)
+                                <span class="current-badge">Has Current Media</span>
+                            @endif
+                        </div>
 
-        <input type="hidden" id="media_type_input" name="media_type" value="{{ $post->media_type ?? '' }}">
+                        {{-- Previews --}}
+                        <div id="preview-container" class="preview-box">
+                            
+                            {{-- Current Media (Initially Visible) --}}
+                            <div id="current-media-wrapper" style="{{ $post->image ? '' : 'display:none;' }}">
+                                @if($post->image)
+                                    @if($post->media_type === 'video')
+                                        <video controls class="preview-media">
+                                            <source src="{{ asset('storage/' . $post->image) }}" type="video/{{ pathinfo($post->image, PATHINFO_EXTENSION) }}">
+                                        </video>
+                                    @else
+                                        <img src="{{ asset('storage/' . $post->image) }}" class="preview-media" alt="Current Image">
+                                    @endif
+                                @endif
+                            </div>
 
-        <div id="preview-container" style="margin-bottom:12px; {{ $post->image ? '' : 'display:none;' }}">
-            @if($post->image)
-                <label>Current Media</label>
-                @if($post->media_type === 'video')
-                    <video controls style="max-width:100%; max-height:200px; border-radius:8px;">
-                        <source src="{{ asset('storage/' . $post->image) }}" type="video/{{ pathinfo($post->image, PATHINFO_EXTENSION) }}">
-                    </video>
-                @else
-                    <img src="{{ asset('storage/' . $post->image) }}" alt="Current Image" style="max-width:100%; max-height:200px; border-radius:8px; object-fit:cover;">
-                @endif
-            @endif
-            <img id="preview-image" src="" alt="Preview" style="display:none;" />
-            <video id="preview-video" controls style="display:none;"></video>
-            <video id="camera-preview" autoplay playsinline style="display:none; max-width: 100%; max-height: 200px; margin-top: 10px; border-radius: 8px;"></video>
-            <canvas id="camera-canvas" style="display:none;"></canvas>
-            <div id="camera-controls" style="display:none; margin-top: 10px;">
-                <button type="button" id="captureBtn" class="camera-btn capture">Capture</button>
-                <button type="button" id="cancelCameraBtn" class="camera-btn">Cancel</button>
+                            {{-- New Previews (JS) --}}
+                            <img id="preview-image" class="preview-media" style="display:none;" />
+                            <video id="preview-video" class="preview-media" controls style="display:none;"></video>
+                            
+                            {{-- Camera Stream --}}
+                            <video id="camera-preview" autoplay playsinline class="preview-media" style="display:none;"></video>
+                            <canvas id="camera-canvas" style="display:none;"></canvas>
+                            
+                            {{-- Camera Controls --}}
+                            <div id="camera-controls" class="camera-actions" style="display:none;">
+                                <button type="button" id="captureBtn" class="btn btn-sm btn-primary">Capture</button>
+                                <button type="button" id="cancelCameraBtn" class="btn btn-sm btn-secondary">Cancel</button>
+                            </div>
+
+                            <button type="button" id="removePreviewBtn" class="remove-media-btn" style="display:none;">
+                                <span class="material-icons" style="font-size: 16px;">close</span> Remove New Media
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="post-signature">
+                    <div class="user-info">
+                        <img src="{{ $post->user->avatar_url ?? asset('images/avatar.png') }}" width="28" height="28" class="rounded-circle">
+                        <strong>{{ $post->user->name ?? 'Unknown User' }}</strong>
+                        <small>Editing now</small>
+                    </div>
+                </div>
+
+                <div class="post-footer action-footer">
+                    <button type="button" class="btn-cancel" onclick="window.history.back()">Cancel</button>
+                    <button type="submit" class="btn-save">Update Post</button>
+                </div>
             </div>
-            <button type="button" id="removePreviewBtn">Remove</button>
-        </div>
+        </form>
+    </div>
 
-        <div class="btn-group">
-            <button type="submit" class="btn btn-primary">Update Post</button>
-            <button type="button" class="btn btn-secondary" onclick="window.history.back()">Cancel</button>
-        </div>
-    </form>
-
-    <form id="delete-post-form" action="{{ route('posts.destroy', $post) }}" method="POST"
-          onsubmit="return confirm('Delete this post? This cannot be undone.');" style="margin-top: 16px;">
+    {{-- Hidden Delete Form --}}
+    <form id="delete-post-form" action="{{ route('posts.destroy', $post) }}" method="POST" style="display: none;">
         @csrf
         @method('DELETE')
-        <button type="submit" class="btn btn-danger">Delete Post</button>
     </form>
 </div>
 
 <style>
+    /* === CORE VARIABLES (Matched to your Post Card) === */
     :root {
+        --primary: #494ca2;
         --accent: #CF0F47;
         --accent-2: #FF0B55;
         --card-bg: #ffffff;
-        --muted: #666;
+        --text-muted: #666;
+        --border-color: #ddd;
+        --input-bg: #fbfbfb;
     }
 
-    .post-container {
-        width: 460px;
-        max-width: calc(100% - 40px);
-        background: var(--card-bg);
-        border-radius: 16px;
-        padding: 36px;
-        box-shadow: 0 12px 40px rgba(0,0,0,0.1);
-        margin: 0 auto;
-    }
-
-    .post-container h1 {
-        margin: 0 0 14px 0;
-        color: var(--accent);
-        font-size: 24px;
-        letter-spacing: 0.2px;
-    }
-
-    .subtitle {
-        color: var(--muted);
-        margin-bottom: 18px;
-        font-size: 13px;
-    }
-
-    .post-container label {
-        display: block;
-        font-size: 13px;
-        color: #444;
-        margin-bottom: 6px;
-    }
-
-    .post-container textarea,
-    .post-container input[type="text"],
-    .post-container input[type="file"],
-    .post-container select {
+    .edit-wrapper {
         width: 100%;
-        padding: 12px;
-        border-radius: 10px;
-        border: 1px solid #ddd;
-        margin-bottom: 12px;
-        box-sizing: border-box;
+        max-width: 500px; /* Slightly wider for editing comfort */
+        margin: 20px auto;
+        padding: 0 10px;
+    }
+
+    /* === REUSED POST CARD STYLES === */
+    .post-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.1); /* Slightly stronger shadow for active edit */
+        transition: all 0.25s ease;
+        position: relative;
         font-size: 14px;
-        background: #fbfbfb;
+        overflow: hidden;
     }
 
-    .post-container textarea {
-        resize: none;
-        min-height: 100px;
+    .post-content {
+        padding: 1.5rem;
     }
 
-    .post-container textarea:focus,
-    .post-container input:focus,
-    .post-container select:focus {
-        border-color: var(--accent);
-        background: #fff;
-        box-shadow: 0 0 0 3px rgba(207, 15, 71, 0.1);
-        outline: none;
+    .post-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
     }
 
-    .btn-group {
+    /* === EDITING SPECIFIC STYLES === */
+    
+    .report-details-edit {
+        flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 4px;
     }
 
-    .post-container .btn {
-        display: block;
-        padding: 12px 14px;
-        border-radius: 10px;
-        border: 0;
+    .edit-label {
+        font-size: 10px;
         font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .input-row {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* Seamless Selects */
+    .edit-select {
+        border: none;
+        background: transparent;
+        font-weight: 700;
+        color: var(--accent);
+        font-size: 14px;
         cursor: pointer;
-        font-size: 15px;
-        transition: 0.25s;
-        text-align: center;
-        text-decoration: none;
+        padding: 4px 0;
+        outline: none;
+        border-bottom: 2px solid transparent;
+        transition: border-color 0.2s;
+    }
+    
+    .edit-select:focus {
+        border-bottom-color: var(--accent);
     }
 
-    .post-container .btn-primary {
-        background: var(--accent);
-        color: #fff;
+    .location-select {
+        color: #333; /* Standard text color for location */
+        font-weight: 600;
     }
 
-    .post-container .btn-primary:hover {
-        background: var(--accent-2);
+    .separator {
+        color: #ccc;
     }
 
-    .post-container .btn-secondary {
-        background: #eee;
-        color: #444;
-    }
-
-    .post-container .btn-secondary:hover {
-        background: #ddd;
-    }
-
-    .post-container .btn-danger {
+    /* Underlined inputs for "Others" */
+    .edit-input-underlined {
         width: 100%;
-        background: #e74c3c;
-        color: #fff;
         border: none;
-    }
-
-    .post-container .btn-danger:hover {
-        background: #c0392b;
-    }
-
-    #preview-container img,
-    #preview-container video {
-        max-width: 100%;
-        max-height: 200px;
-        margin-top: 10px;
-        border-radius: 8px;
-        object-fit: cover;
-    }
-
-    #removePreviewBtn,
-    .camera-btn {
-        display: inline-block;
-        margin-top: 8px;
-        padding: 6px 12px;
-        background: #eee;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
+        border-bottom: 1px solid #ddd;
+        padding: 5px 0;
         font-size: 13px;
+        outline: none;
+        background: transparent;
         color: #444;
+        margin-top: 5px;
+    }
+    .edit-input-underlined:focus {
+        border-bottom-color: var(--accent);
     }
 
-    #removePreviewBtn:hover,
-    .camera-btn:hover {
-        background: #ddd;
-    }
-
-    .camera-btn.capture {
-        background: var(--accent);
-        color: #fff;
-        margin-right: 8px;
-    }
-
-    .camera-btn.capture:hover {
-        background: var(--accent-2);
-    }
-
-    .btn-camera {
+    /* Seamless Textarea */
+    .edit-textarea {
+        width: 100%;
         border: none;
-        border-radius: 6px;
+        resize: vertical;
+        font-family: inherit;
+        font-size: 15px;
+        line-height: 1.5;
+        color: #333;
+        padding: 0;
+        outline: none;
+        min-height: 100px;
+        background: transparent;
+    }
+    .edit-textarea::placeholder {
+        color: #aaa;
+    }
+
+    /* === MEDIA AREA === */
+    .media-edit-area {
+        margin-top: 15px;
+        border-top: 1px dashed #eee;
+        padding-top: 15px;
+    }
+
+    .media-toolbar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .media-btn {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: #f0f2f5;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
         cursor: pointer;
+        transition: background 0.2s;
+    }
+    .media-btn:hover {
+        background: #e4e6eb;
+        color: #333;
+    }
+    .media-btn .material-icons {
+        font-size: 16px;
+    }
+
+    .current-badge {
+        font-size: 11px;
+        color: #28a745;
+        background: rgba(40, 167, 69, 0.1);
+        padding: 4px 8px;
+        border-radius: 4px;
+        margin-left: auto;
+    }
+
+    .preview-box {
+        position: relative;
+    }
+
+    .preview-media {
+        max-width: 100%;
+        max-height: 250px;
+        border-radius: 12px;
+        object-fit: cover;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        display: block;
+    }
+
+    .remove-media-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.6);
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 4px 10px;
+        font-size: 11px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .camera-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        justify-content: center;
+    }
+
+    /* === FOOTER & BUTTONS === */
+    .post-signature {
+        padding-top: 10px;
+        margin-bottom: 1rem;
+        border-top: 1px solid #f0f0f0;
+    }
+    
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .user-info strong {
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .user-info small {
+        color: var(--text-muted);
+        font-size: 12px;
+        margin-left: auto;
+    }
+
+    .action-footer {
+        display: flex;
+        gap: 12px;
+        border-top: 1px solid #f0f0f0;
+        padding-top: 15px;
+        justify-content: flex-end;
+    }
+
+    .btn-save {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-save:hover {
+        background: var(--accent-2);
+        box-shadow: 0 4px 12px rgba(207, 15, 71, 0.3);
+    }
+
+    .btn-cancel {
+        background: transparent;
+        color: #666;
+        border: none;
+        padding: 10px 16px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    .btn-cancel:hover {
+        color: #333;
+        text-decoration: underline;
+    }
+
+    .btn-icon {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 50%;
+        transition: background 0.2s;
+    }
+    .btn-icon:hover {
+        background: #ffebee;
     }
 </style>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    // 1. Handling "Other" Inputs
     const accidentType = document.getElementById("accident_type");
     const otherType = document.getElementById("other_type");
     const location = document.getElementById("location");
@@ -255,6 +427,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function toggleOtherType() {
         if (accidentType.value === "Others") {
             otherType.style.display = "block";
+            otherType.focus();
         } else {
             otherType.style.display = "none";
             otherType.value = "";
@@ -264,19 +437,131 @@ document.addEventListener("DOMContentLoaded", function() {
     function toggleOtherLocation() {
         if (location.value === "Others") {
             otherLocation.style.display = "block";
+            otherLocation.focus();
         } else {
             otherLocation.style.display = "none";
             otherLocation.value = "";
         }
     }
 
-    // Run once on load
+    // Initialize & Listen
     toggleOtherType();
     toggleOtherLocation();
-
-    // Listen for changes
     accidentType.addEventListener("change", toggleOtherType);
     location.addEventListener("change", toggleOtherLocation);
+
+
+    // 2. Handling Media (Files & Camera)
+    const imageInput = document.getElementById('image');
+    const previewContainer = document.getElementById('preview-container');
+    const currentMediaWrapper = document.getElementById('current-media-wrapper');
+    const previewImage = document.getElementById('preview-image');
+    const previewVideo = document.getElementById('preview-video');
+    const removePreviewBtn = document.getElementById('removePreviewBtn');
+    
+    // Camera Elements
+    const cameraBtn = document.getElementById('cameraBtn');
+    const cameraPreview = document.getElementById('camera-preview');
+    const cameraCanvas = document.getElementById('camera-canvas');
+    const cameraControls = document.getElementById('camera-controls');
+    const captureBtn = document.getElementById('captureBtn');
+    const cancelCameraBtn = document.getElementById('cancelCameraBtn');
+    let stream = null;
+
+    // -- File Selection Logic --
+    imageInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const fileType = file.type;
+            const reader = new FileReader();
+
+            // Hide current media, show removal button
+            if(currentMediaWrapper) currentMediaWrapper.style.display = 'none';
+            removePreviewBtn.style.display = 'flex';
+
+            reader.onload = function(e) {
+                if (fileType.startsWith('image/')) {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block';
+                    previewVideo.style.display = 'none';
+                } else if (fileType.startsWith('video/')) {
+                    previewVideo.src = e.target.result;
+                    previewVideo.style.display = 'block';
+                    previewImage.style.display = 'none';
+                }
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // -- Remove New Preview Logic --
+    removePreviewBtn.addEventListener('click', function() {
+        imageInput.value = ''; // Reset input
+        previewImage.style.display = 'none';
+        previewVideo.style.display = 'none';
+        previewImage.src = '';
+        previewVideo.src = '';
+        removePreviewBtn.style.display = 'none';
+        
+        // Restore original media view if exists
+        if(currentMediaWrapper) currentMediaWrapper.style.display = 'block';
+    });
+
+    // -- Camera Logic --
+    cameraBtn.addEventListener('click', async () => {
+        try {
+            // Hide everything else
+            if(currentMediaWrapper) currentMediaWrapper.style.display = 'none';
+            previewImage.style.display = 'none';
+            previewVideo.style.display = 'none';
+
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            cameraPreview.srcObject = stream;
+            cameraPreview.style.display = 'block';
+            cameraControls.style.display = 'flex';
+        } catch (err) {
+            alert("Camera access denied or unavailable.");
+        }
+    });
+
+    captureBtn.addEventListener('click', () => {
+        const context = cameraCanvas.getContext('2d');
+        cameraCanvas.width = cameraPreview.videoWidth;
+        cameraCanvas.height = cameraPreview.videoHeight;
+        context.drawImage(cameraPreview, 0, 0, cameraCanvas.width, cameraCanvas.height);
+
+        cameraCanvas.toBlob(blob => {
+            const file = new File([blob], "camera_capture.jpg", { type: "image/jpeg" });
+            const container = new DataTransfer();
+            container.items.add(file);
+            imageInput.files = container.files;
+
+            // Trigger change event to update preview using the file logic above
+            imageInput.dispatchEvent(new Event('change'));
+
+            stopCamera();
+        }, 'image/jpeg');
+    });
+
+    cancelCameraBtn.addEventListener('click', () => {
+        stopCamera();
+        // Restore previous state
+        if (!imageInput.files.length && currentMediaWrapper) {
+            currentMediaWrapper.style.display = 'block';
+        } else if (imageInput.files.length) {
+             // If there was a file selected before camera, restore it? 
+             // Simplest is to just re-trigger change or leave blank.
+             imageInput.dispatchEvent(new Event('change'));
+        }
+    });
+
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+        cameraPreview.style.display = 'none';
+        cameraControls.style.display = 'none';
+    }
 });
 </script>
 

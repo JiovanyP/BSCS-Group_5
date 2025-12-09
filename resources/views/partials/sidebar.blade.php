@@ -171,7 +171,7 @@ body {
     display: flex;
     align-items: center;
     gap: 6px !important;
-    font-size: 10px !important;
+    font-size: 15px !important;
     padding: 4px 0 !important;
     color: var(--text-muted);
     border: none;
@@ -190,6 +190,26 @@ body {
     max-height: 220px;
     opacity: 1;
     margin-top: 5px;
+}
+
+/* Add this CSS to your sidebar.blade.php to keep profile expanded on mobile */
+
+/* Profile section - always expanded on mobile */
+@media (max-width: 768px) {
+    .profile-section {
+        max-height: 220px !important;
+        opacity: 1 !important;
+        margin-top: 5px;
+    }
+}
+
+/* Alternative: If you want it expanded on screens smaller than 412px specifically */
+@media (max-width: 412px) {
+    .profile-section {
+        max-height: 220px !important;
+        opacity: 1 !important;
+        margin-top: 5px;
+    }
 }
 
 /* Weather Widget */
