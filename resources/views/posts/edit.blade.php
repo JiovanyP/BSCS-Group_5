@@ -16,36 +16,56 @@
             @csrf
             @method('PUT')
             
+            {{-- 
+                PHP LOGIC: 
+                Determine if the saved data is a standard option or a custom "Others" input.
+            --}}
+            @php
+                $stdTypes = ['Fire', 'Crime', 'Traffic'];
+                $stdLocs  = ['Bonifacio','Sinamar 1','Sinamar 2','Guiang','Avenue','Sunset','Sunrise','Villanueva','Abellera','Miracle'];
+
+                // If the saved value is NOT in the standard list, it is custom
+                $isCustomType = !in_array($post->accident_type, $stdTypes);
+                $isCustomLoc  = !in_array($post->location, $stdLocs);
+            @endphp
+
             <div class="post-content">
                 <div class="post-header">
                     <div class="report-details-edit">
                         <label class="edit-label">INCIDENT TYPE</label>
                         <div class="input-row">
+                            {{-- Accident Type Select --}}
                             <select id="accident_type" name="accident_type" class="edit-select required-field" required>
-                                <option value="Fire" {{ old('accident_type', $post->accident_type) == 'Fire' ? 'selected' : '' }}>FIRE</option>
-                                <option value="Crime" {{ old('accident_type', $post->accident_type) == 'Crime' ? 'selected' : '' }}>CRIME</option>
-                                <option value="Traffic" {{ old('accident_type', $post->accident_type) == 'Traffic' ? 'selected' : '' }}>TRAFFIC</option>
-                                <option value="Others" {{ old('accident_type', $post->accident_type) == 'Others' ? 'selected' : '' }}>OTHERS</option>
+                                {{-- Standard Options --}}
+                                <option value="Fire" {{ $post->accident_type == 'Fire' ? 'selected' : '' }}>FIRE</option>
+                                <option value="Crime" {{ $post->accident_type == 'Crime' ? 'selected' : '' }}>CRIME</option>
+                                <option value="Traffic" {{ $post->accident_type == 'Traffic' ? 'selected' : '' }}>TRAFFIC</option>
+                                
+                                {{-- Force selection of 'Others' if the DB has a custom value --}}
+                                <option value="Others" {{ $isCustomType ? 'selected' : '' }}>OTHERS</option>
                             </select>
                             
                             <span class="separator">•</span>
                             
+                            {{-- Location Select --}}
                             <select id="location" name="location" class="edit-select location-select required-field" required>
-                                @php
-                                    $locations = ['Bonifacio','Sinamar 1','Sinamar 2','Guiang','Avenue','Sunset','Sunrise','Villanueva','Abellera','Miracle','Others'];
-                                @endphp
-                                @foreach($locations as $loc)
-                                    <option value="{{ $loc }}" {{ old('location', $post->location) == $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                                @foreach($stdLocs as $loc)
+                                    <option value="{{ $loc }}" {{ $post->location == $loc ? 'selected' : '' }}>{{ $loc }}</option>
                                 @endforeach
+                                {{-- Force selection of 'Others' if the DB has a custom value --}}
+                                <option value="Others" {{ $isCustomLoc ? 'selected' : '' }}>Others</option>
                             </select>
                         </div>
 
                         {{-- Hidden "Other" Inputs --}}
+                        {{-- Logic: If custom, put the DB value in the text box and show it immediately --}}
                         <input id="other_type" name="other_type" type="text" class="edit-input-underlined" placeholder="Specify Incident..." 
-                               value="{{ old('other_type', $post->other_type) }}" style="display:none;" />
+                               value="{{ $isCustomType ? $post->accident_type : '' }}" 
+                               style="{{ $isCustomType ? 'display:block;' : 'display:none;' }}" />
 
                         <input id="other_location" name="other_location" type="text" class="edit-input-underlined" placeholder="Specify Location..." 
-                               value="{{ old('other_location', $post->other_location) }}" style="display:none;" />
+                               value="{{ $isCustomLoc ? $post->location : '' }}" 
+                               style="{{ $isCustomLoc ? 'display:block;' : 'display:none;' }}" />
                     </div>
 
                     {{-- Top Right: Delete Option --}}
@@ -138,7 +158,7 @@
 </div>
 
 <style>
-    /* === CORE VARIABLES (Matched to your Post Card) === */
+    /* === CORE VARIABLES === */
     :root {
         --primary: #494ca2;
         --accent: #CF0F47;
@@ -151,16 +171,16 @@
 
     .edit-wrapper {
         width: 100%;
-        max-width: 500px; /* Slightly wider for editing comfort */
+        max-width: 500px;
         margin: 20px auto;
         padding: 0 10px;
     }
 
-    /* === REUSED POST CARD STYLES === */
+    /* === POST CARD STYLES === */
     .post-card {
         background: var(--card-bg);
         border-radius: 20px;
-        box-shadow: 0 12px 40px rgba(0,0,0,0.1); /* Slightly stronger shadow for active edit */
+        box-shadow: 0 12px 40px rgba(0,0,0,0.1);
         transition: all 0.25s ease;
         position: relative;
         font-size: 14px;
@@ -179,7 +199,6 @@
     }
 
     /* === EDITING SPECIFIC STYLES === */
-    
     .report-details-edit {
         flex: 1;
         display: flex;
@@ -220,7 +239,7 @@
     }
 
     .location-select {
-        color: #333; /* Standard text color for location */
+        color: #333;
         font-weight: 600;
     }
 
@@ -444,11 +463,13 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // Initialize & Listen
-    toggleOtherType();
-    toggleOtherLocation();
+    // Listen for user changes
     accidentType.addEventListener("change", toggleOtherType);
     location.addEventListener("change", toggleOtherLocation);
+
+    // Note: We do NOT call toggleOtherType/Location immediately on load here.
+    // Why? Because PHP at the top of the file has already handled the initial 
+    // display state/value of the inputs based on the database.
 
 
     // 2. Handling Media (Files & Camera)
@@ -549,8 +570,6 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!imageInput.files.length && currentMediaWrapper) {
             currentMediaWrapper.style.display = 'block';
         } else if (imageInput.files.length) {
-             // If there was a file selected before camera, restore it? 
-             // Simplest is to just re-trigger change or leave blank.
              imageInput.dispatchEvent(new Event('change'));
         }
     });
