@@ -3,199 +3,186 @@
 @section('title', 'Notifications - Publ')
 
 @section('content')
-<div class="notifications-wrapper">
-    <div class="notifications-container">
+<div class="stack-layout-grid">
+    <div class="notifications-main-column">
+        
+        {{-- Success Toast --}}
         @if(session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
+            <div class="stack-banner success color-general">
+                <span class="material-icons">check_circle</span>
+                <span>{{ session('success') }}</span>
             </div>
         @endif
     
-        {{-- No location warning --}}
+        {{-- Warning Card (Location) --}}
         @if(auth()->user() && empty(auth()->user()->location))
-                        <div class="notification-item unread" style="cursor: default;">
-                <span class="unread-dot"></span>
-                <div class="notification-time">
-                    <span class="material-icons">schedule</span> {{ now()->diffForHumans() }}
-                </div>
-                <div class="notification-content">
-                    <div class="notification-meta-top">
-                        <div class="notification-badges">
-                            <span class="badge priority-badge">
-                                <span class="material-icons" style="font-size:11px; vertical-align: bottom;">warning</span> Priority
-                            </span>
+            <div class="stack-card warning-type ripple" onclick="loadEditModal()">
+                <div class="card-accent-stripe"></div>
+                <div class="card-content-wrapper">
+                    <div class="leading-visual">
+                         <div class="avatar-icon warning-icon">
+                            <span class="material-icons">warning</span>
                         </div>
                     </div>
-                    <div class="notification-message">
-                        <strong>No location set!</strong> <br>
-                        You haven't added your location in your profile. 
-                        <span style="text-decoration: underline; color: var(--primary-color); cursor: pointer; font-weight: 600;" 
-                            onclick="openEditProfileModal(); event.stopPropagation();">
-                            Edit your profile
-                        </span> to add your location and get local notifications.
+                    <div class="item-content">
+                         <div class="headline">Location needed</div>
+                        <div class="subhead">
+                            Add your location to receive local priority alerts.
+                             <button class="text-button warning-text" onclick="loadEditModal(); event.stopPropagation();">Edit Profile</button>
+                        </div>
                     </div>
                 </div>
             </div>
-
         @endif
 
-        <div class="categories-tabs">
-            <div class="tabs-header">
-                <div class="tabs">
-                    <button class="tab-btn {{ $type == 'all' ? 'active' : '' }}" data-type="all">
-                        All <span class="tab-count">{{ $totalCount }}</span>
-                    </button>
-                    <button class="tab-btn {{ $type == 'priority' ? 'active' : '' }}" data-type="priority">
-                        Priority <span class="tab-count">{{ $priorityCount }}</span>
-                    </button>
-                    <button class="tab-btn {{ $type == 'general' ? 'active' : '' }}" data-type="general">
-                        General <span class="tab-count">{{ $generalCount }}</span>
-                    </button>
-                    <button class="tab-btn {{ $type == 'social' ? 'active' : '' }}" data-type="social">
-                        Social <span class="tab-count">{{ $socialCount }}</span>
-                    </button>
-                </div>
-                
+        {{-- Colored Filter Chips --}}
+        <div class="filter-chips-wrapper">
+            <div class="scroll-container">
+                <button class="filter-chip color-all {{ $type == 'all' ? 'selected' : '' }}" data-type="all">
+                    <span>All</span>
+                </button>
+                <button class="filter-chip color-priority {{ $type == 'priority' ? 'selected' : '' }}" data-type="priority">
+                    <span>Priority</span>
+                </button>
+                 <button class="filter-chip color-general {{ $type == 'general' ? 'selected' : '' }}" data-type="general">
+                    <span>General</span>
+                </button>
+                <button class="filter-chip color-social {{ $type == 'social' ? 'selected' : '' }}" data-type="social">
+                    <span>Social</span>
+                </button>
+
                 @if(in_array($type, ['priority', 'general']))
-                <div class="filter-section">
-                    <select id="accidentTypeFilter" class="filter-select">
-                        <option value="all" {{ $accidentType == 'all' ? 'selected' : '' }}>All Accident Types</option>
+                    <div class="separator"></div>
+                    <select id="accidentTypeFilter" class="filter-chip-select color-{{ $type }}">
+                        <option value="all" {{ $accidentType == 'all' ? 'selected' : '' }}>All Types</option>
                         <option value="Fire" {{ $accidentType == 'Fire' ? 'selected' : '' }}>Fire</option>
                         <option value="Crime" {{ $accidentType == 'Crime' ? 'selected' : '' }}>Crime</option>
                         <option value="Traffic" {{ $accidentType == 'Traffic' ? 'selected' : '' }}>Traffic</option>
                         <option value="Others" {{ $accidentType == 'Others' ? 'selected' : '' }}>Others</option>
                     </select>
-                </div>
                 @endif
             </div>
         </div>
 
-        <div class="notifications-header">
-            <div class="notifications-count">
-                @if($type == 'all')
-                    You have <span class="count">{{ $unreadCount }}</span> unread notification{{ $unreadCount != 1 ? 's' : '' }}
-                @else
-                    <span class="category-title">
-                        @if($type == 'priority') 
-                            <span class="material-icons">emergency</span> Priority Reports in Your Area
-                        @elseif($type == 'general')
-                            <span class="material-icons">location_on</span> General Reports
-                        @elseif($type == 'social')
-                            <span class="material-icons">chat</span> Social Interactions
-                        @else
-                            All Notifications
-                        @endif
-                    </span>
+        {{-- Header --}}
+        <div class="section-header">
+            <div class="header-title">
+                @if($type == 'priority') Priority Reports
+                @elseif($type == 'general') General Reports
+                @elseif($type == 'social') Social Activity
+                @else Notifications
+                @endif
+                
+                @if($unreadCount > 0)
+                    <span class="badge-count">{{ $unreadCount }}</span>
                 @endif
             </div>
+
             @if($unreadCount > 0 && $type == 'all')
-                <form method="POST" action="{{ route('notifications.markAllRead') }}" style="display: inline;">
+                <form method="POST" action="{{ route('notifications.markAllRead') }}">
                     @csrf
-                    <button type="submit" class="mark-all-read-btn">
-                        <span class="material-icons">done_all</span> Mark All as Read
+                    <button type="submit" class="mark-read-btn">
+                        Mark all read
                     </button>
                 </form>
             @endif
         </div>
 
-        @forelse($notifications as $notification)
-            <div class="notification-item {{ $notification->is_read ? '' : 'unread' }}"
-                onclick="markAsReadAndNavigate({{ $notification->id }}, '{{ $notification->post ? route('posts.view', $notification->post_id) : '#' }}')">
-                
-                @if(!$notification->is_read)
-                    <span class="unread-dot"></span>
-                @endif
-                
-                <div class="notification-time">
-                    <span class="material-icons">schedule</span> {{ $notification->created_at->diffForHumans() }}
-                </div>
-                
-                <div class="notification-content">
-                    <div class="notification-meta-top">
-                        <div class="notification-badges">
+        {{-- Stacked Notification List --}}
+        <div class="notifications-stack">
+            @forelse($notifications as $notification)
+                {{-- 
+                    Adding specific color classes based on type: 
+                    color-priority, color-social, or color-general 
+                --}}
+                <div class="stack-card color-{{ $notification->notification_type }} {{ $notification->is_read ? 'read' : 'unread' }} ripple"
+                     onclick="markAsReadAndNavigate({{ $notification->id }}, '{{ $notification->post ? route('posts.view', $notification->post_id) : '#' }}')">
+                    
+                    {{-- Colored Accent Stripe on left --}}
+                    <div class="card-accent-stripe"></div>
+
+                    <div class="card-content-wrapper">
+                        {{-- Leading Icon --}}
+                        <div class="leading-visual">
+                            <div class="avatar-icon">
+                                @if($notification->notification_type === 'priority')
+                                    <span class="material-icons">emergency</span>
+                                @elseif($notification->notification_type === 'social')
+                                    <span class="material-icons">person</span>
+                                @else
+                                    <span class="material-icons">notifications</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- Main Content --}}
+                        <div class="item-content">
+                            <div class="item-header">
+                                <span class="category-label">
+                                    {{ ucfirst($notification->notification_type) }}
+                                    @if($notification->accident_type) • {{ $notification->accident_type }} @endif
+                                </span>
+                                <span class="time-stamp">{{ $notification->created_at->diffForHumans(null, true, true) }}</span>
+                            </div>
                             
-                            @if($notification->notification_type === 'priority')
-                                <span class="badge priority-badge">
-                                    <span class="material-icons" style="font-size: 11px; vertical-align: bottom;">warning</span> Priority
-                                </span>
-                            @elseif($notification->notification_type === 'general')
-                                <span class="badge general-badge">
-                                    <span class="material-icons" style="font-size: 11px; vertical-align: bottom;">push_pin</span> General
-                                </span>
-                            @elseif($notification->notification_type === 'social')
-                                <span class="badge social-badge">
-                                    <span class="material-icons" style="font-size: 11px; vertical-align: bottom;">group</span> Social
-                                </span>
-                            @endif
-                            
-                            @if($notification->accident_type && in_array($notification->notification_type, ['priority', 'general']))
-                                <span class="badge accident-badge accident-{{ strtolower($notification->accident_type) }}">
-                                    {{ $notification->accident_type }}
-                                </span>
+                            <div class="item-body">
+                                @if ($notification->notification_type === 'social' && ($notification->type === 'comment' || $notification->type === 'reply') && $notification->post && $notification->comment)
+                                    @php
+                                        $actor_name = $notification->actor->name ?? ($notification->notifier->name ?? 'User'); 
+                                        $comment_snippet = Str::limit($notification->comment->content ?? '', 50);
+                                        $post_snippet = Str::limit($notification->post->content ?? '', 30);
+                                    @endphp
+                                    <strong>{{ $actor_name }}</strong> commented on "<em>{{ $post_snippet }}</em>": "{{ $comment_snippet }}"
+                                @else
+                                    {!! $notification->getNotificationMessage() !!}
+                                @endif
+                            </div>
+
+                           @if($notification->post && !($notification->notification_type === 'social' && ($notification->type === 'comment' || $notification->type === 'reply')))
+                                 <div class="item-footer">
+                                    <span class="material-icons icon-tiny">description</span> {{ Str::limit($notification->post->content, 60) }}
+                                 </div>
                             @endif
 
                             @if($notification->post && in_array($notification->notification_type, ['priority', 'general']))
-                                <div class="location-info location-inline">
-                                    <span class="material-icons">place</span>
-                                    <strong>Reported in: {{ $notification->post->location }}</strong>
+                                <div class="item-footer">
+                                    <span class="material-icons icon-tiny">place</span> {{ $notification->post->location ?? 'Unknown location' }}
                                 </div>
                             @endif
                         </div>
-                    </div>
-                    
-                    <div class="notification-message">
-                        @if ($notification->notification_type === 'social' && ($notification->type === 'comment' || $notification->type === 'reply') && $notification->post && $notification->comment)
-                            @php
-                                $actor_name = $notification->actor->name ?? ($notification->notifier->name ?? 'A user'); 
-                                $comment_content = Str::limit($notification->comment->content ?? 'a comment', 50);
-                                $post_content_preview = Str::limit($notification->post->content, 50);
-                            @endphp
-                            <strong>{{ $actor_name }}</strong> commented on your post "<strong>{{ $post_content_preview }}</strong>" with: "<strong>{{ $comment_content }}</strong>"
-                        @else
-                            {!! $notification->getNotificationMessage() !!}
+                        
+                        {{-- Trailing Unread Dot --}}
+                        @if(!$notification->is_read)
+                            <div class="trailing-visual">
+                                <div class="unread-dot"></div>
+                            </div>
                         @endif
                     </div>
-
-                    @if($notification->post && !($notification->notification_type === 'social' && ($notification->type === 'comment' || $notification->type === 'reply')))
-                        <div class="notification-post-preview">
-                            "{{ Str::limit($notification->post->content, 100) }}"
-                        </div>
-                    @endif
-
-                    @if($notification->comment && in_array($notification->type, ['like_comment', 'reply_comment']))
-                        <div class="notification-post-preview">
-                            <span class="material-icons" style="font-size: 13px; vertical-align: middle;">comment</span> "{{ Str::limit($notification->comment->content, 80) }}"
-                        </div>
-                    @endif
                 </div>
-            </div>
-        @empty
-            <div class="empty-state">
-                @if($type == 'priority')
-                    <span class="material-icons">location_off</span>
-                    <h3>No Priority Reports</h3>
-                    <p>When incidents occur in your area, they'll appear here as priority notifications</p>
-                @elseif($type == 'general')
-                    <span class="material-icons">public</span>
-                    <h3>No General Reports</h3>
-                    <p>Reports from other areas will appear here</p>
-                @elseif($type == 'social')
-                    <span class="material-icons">person_off</span>
-                    <h3>No Social Notifications</h3>
-                    <p>When someone interacts with your posts, you'll see notifications here</p>
-                @else
-                    <span class="material-icons">notifications_off</span>
-                    <h3>No Notifications Yet</h3>
-                    <p>You're all caught up! New notifications will appear here</p>
-                @endif
-            </div>
-        @endforelse
+            @empty
+                <div class="empty-stack-state">
+                    <div class="illustration color-{{ $type == 'all' ? 'general' : $type }}">
+                        @if($type == 'priority') <span class="material-icons">location_off</span>
+                        @elseif($type == 'social') <span class="material-icons">person_off</span>
+                        @else <span class="material-icons">inbox</span>
+                        @endif
+                    </div>
+                    <div class="text">
+                        @if($type == 'priority') No priority reports nearby
+                        @elseif($type == 'social') No new social interactions
+                        @else You are all caught up
+                        @endif
+                    </div>
+                </div>
+            @endforelse
+        </div>
 
         @if($notifications->hasPages())
-            <div class="pagination">
+            <div class="pagination-wrapper">
                 {{ $notifications->appends(request()->except('page'))->links() }}
             </div>
         @endif
+
     </div>
 </div>
 
@@ -203,587 +190,410 @@
 @include('partials.edit-modal')
 
 <style>
+/* --- THEME COLOR DEFINITIONS --- */
 :root {
-    --primary-color: #c82333;
-    --priority-color: #FF5722;
-    --general-color: #9C27B0;
-    --social-color: #2196F3;
-    --fire-color: #FF4444;
-    --crime-color: #FF9800;
-    --traffic-color: #4CAF50;
-    --others-color: #607D8B;
+    /* Base Grays */
+    --stack-bg: #f0f2f5;
+    --card-bg: #ffffff;
+    --text-primary: #1c1e21;
+    --text-secondary: #65676b;
+    
+    /* Priority Theme (Red/Orange) */
+    --theme-priority-color: #d93025;
+    --theme-priority-bg: #fce8e6;
+    --theme-priority-hover: #fdf3f2;
+    
+    /* Social Theme (Blue) */
+    --theme-social-color: #1877f2;
+    --theme-social-bg: #e7f3ff;
+    --theme-social-hover: #f0f7ff;
+
+    /* General Theme (Purple/Neutral) */
+    --theme-general-color: #9334e6;
+    --theme-general-bg: #f3e8fd;
+    --theme-general-hover: #f8f2fe;
+
+    /* All/Default Theme */
+    --theme-all-color: #65676b;
+    --theme-all-bg: #e4e6eb;
 }
 
-.notifications-wrapper {
-    max-width: 100%;
-    margin: -2rem;
-    padding: 2rem;
-    background: #f8f9fa;
+/* Apply themes based on class usage */
+.color-priority { --theme-color: var(--theme-priority-color); --theme-bg: var(--theme-priority-bg); --theme-hover: var(--theme-priority-hover); }
+.color-social { --theme-color: var(--theme-social-color); --theme-bg: var(--theme-social-bg); --theme-hover: var(--theme-social-hover); }
+.color-general { --theme-color: var(--theme-general-color); --theme-bg: var(--theme-general-bg); --theme-hover: var(--theme-general-hover); }
+.color-all { --theme-color: var(--theme-all-color); --theme-bg: var(--theme-all-bg); --theme-hover: #ced0d4; }
+
+/* --- LAYOUT --- */
+.stack-layout-grid {
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    background-color: var(--stack-bg);
+    min-height: 90vh;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 }
 
-.notifications-wrapper .material-icons {
-    font-family: 'Material Icons';
-    font-weight: normal;
-    font-style: normal;
-    font-size: 24px;
-    display: inline-block;
-    line-height: 1;
-    text-transform: none;
-    letter-spacing: normal;
-    word-wrap: normal;
+.notifications-main-column {
+    width: 100%;
+    max-width: 600px; /* Slightly narrower for better stack card feel */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* --- FILTER CHIPS (Colorful) --- */
+.filter-chips-wrapper {
+    overflow-x: auto;
+    padding: 4px 0 12px 0;
+    scrollbar-width: none; 
+    -ms-overflow-style: none;
+}
+.filter-chips-wrapper::-webkit-scrollbar { display: none; }
+
+.scroll-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    width: max-content;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 18px;
+    border-radius: 18px;
+    border: none;
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
     white-space: nowrap;
-    direction: ltr;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    -moz-osx-font-smoothing: grayscale;
-    font-feature-settings: 'liga';
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.notifications-container {
-    max-width: 750px; 
-    margin: 0 auto;
-    padding: 30px 20px;
+.filter-chip:hover {
+    background-color: #e4e6eb;
+    color: var(--text-primary);
 }
 
-.categories-tabs {
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+/* Selected state uses the theme color */
+.filter-chip.selected {
+    background-color: var(--theme-color);
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-.tabs-header {
+.separator {
+    width: 1px;
+    height: 24px;
+    background-color: #ccc;
+    margin: 0 4px;
+}
+
+.filter-chip-select {
+    height: 36px;
+    border-radius: 18px;
+    padding: 0 16px;
+    border: 1px solid #ddd;
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+.filter-chip-select:focus { border-color: var(--theme-color); outline: none; }
+
+/* --- HEADERS & BUTTONS --- */
+.section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
+    padding: 0 8px;
+    margin: 8px 0;
 }
-
-.tabs {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+.header-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex; align-items: center; gap: 8px;
 }
-
-.tab-btn {
-    padding: 10px 20px;
-    border: 2px solid #eee;
-    background: #fff;
-    border-radius: 25px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.tab-btn.active {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
+.badge-count {
+    background: var(--theme-priority-color);
     color: white;
+    font-size: 11px; padding: 2px 8px;
+    border-radius: 10px; font-weight: bold;
+}
+.mark-read-btn {
+    background: transparent; border: none;
+    color: var(--theme-social-color);
+    font-weight: 600; font-size: 13px;
+    cursor: pointer;
 }
 
-.tab-count {
-    background: rgba(255,255,255,0.2);
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
+/* --- THE STACKED CARDS --- */
+.notifications-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Gap between cards in the stack */
 }
 
-.filter-section {
+.stack-card {
+    position: relative;
+    background: var(--card-bg);
+    border-radius: 16px; /* Rounded stack corners */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05); /* Depth shadow */
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    display: flex;
+    align-items: stretch;
+}
+
+.stack-card:hover {
+    transform: translateY(-3px) scale(1.01); /* Lift effect on hover */
+    box-shadow: 0 6px 15px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
+    z-index: 2;
+}
+
+/* The colored stripe on the left */
+.card-accent-stripe {
+    width: 6px;
+    background-color: var(--theme-color);
     flex-shrink: 0;
 }
 
-.filter-select {
-    padding: 10px 20px;
-    border: 2px solid #eee;
-    border-radius: 25px;
-    background: #fff;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    color: #333;
-    appearance: menulist;
-    -webkit-appearance: menulist;
-    -moz-appearance: menulist;
-    transition: all 0.3s;
-    box-sizing: border-box; 
-    line-height: normal;
-}
-
-.filter-select:hover {
-    border-color: #ccc;
-}
-
-.filter-select:focus {
-    border-color: var(--primary-color);
-    outline: none;
-}
-
-.notifications-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-}
-
-.notifications-count {
-    font-size: 16px;
-    font-weight: 500;
-    color: #333;
-}
-
-.category-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.category-title .material-icons {
-    font-size: 20px;
-    vertical-align: middle;
-}
-
-.mark-all-read-btn {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.mark-all-read-btn .material-icons {
-    font-size: 18px;
-}
-
-.mark-all-read-btn:hover {
-    background: #a91b2c;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(200, 35, 51, 0.3);
-}
-
-.notification-meta-top {
-    display: flex;
-    justify-content: space-between; 
-    align-items: center;
-    margin-bottom: 10px; 
-}
-
-.notification-badges {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 0; 
-    align-items: center; 
-}
-
-.badge {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.badge .material-icons {
-    font-size: 11px !important;
-}
-
-.priority-badge {
-    background: rgba(255, 87, 34, 0.1);
-    color: var(--priority-color);
-    border: 1px solid var(--priority-color);
-}
-
-.general-badge {
-    background: rgba(156, 39, 176, 0.1);
-    color: var(--general-color);
-    border: 1px solid var(--general-color);
-}
-
-.social-badge {
-    background: rgba(33, 150, 243, 0.1);
-    color: var(--social-color);
-    border: 1px solid var(--social-color);
-}
-
-.accident-badge {
-    font-size: 10px;
-    border: none;
-    color: white;
-}
-
-.accident-fire {
-    background: var(--fire-color);
-}
-
-.accident-crime {
-    background: var(--crime-color);
-}
-
-.accident-traffic {
-    background: var(--traffic-color);
-}
-
-.accident-others {
-    background: var(--others-color);
-}
-
-.location-info {
-    font-size: 13px;
-    color: #666;
-    margin-bottom: 0;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding-left: 8px;
-    border-left: 1px solid #eee;
-    line-height: 1;
-}
-
-.location-info.location-inline strong {
-    font-weight: 500;
-}
-
-.location-info .material-icons {
-    font-size: 16px;
-    color: #999;
-}
-
-.notification-item {
-    background: #fff;
-    border-radius: 16px; 
-    padding: 20px;
-    padding-right: 120px; 
-    margin-bottom: 15px;
-    transition: all 0.3s ease;
-    border-left: 4px solid transparent; 
+/* Container for the actual content next to the stripe */
+.card-content-wrapper {
+    flex: 1;
     display: flex;
     align-items: flex-start;
-    gap: 15px;
-    cursor: pointer;
-    position: relative; 
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
+    padding: 16px 16px 16px 12px;
+    gap: 14px;
 }
 
-.notification-item:hover {
-    transform: translateY(-2px); 
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); 
+/* Unread State: Subtle background tint based on theme */
+.stack-card.unread {
+    background-color: var(--theme-bg);
+}
+.stack-card.unread .item-body {
+     color: var(--text-primary);
+     font-weight: 500;
 }
 
-.notification-content {
+
+/* Card Internal Elements */
+.leading-visual { flex-shrink: 0; }
+
+.avatar-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px; /* Soft square look for icons */
+    display: flex; align-items: center; justify-content: center;
+    /* Icon background depends on theme */
+    background-color: var(--theme-bg);
+    color: var(--theme-color);
+}
+.avatar-icon .material-icons { font-size: 22px; }
+
+
+.item-content {
     flex: 1;
-    min-width: 0; 
+    display: flex; flex-direction: column; gap: 5px;
+    min-width: 0;
 }
 
-.notification-message {
-    font-size: 15px;
-    margin-bottom: 8px;
-    color: #1a1a1a;
+.item-header {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--text-secondary);
+}
+.category-label {
+    font-weight: 700; letter-spacing: 0.5px;
+    font-size: 10px; text-transform: uppercase;
+    color: var(--theme-color); /* Label matches theme */
+}
+
+.item-body {
+    font-size: 15px; color: var(--text-primary);
     line-height: 1.4;
+    word-wrap: break-word;
 }
+.item-body strong { font-weight: 700; }
 
-.notification-message strong {
-    font-weight: 600;
-    color: var(--primary-color);
+.item-footer {
+    font-size: 12px; color: var(--text-secondary);
+    display: flex; align-items: center; gap: 5px;
+    margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.icon-tiny { font-size: 14px; opacity: 0.7; }
 
-.notification-message span[onclick] {
-    color: var(--primary-color);
-    text-decoration: underline;
-    font-weight: 600;
-    cursor: pointer;
-    transition: color 0.2s;
+
+/* Unread Dot */
+.trailing-visual {
+    display: flex; align-items: flex-start;
+    padding-top: 5px;
 }
-
-.notification-message span[onclick]:hover {
-    color: #a91b2c;
-}
-
-.notification-post-preview {
-    font-size: 13px;
-    color: #999;
-    margin-bottom: 8px;
-    font-style: italic;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    line-height: 1.4;
-}
-
 .unread-dot {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    width: 12px;
-    height: 12px;
-    background: var(--primary-color);
+    width: 10px; height: 10px;
     border-radius: 50%;
-    z-index: 2;
-    box-shadow: 0 0 0 3px rgba(200, 35, 51, 0.2);
-    animation: pulse 2s infinite;
+    background-color: var(--theme-color); /* Dot matches theme */
+    box-shadow: 0 0 0 2px var(--card-bg);
+}
+.stack-card.unread .unread-dot {
+    box-shadow: 0 0 0 2px var(--theme-bg);
 }
 
-@keyframes pulse {
-    0%, 100% {
-        box-shadow: 0 0 0 3px rgba(200, 35, 51, 0.2);
-    }
-    50% {
-        box-shadow: 0 0 0 6px rgba(200, 35, 51, 0.1);
-    }
+
+/* --- SPECIAL CARDS (Warning/Success) --- */
+.stack-card.warning-type {
+    --theme-color: var(--theme-priority-color);
+    background: #fff5f4;
 }
 
-.notification-time {
-    position: absolute; 
-    top: 20px; 
-    right: 20px; 
-    font-size: 12px;
-    color: #666;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0; 
-    z-index: 1; 
+.warning-icon { background: white; }
+.headline { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+.subhead { font-size: 14px; color: var(--text-secondary); }
+.warning-text { 
+    background: none; border: none; font-weight: 700; 
+    color: var(--theme-priority-color); cursor: pointer; 
+    padding: 0; margin-left: 5px;
 }
 
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #999;
-}
-
-.empty-state .material-icons {
-    font-size: 60px;
-    color: #ccc;
-    margin-bottom: 15px;
-}
-
-.empty-state h3 {
-    font-size: 20px;
-    color: #999;
+.stack-banner {
+    padding: 12px 16px; border-radius: 12px;
+    display: flex; align-items: center; gap: 12px;
+    font-weight: 600; font-size: 14px;
+    background: var(--theme-bg); color: var(--theme-color);
     margin-bottom: 10px;
-    font-weight: 500;
 }
 
-.empty-state p {
-    font-size: 14px;
-    color: #aaa;
-    max-width: 400px;
-    margin: 0 auto;
-    line-height: 1.6;
+/* --- EMPTY STATE --- */
+.empty-stack-state {
+    text-align: center; padding: 60px 0;
+    color: var(--text-secondary);
+}
+.empty-stack-state .illustration {
+    width: 80px; height: 80px;
+    border-radius: 50%; background: var(--theme-bg);
+    color: var(--theme-color);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px auto;
+}
+.empty-stack-state .material-icons { font-size: 40px; }
+.empty-stack-state .text { font-size: 17px; font-weight: 600; }
+
+/* --- PAGINATION --- */
+.pagination-wrapper {
+    margin-top: 24px; display: flex; justify-content: center;
+}
+.pagination-wrapper .page-item .page-link {
+    border: none; color: var(--text-secondary);
+    border-radius: 50%; width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; font-weight: 600;
+}
+.pagination-wrapper .page-item.active .page-link {
+    background-color: var(--theme-social-color); color: white;
+    box-shadow: 0 2px 5px rgba(24, 119, 242, 0.3);
 }
 
-@media (max-width: 768px) {
-    .notifications-wrapper {
-        margin: -2rem;
-        padding: 1rem;
-    }
+/* Ripple Animation (Kept for interactive feel) */
+.ripple { position: relative; overflow: hidden; transform: translate3d(0, 0, 0); }
+.ripple:after {
+    content: ""; display: block; position: absolute;
+    width: 100%; height: 100%; top: 0; left: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, #000 10%, transparent 10.01%);
+    background-repeat: no-repeat; background-position: 50%;
+    transform: scale(10, 10); opacity: 0;
+    transition: transform .5s, opacity 1s;
+}
+.ripple:active:after { transform: scale(0, 0); opacity: .1; transition: 0s; }
 
-    .notification-item {
-        padding: 15px; 
-        padding-right: 15px; 
-        flex-direction: column; 
-        align-items: flex-start;
-        border-radius: 12px; 
-    }
-
-    .notifications-container {
-        max-width: 100%; 
-        padding: 20px 15px;
-    }
-
-    .notification-content {
-        padding-right: 0;
-        width: 100%;
-    }
-    
-    .notification-time {
-        position: static; 
-        order: -1; 
-        align-self: flex-end; 
-        margin-bottom: 5px;
-        font-size: 11px;
-        right: auto;
-        top: auto;
-    }
-
-    .unread-dot {
-        top: 10px;
-        right: 10px;
-    }
-
-    .notification-meta-top {
-        flex-direction: column; 
-        align-items: flex-start;
-        width: 100%;
-        margin-bottom: 10px;
-    }
-
-    .notification-badges {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
-        margin-top: 0;
-        width: 100%;
-    }
-
-    .location-info {
-        padding-left: 0;
-        border-left: none;
-        width: 100%;
-    }
-    
-    .filter-select {
-        width: 100%; 
-        box-sizing: border-box;
-    }
+@media (max-width: 600px) {
+    .stack-layout-grid { padding: 1rem 0.5rem; }
+    .card-content-wrapper { padding: 14px 12px; gap: 10px; }
+    .avatar-icon { width: 38px; height: 38px; }
+    .item-body { font-size: 14px; }
 }
 </style>
 
 <script>
+// ... (Keep your existing JavaScript exactly the same as before) ...
 (function() {
     'use strict';
-    
-    // Function to open edit profile modal
-    window.openEditProfileModal = function() {
-        $('#editProfileModal').modal('show');
-    };
-    
-    // Tab switching functionality
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    document.querySelectorAll('.filter-chip').forEach(btn => {
         btn.addEventListener('click', function() {
             const type = this.dataset.type;
             const url = new URL(window.location.href);
-            
-            // Set the type parameter
             url.searchParams.set('type', type);
-            
-            // Reset accident_type filter for non-relevant tabs
             if (type === 'all' || type === 'social') {
                 url.searchParams.delete('accident_type');
             } else if (type === 'priority' || type === 'general') {
-                // Keep current accident_type if it exists, otherwise set to 'all'
                 if (!url.searchParams.has('accident_type')) {
                     url.searchParams.set('accident_type', 'all');
                 }
             }
-            
             window.location.href = url.toString();
         });
     });
 
-    // Accident type filter functionality
     const accidentTypeFilter = document.getElementById('accidentTypeFilter');
     if (accidentTypeFilter) {
         accidentTypeFilter.addEventListener('change', function() {
             const url = new URL(window.location.href);
             const currentType = url.searchParams.get('type') || 'all';
-            
-            // Set accident_type parameter
             url.searchParams.set('accident_type', this.value);
-            
-            // Ensure we're on a tab that supports accident_type filtering
             if (currentType === 'all' || currentType === 'social') {
-                url.searchParams.set('type', 'priority'); // Default to priority when filtering
+                url.searchParams.set('type', 'priority'); 
             }
-            
             window.location.href = url.toString();
         });
     }
 
-    // Mark as read and navigate function
     window.markAsReadAndNavigate = function(notificationId, postUrl) {
-        if (!postUrl || postUrl === '#' || postUrl === '') {
-            console.log('No valid post URL');
-            return;
-        }
-
+        if (!postUrl || postUrl === '#' || postUrl === '') return;
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        
         if (csrfToken) {
             fetch(`/notifications/${notificationId}/mark-read`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
-                },
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                 body: JSON.stringify({})
-            })
-            .then(response => {
-                if (response.ok) {
-                    window.location.href = postUrl;
-                } else {
-                    console.error('Failed to mark notification as read');
-                    window.location.href = postUrl;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                window.location.href = postUrl;
-            });
+            }).then(() => { window.location.href = postUrl; })
+              .catch(() => { window.location.href = postUrl; });
         } else {
-            // Fallback if CSRF token not found
             window.location.href = postUrl;
         }
     };
 
+    // Auto Refresh Logic (Kept the same)
     let autoRefreshInterval;
-    let lastNotificationCount = {{ $notifications->count() }}; // Initial count from server
-    
+    let lastNotificationCount = {{ $notifications->count() }}; 
     function startSmartAutoRefresh() {
         autoRefreshInterval = setInterval(() => {
-            // Check for new notifications via AJAX without full page reload
-            fetch(window.location.href + '&check_only=1', {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+            fetch(window.location.href + (window.location.search ? '&' : '?') + 'check_only=1', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
             .then(response => response.text())
             .then(html => {
-                // Simple check - if the HTML contains notification items, count them
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
-                const currentCount = doc.querySelectorAll('.notification-item').length;
-                
+                // Updated selector to match new card class
+                const currentCount = doc.querySelectorAll('.stack-card').length; 
                 if (currentCount !== lastNotificationCount) {
-                    // Only reload if count changed
                     lastNotificationCount = currentCount;
                     window.location.reload();
                 }
             })
-            .catch(error => console.error('Error checking notifications:', error));
-        }, 1000); // Check every 1 second, but only reload if changes
+            .catch(error => console.error('Error checking'));
+        }, 50000); 
     }
-    
-    function stopSimpleAutoRefresh() {
-        if (autoRefreshInterval) {
-            clearInterval(autoRefreshInterval);
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        startSmartAutoRefresh();
-    });
-
+    function stopSimpleAutoRefresh() { if (autoRefreshInterval) clearInterval(autoRefreshInterval); }
+    document.addEventListener('DOMContentLoaded', startSmartAutoRefresh);
     window.addEventListener('beforeunload', stopSimpleAutoRefresh);
-
 })();
 </script>
 @endsection

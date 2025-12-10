@@ -288,55 +288,82 @@ class PostController extends Controller
     /**
      * Update post.
      */
-    public function update(Request $request, Post $post)
-{
-    $this->authorize('update', $post);
+public function update(Request $request, Post $post)
+    {
+        $this->authorize('update', $post);
 
-    $request->validate([
-        'content'  => 'required|string|max:1000',
-        'location' => 'nullable|string|max:255',
-        'image'    => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
-    ]);
+        // 1. Combine Validation Rules
+        $request->validate([
+            'content'        => 'required|string|max:1000',
+            'accident_type'  => 'required|string|max:100',
+            'location'       => 'required|string|max:255',
+            'other_type'     => 'nullable|string|max:100', 
+            'other_location' => 'nullable|string|max:255',
+            'image'          => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
+        ]);
 
-    $imagePath = $post->image_url; // ✅ changed from $post->image
-    $mediaType = $post->media_type;
+        // 2. Image Handling (Using logic from feat/ui for cleanup + correct column name)
+        $imagePath = $post->image_url; // consistent with store() method
+        $mediaType = $post->media_type;
 
-    if ($request->hasFile('image')) {
-        if ($post->image_url && Storage::disk('public')->exists($post->image_url)) {
-            Storage::disk('public')->delete($post->image_url);
+        if ($request->hasFile('image')) {
+            // Delete old image if it exists
+            if ($post->image_url && Storage::disk('public')->exists($post->image_url)) {
+                Storage::disk('public')->delete($post->image_url);
+            }
+
+            $file = $request->file('image');
+            $extension = strtolower($file->getClientOriginalExtension());
+
+            if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
+                $mediaType = 'image';
+            } elseif ($extension === 'gif') {
+                $mediaType = 'gif';
+            } elseif (in_array($extension, ['mp4', 'mov', 'avi', 'webm'])) {
+                $mediaType = 'video';
+            }
+
+            $imagePath = $file->store('posts', 'public');
         }
 
-        $file = $request->file('image');
-        $extension = strtolower($file->getClientOriginalExtension());
+        // 3. Business Logic for "Others" (From main branch)
+        $finalAccidentType = ($request->accident_type === 'Others') 
+            ? $request->other_type 
+            : $request->accident_type;
 
-        if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
-            $mediaType = 'image';
-        } elseif ($extension === 'gif') {
-            $mediaType = 'gif';
-        } elseif (in_array($extension, ['mp4', 'mov', 'avi', 'webm'])) {
-            $mediaType = 'video';
-        }
+        $finalLocation = ($request->location === 'Others') 
+            ? $request->other_location 
+            : $request->location;
 
-        $imagePath = $file->store('posts', 'public');
+        // 4. Update the Post
+        $post->update([
+            'content'       => $request->content,
+            'accident_type' => $finalAccidentType,
+            'location'      => $finalLocation,
+            'image_url'     => $imagePath, // Corrected to image_url
+            'media_type'    => $mediaType,
+        ]);
+
+        return redirect()->route('timeline')->with('success', 'Post updated successfully!');
     }
-
-    $post->update([
-        'content'    => $request->input('content'),
-        'location'   => $request->input('location'),
-        'image_url'  => $imagePath, // ✅ changed from 'image'
-        'media_type' => $mediaType,
-    ]);
-
-    return redirect()->route('timeline')->with('success', 'Post updated successfully!');
-}
     /**
      * Delete a post (uses policy for auth + model cascade cleanup).
      */
     public function destroy(Post $post)
     {
         $this->authorize('delete', $post);
+        
+        // Delete associated media if exists
+        if ($post->image && Storage::disk('public')->exists($post->image)) {
+            Storage::disk('public')->delete($post->image);
+        }
+        
         $post->delete();
-        return response()->json(['success' => true]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Post deleted successfully!'
+        ]);
     }
 
     /**
@@ -345,7 +372,10 @@ class PostController extends Controller
     public function report(Request $request, Post $post)
     {
         if (Auth::id() === $post->user_id) {
-            return response()->json(['error' => 'Cannot report your own post'], 403);
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot report your own post.'
+            ], 403);
         }
 
         $request->validate([
@@ -357,7 +387,10 @@ class PostController extends Controller
             ->first();
 
         if ($existingReport) {
-            return response()->json(['error' => 'You have already reported this post'], 409);
+            return response()->json([
+                'success' => false,
+                'message' => 'You have already reported this post.'
+            ], 409);
         }
 
         Report::create([
@@ -369,8 +402,43 @@ class PostController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Thank you for your report. We will review it shortly.',
-        ], 201);
+        ]);
     }
+
+
+    public function explore(Request $request)
+    {
+        $query = Post::query();
+
+        // Filters
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->where('content', 'like', "%{$search}%")
+                ->orWhere('accident_type', 'like', "%{$search}%")
+                ->orWhere('location', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('location')) {
+            $query->where('location', $request->location);
+        }
+
+        if ($request->filled('accident_type')) {
+            $query->where('accident_type', $request->accident_type);
+        }
+
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        $posts = $query->latest()->paginate(10);
+        $uniqueLocations = Post::pluck('location')->filter()->unique()->values();
+        $uniqueAccidents = Post::pluck('accident_type')->filter()->unique()->values();
+
+        return view('userExplore', compact('posts', 'uniqueLocations', 'uniqueAccidents'));
+    }
+
 
     /**
      * Admin Dashboard

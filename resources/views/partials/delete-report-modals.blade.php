@@ -113,15 +113,12 @@
 }
 </style>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="deleteModalLabel">Delete Post</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
@@ -130,8 +127,8 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="POST" action="" style="display: inline; margin: 0;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" action="" style="display: inline;">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-danger">Delete</button>
@@ -141,15 +138,12 @@
     </div>
 </div>
 
-<!-- Report Modal -->
-<div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-warning text-dark">
                 <h5 class="modal-title" id="reportModalLabel">Report Post</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
@@ -157,9 +151,8 @@
                     @csrf
 
                     <fieldset class="form-group mb-3">
-                        <legend class="sr-only">Reason for report</legend>
-
-                        <label class="font-weight-bold d-block mb-2">Choose a reason</label>
+                        <legend class="visually-hidden">Reason for report</legend>
+                        <label class="fw-bold d-block mb-2">Choose a reason</label>
 
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="reason" id="reasonSpam" value="spam" required>
@@ -190,40 +183,187 @@
                     <div class="small text-muted mb-3">
                         Select the category that best matches the issue. Admins will review reports manually.
                     </div>
-                </form>
-            </div>
 
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-warning" id="reportSubmitBtn">Submit Report</button>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning" id="reportSubmitBtn">Submit Report</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
+    <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="toastMessage">
+                Action completed successfully!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 <script>
-// Ensure modals work properly
-$(document).ready(function() {
-    // Make sure Bootstrap modal is available
-    if ($.fn.modal) {
-        // Handle modal close events
-        $('.modal .close, .modal [data-dismiss="modal"]').on('click', function() {
-            $(this).closest('.modal').modal('hide');
+document.addEventListener('DOMContentLoaded', function () {
+    // DELETE modal: set action dynamically
+    const deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const postId = button.getAttribute('data-id');
+            
+            if (!postId) {
+                console.warn('deleteModal: no data-id on trigger element');
+                return;
+            }
+            
+            const deleteForm = document.getElementById('deleteForm');
+            deleteForm.setAttribute('action', '/posts/' + postId);
+            deleteForm.setAttribute('data-post-id', postId);
         });
 
-        // Handle report submit button
-        $('#reportSubmitBtn').on('click', function() {
-            $('#reportForm').submit();
+        deleteModal.addEventListener('hidden.bs.modal', function () {
+            const deleteForm = document.getElementById('deleteForm');
+            deleteForm.setAttribute('action', '');
+            deleteForm.removeAttribute('data-post-id');
+        });
+    }
+
+    // REPORT modal: set action dynamically
+    const reportModal = document.getElementById('reportModal');
+    if (reportModal) {
+        reportModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const postId = button.getAttribute('data-id');
+            
+            if (!postId) {
+                console.warn('reportModal: no data-id on trigger element');
+                return;
+            }
+            
+            const reportForm = document.getElementById('reportForm');
+            reportForm.setAttribute('action', '/posts/' + postId + '/report');
+            
+            // Clear any previously selected radio buttons
+            const radios = reportForm.querySelectorAll('input[name="reason"]');
+            radios.forEach(radio => radio.checked = false);
         });
 
-        // Reset forms when modals are hidden
-        $('#deleteModal').on('hidden.bs.modal', function() {
-            $('#deleteForm').attr('action', '');
+        reportModal.addEventListener('hidden.bs.modal', function () {
+            const reportForm = document.getElementById('reportForm');
+            reportForm.setAttribute('action', '');
+            
+            const radios = reportForm.querySelectorAll('input[name="reason"]');
+            radios.forEach(radio => radio.checked = false);
         });
+    }
 
-        $('#reportModal').on('hidden.bs.modal', function() {
-            $('#reportForm').attr('action', '');
-            $('input[name="reason"]').prop('checked', false);
+    // Function to show toast notification
+    function showToast(message, isSuccess = true) {
+        const toastEl = document.getElementById('successToast');
+        const toastMessage = document.getElementById('toastMessage');
+        
+        toastMessage.textContent = message;
+        
+        // Change color based on success/error
+        toastEl.classList.remove('bg-success', 'bg-danger');
+        toastEl.classList.add(isSuccess ? 'bg-success' : 'bg-danger');
+        
+        const toast = new bootstrap.Toast(toastEl, {
+            autohide: true,
+            delay: 3000
+        });
+        toast.show();
+    }
+
+    // Handle DELETE form submission with AJAX
+    const deleteForm = document.getElementById('deleteForm');
+    if (deleteForm) {
+        deleteForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formAction = this.getAttribute('action');
+            const postId = this.getAttribute('data-post-id');
+            const formData = new FormData(this);
+            
+            fetch(formAction, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Close modal
+                const modalInstance = bootstrap.Modal.getInstance(deleteModal);
+                modalInstance.hide();
+                
+                if (data.success) {
+                    // Remove post from DOM
+                    const postCard = document.getElementById('post-' + postId);
+                    if (postCard) {
+                        postCard.style.transition = 'opacity 0.3s, transform 0.3s';
+                        postCard.style.opacity = '0';
+                        postCard.style.transform = 'scale(0.9)';
+                        
+                        setTimeout(() => {
+                            postCard.remove();
+                        }, 300);
+                    }
+                    
+                    showToast(data.message || 'Post deleted successfully!', true);
+                } else {
+                    showToast(data.message || 'Failed to delete post.', false);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const modalInstance = bootstrap.Modal.getInstance(deleteModal);
+                modalInstance.hide();
+                showToast('An error occurred. Please try again.', false);
+            });
+        });
+    }
+
+    // Handle REPORT form submission with AJAX
+    const reportForm = document.getElementById('reportForm');
+    if (reportForm) {
+        reportForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formAction = this.getAttribute('action');
+            const formData = new FormData(this);
+            
+            fetch(formAction, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Close modal
+                const modalInstance = bootstrap.Modal.getInstance(reportModal);
+                modalInstance.hide();
+                
+                if (data.success) {
+                    showToast(data.message || 'Report submitted successfully!', true);
+                } else {
+                    showToast(data.message || 'Failed to submit report.', false);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const modalInstance = bootstrap.Modal.getInstance(reportModal);
+                modalInstance.hide();
+                showToast('An error occurred. Please try again.', false);
+            });
         });
     }
 });

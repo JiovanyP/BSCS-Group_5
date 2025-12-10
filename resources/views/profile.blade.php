@@ -376,7 +376,6 @@ button.close {
 
 {{-- CRITICAL: Include modal partials --}}
 @include('partials.delete-report-modals')
-@include('partials.edit-modal')
 
 <script>
 // ===== COMPLETE FIXED JAVASCRIPT FOR PROFILE PAGE =====

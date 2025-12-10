@@ -1,4 +1,3 @@
-<!-- resources/views/partials/post.blade.php - FIXED DROPDOWN POSITIONING -->
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 
@@ -115,11 +114,18 @@ $(document).ready(function() {
     background: var(--card-bg);
     border-radius: 12px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-    margin-bottom: 15px;
+    /* margin-bottom: 15px;  <-- Removed old margin */
     transition: all 0.25s ease;
     position: relative;
     font-size: 14px;
+    
+    /* --- NEW WIDTH SETTINGS --- */
+    max-width: 550px;       /* Constrains the width */
+    width: 100%;            /* Ensures it fits on smaller screens */
+    margin: 0 auto 15px auto; /* Centers the card and keeps bottom margin */
+    /* -------------------------- */
 }
+
 .post-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 28px rgba(0,0,0,0.1);
@@ -131,7 +137,10 @@ $(document).ready(function() {
     top: 0; left: 0; right: 0; bottom: 0;
     z-index: 0;
     text-decoration: none;
-    pointer-events: none;
+    
+    /* REMOVED: pointer-events: none; */
+    /* This allows the link to actually accept the click */
+    cursor: pointer; 
 }
 
 /* Keep interactive elements above overlay */
@@ -488,7 +497,6 @@ $(document).ready(function() {
     <a href="{{ route('posts.view', $post->id) }}" class="post-card-link"></a>
 
     <div class="post-content">
-        <!-- HEADER -->
         <div class="post-header">
             <div class="report-details">
                 {{ strtoupper($post->accident_type ?? 'Incident') }} • 
@@ -498,7 +506,6 @@ $(document).ready(function() {
                 @endif
             </div>
             
-            <!-- DROPDOWN MENU - FIXED POSITIONING -->
             <div class="dropdown">
                 <button class="dropdown-toggle" 
                         type="button" 
@@ -529,7 +536,6 @@ $(document).ready(function() {
             </div>
         </div>
 
-        <!-- BODY -->
         <div class="post-body">
             @if(!empty($post->content))
                 <p>{{ $post->content }}</p>
@@ -547,7 +553,6 @@ $(document).ready(function() {
             @endif
         </div>
 
-        <!-- SIGNATURE -->
         <div class="post-signature">
             <div class="user-info">
                 @if($post->is_admin_post)
@@ -566,7 +571,6 @@ $(document).ready(function() {
             </div>
         </div>
 
-        <!-- FOOTER -->
         <div class="post-footer">
             <div class="comment-container">
                 <a href="#" class="toggle-comments footer-action" data-id="{{ $post->id }}">
@@ -588,7 +592,6 @@ $(document).ready(function() {
             </div>
         </div>
 
-        <!-- COMMENTS -->
         <div class="comments-section" id="comments-section-{{ $post->id }}">
             <div class="input-group">
                 <input type="text" class="form-control comment-input" id="comment-input-{{ $post->id }}" placeholder="Add a comment...">

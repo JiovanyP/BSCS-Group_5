@@ -93,7 +93,8 @@
 
         #sidebar-toggle {
             background: none;
-            border: none;
+            border: 0px;
+            border-radius: 25px;
             font-size: 24px;
             cursor: pointer;
             color: #ff0b55;
@@ -107,14 +108,14 @@
                 left: 10px;
                 z-index: 10101010;
                 font-size: 32px;
-                padding: 10px;
+                padding: 7px;
                 background: rgba(255, 255, 255, 1);
-                border-radius: 30;
+                border-radius: 25px !important;
                 box-shadow: 0 5px 5px rgba(0,0,0,0.2);
             }
             /* toggle moves when sidebar is active */
             #sidebar-toggle.active {
-                left: 228px;
+                left: 280px;
                 box-shadow: 0;
             }
         }

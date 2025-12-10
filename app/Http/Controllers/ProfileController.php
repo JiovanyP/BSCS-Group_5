@@ -61,10 +61,10 @@ class ProfileController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-            'address' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
         ]);
 
-        $user->update($request->only('name', 'email', 'address'));
+        $user->update($request->only('name', 'email', 'location'));
 
         return redirect()->back()->with('success', 'Personal information updated successfully!');
     }
