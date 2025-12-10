@@ -186,6 +186,9 @@
     </div>
 </div>
 
+{{-- Include the edit profile modal --}}
+@include('partials.edit-modal')
+
 <style>
 /* --- THEME COLOR DEFINITIONS --- */
 :root {
@@ -449,6 +452,7 @@
     --theme-color: var(--theme-priority-color);
     background: #fff5f4;
 }
+
 .warning-icon { background: white; }
 .headline { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
 .subhead { font-size: 14px; color: var(--text-secondary); }

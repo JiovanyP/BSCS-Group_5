@@ -19,20 +19,23 @@ class Post extends Model
 
     /**
      * Make image & media_type fillable so controller can save them.
+     * UPDATED: Changed 'image' to 'image_url', removed 'admin_name'
      */
     protected $fillable = [
         'user_id',
+        'is_admin_post',
         'content',
         'location',
         'accident_type',
         'views',
-        'image',
+        'image_url',      // Changed from 'image'
         'media_type',
     ];
 
     protected $casts = [
         'user_id' => 'integer',
         'views' => 'integer',
+        'is_admin_post' => 'boolean',
     ];
 
     /*
@@ -45,6 +48,12 @@ class Post extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    // ADDED: Get the admin that created the post (if admin post)
+    public function admin()
+    {
+        return $this->belongsTo(\App\Models\Admin::class, 'user_id');
     }
 
     // Each post can have many likes (upvotes/downvotes)
@@ -88,7 +97,9 @@ class Post extends Model
     // Total number of comments (including replies)
     public function getTotalCommentsCountAttribute()
     {
-        return Comment::where('post_id', $this->id)->count();
+        return $this->comments()->count() + $this->comments()->with('replies')->get()->sum(function ($comment) {
+            return $comment->replies->count();
+        });
     }
 
     // Post score = upvotes - downvotes
@@ -112,21 +123,42 @@ class Post extends Model
 
     /**
      * Public URL for the post media (image/video/gif).
-     * Use this in blade: $post->image_url
+     * UPDATED: Now properly handles image_url with multiple formats
      */
-    public function getImageUrlAttribute()
+    public function getImageUrlAttribute($value)
     {
-        if (!$this->image) {
-            return null; // no media attached
+        // If no value, return null
+        if (empty($value)) {
+            return null;
         }
 
-        // If file exists in public storage, return storage path
-        if (Storage::disk('public')->exists($this->image)) {
-            return asset('storage/' . $this->image);
+        // If it's already a full URL (starts with http), return as is
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://')) {
+            return $value;
         }
 
-        // Fallback: if we stored absolute/other path, try returning it directly
-        return $this->image;
+        // If it starts with '/storage/', remove the leading slash and return asset URL
+        if (str_starts_with($value, '/storage/')) {
+            return asset(ltrim($value, '/'));
+        }
+
+        // If it already starts with 'storage/', return asset URL
+        if (str_starts_with($value, 'storage/')) {
+            return asset($value);
+        }
+
+        // Otherwise, prepend 'storage/' and return asset URL
+        return asset('storage/' . $value);
+    }
+
+    // ADDED: Get the display name for the post author
+    public function getAuthorNameAttribute()
+    {
+        if ($this->is_admin_post) {
+            return 'Admin'; // Always return "Admin" for admin posts
+        }
+        
+        return $this->user->name ?? 'Unknown User';
     }
 
     /*
@@ -149,6 +181,12 @@ class Post extends Model
         return $this->likes()->where('user_id', $userId)->value('vote_type') ?? 'none';
     }
 
+    // ADDED: Check if post is by admin
+    public function isAdminPost()
+    {
+        return $this->is_admin_post;
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Model Events (Cascade Deletes)
@@ -167,13 +205,32 @@ class Post extends Model
             // Delete reports related to this post (prevent orphaned reports)
             $post->reports()->delete();
 
-            // Delete stored media file if it exists in public disk (safe check)
-            if (!empty($post->image) && Storage::disk('public')->exists($post->image)) {
+            // Delete stored media file if it exists
+            // Check both image_url and legacy image column
+            $imagePath = null;
+            
+            // Get the raw attribute value (not the accessor)
+            if (!empty($post->attributes['image_url'])) {
+                $imagePath = $post->attributes['image_url'];
+                
+                // If it starts with http, skip deletion (external URL)
+                if (str_starts_with($imagePath, 'http://') || str_starts_with($imagePath, 'https://')) {
+                    return;
+                }
+                
+                // Remove 'storage/' prefix if present
+                $imagePath = str_replace('storage/', '', $imagePath);
+            } elseif (!empty($post->attributes['image'])) {
+                // Legacy column support
+                $imagePath = $post->attributes['image'];
+            }
+
+            if ($imagePath && Storage::disk('public')->exists($imagePath)) {
                 try {
-                    Storage::disk('public')->delete($post->image);
+                    Storage::disk('public')->delete($imagePath);
                 } catch (\Throwable $e) {
-                    // Prevent fatal if file delete fails (e.g., permission or missing file)
-                    // Optionally log this in production.
+                    // Prevent fatal if file delete fails
+                    \Log::warning("Failed to delete post image: {$imagePath}", ['error' => $e->getMessage()]);
                 }
             }
         });

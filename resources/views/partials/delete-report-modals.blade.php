@@ -1,7 +1,118 @@
-{{-- Delete & Report Modals Partial --}}
+{{-- Delete & Report Modals Partial - FULLY FIXED --}}
 {{-- Place in resources/views/partials/delete-report-modals.blade.php --}}
 
-<!-- Delete Confirmation Modal -->
+<style>
+/* Modal close button - NO WHITE BACKGROUND */
+.modal .close {
+    background: transparent !important;
+    border: none !important;
+    opacity: 1 !important;
+    padding: 0 !important;
+    margin: -1rem -1rem -1rem auto !important;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    text-shadow: none !important;
+    transition: opacity 0.2s ease;
+    box-shadow: none !important;
+    cursor: pointer;
+}
+
+.modal .close:hover,
+.modal .close:focus {
+    opacity: 0.75;
+    background: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Delete modal styling */
+#deleteModal .modal-header {
+    background-color: #dc3545;
+    color: white;
+    border-bottom: none;
+}
+
+#deleteModal .modal-header .close {
+    color: white !important;
+}
+
+#deleteModal .modal-body {
+    padding: 1.5rem;
+}
+
+#deleteModal .modal-footer {
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+#deleteModal .btn-secondary {
+    background: #6c757d;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+#deleteModal .btn-danger {
+    background: #dc3545;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+/* Report modal styling */
+#reportModal .modal-header {
+    background: #ffc107;
+    color: #000;
+    border-bottom: none;
+}
+
+#reportModal .modal-header .close {
+    color: #000 !important;
+}
+
+#reportModal .form-check {
+    padding: 12px;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+}
+
+#reportModal .form-check:hover {
+    background: #f8f9fa;
+}
+
+#reportModal .modal-footer {
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+#reportModal .btn-secondary {
+    background: #6c757d;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+#reportModal .btn-warning {
+    background: #ffc107;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    color: #000;
+}
+</style>
+
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -27,7 +138,6 @@
     </div>
 </div>
 
-<!-- Report Modal -->
 <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -84,7 +194,6 @@
     </div>
 </div>
 
-<!-- Success Toast Notification -->
 <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
     <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">

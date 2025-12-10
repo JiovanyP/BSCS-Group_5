@@ -8,22 +8,20 @@
   <title>@yield('title','Admin') — Publ.</title>
 
   {{-- Fonts / Icons --}}
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap
-" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons
-" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
   {{-- Bootstrap (kept) --}}
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css
-">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 
   <style>
     :root {
       --bg: #0b0f12;
       --panel: #101618;
-      --panel-opaque: #0f1416; /* solid bg for sidebar so it won't visually blend */
+      --panel-opaque: #0f1416;
       --muted: #98a0a8;
       --accent: #CF0F47;
+      --admin-pink: #FF69B4;
       --card-radius: 12px;
       --shadow: 0 12px 40px rgba(2,6,12,0.6);
       --sidebar-width: 260px;
@@ -42,7 +40,6 @@
       overflow-x: hidden;
     }
 
-    /* WRAPPER */
     .admin-wrap {
       display: flex;
       min-height: 100vh;
@@ -51,10 +48,9 @@
       background: var(--bg);
     }
 
-    /* SIDEBAR - fixed on left */
     .admin-sidebar {
       width: var(--sidebar-width);
-      background: var(--panel-opaque); /* use opaque background so main won't show through */
+      background: var(--panel-opaque);
       color: var(--muted);
       height: 100vh;
       position: fixed;
@@ -69,16 +65,14 @@
       transition: transform 0.28s ease, width 0.28s ease, left 0.28s ease;
     }
 
-    /* collapsed state for desktop */
     .admin-sidebar.closed {
-      width: 72px; /* narrow collapsed width showing icons (if you use icons later) */
+      width: 72px;
       transform: none;
       overflow: hidden;
       padding-left: 10px;
       padding-right: 10px;
     }
 
-    /* slide-in state for mobile */
     .admin-sidebar.open {
       transform: translateX(0);
     }
@@ -105,7 +99,6 @@
     .brand-name { font-weight: 700; }
     .brand-sub { font-size: 12px; color: var(--muted); }
 
-    /* NAV */
     .admin-nav {
       display: flex;
       flex-direction: column;
@@ -133,7 +126,6 @@
       transform: translateX(4px);
     }
 
-    /* MAIN content */
     .admin-main {
       margin-left: var(--sidebar-width);
       width: calc(100% - var(--sidebar-width));
@@ -144,7 +136,6 @@
       min-height: 100vh;
     }
 
-    /* when sidebar is collapsed on desktop */
     .admin-main.sidebar-collapsed {
       margin-left: 72px;
       width: calc(100% - 72px);
@@ -185,9 +176,8 @@
       color: #fff;
     }
 
-    /* Overlay - hidden by default on desktop */
     .sidebar-overlay {
-      display: none; /* default hidden on desktop */
+      display: none;
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
@@ -203,7 +193,6 @@
       visibility: visible;
     }
 
-    /* MOBILE / small screens */
     @media (max-width: 900px) {
       .admin-sidebar {
         transform: translateX(-100%);
@@ -215,11 +204,6 @@
         left: 0;
       }
 
-      .admin-sidebar.closed {
-        /* closed does not apply on mobile */
-      }
-
-      /* On mobile the main area should be full width */
       .admin-main {
         margin-left: 0;
         width: 100%;
@@ -235,7 +219,7 @@
       }
 
       .sidebar-overlay {
-        display: block; /* enable overlay on mobile */
+        display: block;
       }
     }
   </style>
@@ -257,6 +241,7 @@
 
         <nav class="admin-nav" role="navigation" aria-label="Admin navigation">
           <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">🏠 Dashboard</a>
+          <a href="{{ route('admin.posts.create') }}" class="{{ request()->routeIs('admin.posts.create') ? 'active' : '' }}">✏️ Create Post</a>
           <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">⚠️ Reports</a>
           {{-- Notifications removed per request --}}
           <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">👥 Manage Users</a>
@@ -307,11 +292,9 @@
 
       const DESKTOP_BREAK = 900;
 
-      // Apply desktop collapsed state
       const applyDesktopCollapse = (collapsed) => {
         if (collapsed) {
           sidebar.classList.add('closed');
-          // adjust main content classes
           main.classList.add('sidebar-collapsed');
           toggle.setAttribute('aria-expanded', 'false');
         } else {
@@ -321,7 +304,6 @@
         }
       };
 
-      // Open mobile overlay sidebar
       const openMobileSidebar = () => {
         sidebar.classList.add('open');
         overlay.classList.add('active');
@@ -334,20 +316,16 @@
         overlay.setAttribute('aria-hidden', 'true');
       };
 
-      // Toggle handler: behave differently on mobile and desktop
       toggle.addEventListener("click", () => {
         if (window.innerWidth <= DESKTOP_BREAK) {
-          // mobile — slide sidebar over content and show overlay
           if (sidebar.classList.contains('open')) closeMobileSidebar();
           else openMobileSidebar();
         } else {
-          // desktop — collapse/expand sidebar (no overlay)
           const isCollapsed = sidebar.classList.contains('closed');
           applyDesktopCollapse(!isCollapsed);
         }
       });
 
-      // overlay click (mobile only) closes sidebar
       overlay.addEventListener("click", () => {
         if (window.innerWidth <= DESKTOP_BREAK) closeMobileSidebar();
       });
@@ -356,46 +334,34 @@
         if (e.key === "Escape") {
           if (window.innerWidth <= DESKTOP_BREAK) closeMobileSidebar();
           else {
-            // on desktop pressing ESC will expand sidebar if collapsed
             applyDesktopCollapse(false);
           }
         }
       });
 
-      // Reset states on resize so overlay doesn't get stuck and margins stay correct
       const resetSidebarOnResize = () => {
         if (window.innerWidth > DESKTOP_BREAK) {
-          // Desktop: ensure overlay is hidden, allow collapse feature
           overlay.classList.remove('active');
           overlay.setAttribute('aria-hidden','true');
-          sidebar.classList.remove('open'); // remove mobile open
-          // ensure .closed class remains whatever user toggled it to OR set default expanded:
-          // (we'll default to expanded on larger screens)
+          sidebar.classList.remove('open');
           if (!sidebar.classList.contains('closed')) {
-            // already expanded — ensure main has correct margin
             main.classList.remove('sidebar-collapsed');
           } else {
-            // if closed then keep collapsed styling
             main.classList.add('sidebar-collapsed');
           }
         } else {
-          // Mobile: ensure collapsed desktop state doesn't interfere
           sidebar.classList.remove('closed');
           main.classList.remove('sidebar-collapsed');
-          // don't auto-open sidebar on mobile
           sidebar.classList.remove('open');
           overlay.classList.remove('active');
           overlay.setAttribute('aria-hidden','true');
         }
       };
 
-      // initialize on load with default expanded desktop sidebar
       const init = () => {
         if (window.innerWidth > DESKTOP_BREAK) {
-          // start expanded on desktop
           applyDesktopCollapse(false);
         } else {
-          // mobile defaults
           sidebar.classList.remove('closed');
           sidebar.classList.remove('open');
           overlay.classList.remove('active');
@@ -412,6 +378,3 @@
   @stack('scripts')
 </body>
 </html>
-Write to Negi Alcait
-
-

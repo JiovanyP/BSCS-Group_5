@@ -68,7 +68,7 @@ class PostController extends Controller
     /**
      * Store new post (with optional media and location).
      */
-    public function store(Request $request)
+        public function store(Request $request)
     {
         $request->validate([
             'content'             => 'required|string|max:1000',
@@ -96,7 +96,7 @@ class PostController extends Controller
             'content'       => $request->content,
             'accident_type' => $request->final_accident_type,
             'location'      => $request->final_location,
-            'image'         => $imagePath,
+            'image_url'     => $imagePath, // ✅ changed from 'image'
             'media_type'    => $mediaType,
         ]);
 
@@ -104,7 +104,6 @@ class PostController extends Controller
 
         return redirect()->route('timeline')->with('success', 'Post created successfully!');
     }
-
     /**
      * Show a single post view.
      */
@@ -289,45 +288,64 @@ class PostController extends Controller
     /**
      * Update post.
      */
+public function update(Request $request, Post $post)
+    {
+        $this->authorize('update', $post);
 
-    public function update(Request $request, Post $post)
-        {
-            $this->authorize('update', $post);
+        // 1. Combine Validation Rules
+        $request->validate([
+            'content'        => 'required|string|max:1000',
+            'accident_type'  => 'required|string|max:100',
+            'location'       => 'required|string|max:255',
+            'other_type'     => 'nullable|string|max:100', 
+            'other_location' => 'nullable|string|max:255',
+            'image'          => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
+        ]);
 
-            $request->validate([
-                'content'        => 'required|string|max:1000',
-                'accident_type'  => 'required|string|max:100',
-                'location'       => 'required|string|max:255',
-                'other_type'     => 'nullable|string|max:100', // We validate it...
-                'other_location' => 'nullable|string|max:255', // ...but we merge it below
-                'image'          => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
-            ]);
+        // 2. Image Handling (Using logic from feat/ui for cleanup + correct column name)
+        $imagePath = $post->image_url; // consistent with store() method
+        $mediaType = $post->media_type;
 
-            // ... [Insert your existing Image Handling code here] ...
-            $imagePath = $post->image;
-            $mediaType = $post->media_type;
-            // ...
+        if ($request->hasFile('image')) {
+            // Delete old image if it exists
+            if ($post->image_url && Storage::disk('public')->exists($post->image_url)) {
+                Storage::disk('public')->delete($post->image_url);
+            }
 
-            // === OVERWRITE LOGIC ===
-            // If dropdown is 'Others', use the text input instead.
-            $finalAccidentType = ($request->accident_type === 'Others') 
-                ? $request->other_type 
-                : $request->accident_type;
+            $file = $request->file('image');
+            $extension = strtolower($file->getClientOriginalExtension());
 
-            $finalLocation = ($request->location === 'Others') 
-                ? $request->other_location 
-                : $request->location;
+            if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
+                $mediaType = 'image';
+            } elseif ($extension === 'gif') {
+                $mediaType = 'gif';
+            } elseif (in_array($extension, ['mp4', 'mov', 'avi', 'webm'])) {
+                $mediaType = 'video';
+            }
 
-            $post->update([
-                'content'       => $request->content,
-                'accident_type' => $finalAccidentType, // Saves "Tornado" directly
-                'location'      => $finalLocation,     // Saves "My House" directly
-                'image'         => $imagePath,
-                'media_type'    => $mediaType,
-            ]);
-
-            return redirect()->route('timeline')->with('success', 'Post updated successfully!');
+            $imagePath = $file->store('posts', 'public');
         }
+
+        // 3. Business Logic for "Others" (From main branch)
+        $finalAccidentType = ($request->accident_type === 'Others') 
+            ? $request->other_type 
+            : $request->accident_type;
+
+        $finalLocation = ($request->location === 'Others') 
+            ? $request->other_location 
+            : $request->location;
+
+        // 4. Update the Post
+        $post->update([
+            'content'       => $request->content,
+            'accident_type' => $finalAccidentType,
+            'location'      => $finalLocation,
+            'image_url'     => $imagePath, // Corrected to image_url
+            'media_type'    => $mediaType,
+        ]);
+
+        return redirect()->route('timeline')->with('success', 'Post updated successfully!');
+    }
     /**
      * Delete a post (uses policy for auth + model cascade cleanup).
      */
