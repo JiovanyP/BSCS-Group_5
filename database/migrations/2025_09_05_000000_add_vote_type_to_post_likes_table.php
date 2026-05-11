@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('post_likes', function (Blueprint $table) {
-            $table->enum('vote_type', ['up', 'down'])->default('up');
-        });
+        // Check if the column exists first
+        if (!Schema::hasColumn('post_likes', 'vote_type')) {
+            Schema::table('post_likes', function (Blueprint $table) {
+                $table->enum('vote_type', ['up', 'down'])->default('up');
+            });
+        }
     }
 
     /**
@@ -21,8 +24,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('post_likes', function (Blueprint $table) {
-            $table->dropColumn('vote_type');
-        });
+        // Check if the column exists before trying to drop it
+        if (Schema::hasColumn('post_likes', 'vote_type')) {
+            Schema::table('post_likes', function (Blueprint $table) {
+                $table->dropColumn('vote_type');
+            });
+        }
     }
 };

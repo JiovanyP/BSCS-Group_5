@@ -6,7 +6,6 @@
 @section('content')
 @php
     use Illuminate\Support\Str;
-    $adminId = optional(Auth::guard('admin')->user())->id;
 @endphp
 
 <style>
@@ -14,13 +13,14 @@
   --bg-primary: #0B1416;
   --bg-secondary: #1A1A1B;
   --bg-hover: #272729;
+  --bg-dropdown: #202022;
   --border: #343536;
   --text-primary: #D7DADC;
   --text-secondary: #818384;
   --accent-blue: #0079D3;
   --accent-red: #FF4500;
   --accent-green: #46D160;
-  --card-radius: 8px;
+  --card-radius: 6px;
 }
 
 body {
@@ -36,28 +36,27 @@ body {
 
 /* Header Section */
 .page-header {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .page-header h1 {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 500;
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
   color: var(--text-primary);
 }
 
 .page-header .subtitle {
   color: var(--text-secondary);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13px;
 }
 
 /* Filter Bar */
 .filter-bar {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
@@ -65,12 +64,12 @@ body {
 .filter-bar select {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 8px 16px;
+  border-radius: 4px;
+  padding: 6px 12px;
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: 13px;
   outline: none;
-  transition: all 0.2s;
+  height: 36px;
 }
 
 .filter-bar input[type="search"] {
@@ -79,27 +78,17 @@ body {
   max-width: 400px;
 }
 
-.filter-bar input[type="search"]:focus,
-.filter-bar select:focus {
-  border-color: var(--accent-blue);
-  background: var(--bg-hover);
-}
-
-.filter-bar select {
-  padding-right: 32px;
-  cursor: pointer;
-}
-
 .filter-btn {
   background: var(--accent-blue);
   color: white;
   border: none;
-  border-radius: 20px;
-  padding: 8px 24px;
-  font-size: 14px;
+  border-radius: 4px;
+  padding: 0 20px;
+  height: 36px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s;
 }
 
 .filter-btn:hover {
@@ -110,18 +99,27 @@ body {
 .users-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .user-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--card-radius);
-  padding: 16px;
-  transition: all 0.2s;
+  padding: 10px 14px;
+  transition: background 0.2s;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
+  position: relative;
+  z-index: 1; /* Default stack level */
+}
+
+/* Lift active row above others so dropdown isn't clipped */
+.user-card.row-active {
+  z-index: 100 !important;
+  border-color: var(--text-secondary);
+  background: var(--bg-hover);
 }
 
 .user-card:hover {
@@ -131,8 +129,8 @@ body {
 
 /* Avatar */
 .user-avatar {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: linear-gradient(135deg, #FF4500, #FF8717);
   display: flex;
@@ -140,7 +138,7 @@ body {
   justify-content: center;
   color: white;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 14px;
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -155,39 +153,35 @@ body {
 .user-info {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
 }
 
 .user-name {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 4px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .user-email {
   font-size: 12px;
   color: var(--text-secondary);
-  margin: 0 0 4px 0;
 }
 
-.user-meta {
-  font-size: 12px;
-  color: var(--text-secondary);
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-/* Badges & Pills */
+/* Badges */
 .role-badge {
-  display: inline-block;
   background: rgba(255, 255, 255, 0.1);
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
   color: var(--text-secondary);
@@ -196,33 +190,23 @@ body {
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 16px;
-  font-size: 12px;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
+  margin-right: 8px;
 }
 
-.status-badge.active {
-  background: rgba(70, 209, 96, 0.15);
-  color: var(--accent-green);
-}
-
-.status-badge.suspended {
-  background: rgba(255, 159, 10, 0.15);
-  color: #FF9F0A;
-}
-
-.status-badge.banned {
-  background: rgba(255, 69, 0, 0.15);
-  color: var(--accent-red);
-}
+.status-badge.active { color: var(--accent-green); background: rgba(70, 209, 96, 0.1); }
+.status-badge.suspended { color: #FF9F0A; background: rgba(255, 159, 10, 0.1); }
+.status-badge.banned { color: var(--accent-red); background: rgba(255, 69, 0, 0.1); }
 
 .status-badge::before {
   content: '';
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: currentColor;
 }
@@ -231,207 +215,134 @@ body {
 .user-stats {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 0 16px;
-}
-
-.stat-item {
-  text-align: center;
-  min-width: 60px;
+  gap: 12px;
+  padding: 0 12px;
+  border-right: 1px solid var(--border);
+  margin-right: 8px;
 }
 
 .stat-value {
-  display: block;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .stat-label {
-  display: block;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-secondary);
   text-transform: uppercase;
-  margin-top: 2px;
+  margin-left: 4px;
 }
 
-/* Actions */
-.user-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
+/* --- Action Menu & Dropdown --- */
+.action-menu-container {
+  position: relative;
 }
 
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  border: 1px solid var(--border);
+.menu-trigger-btn {
   background: transparent;
-  color: var(--text-primary);
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
-  white-space: nowrap;
+  position: relative;
+  z-index: 20;
 }
 
-.action-btn:hover:not(:disabled) {
+.menu-trigger-btn:hover, .menu-trigger-btn.active {
   background: var(--bg-hover);
-  border-color: var(--text-primary);
+  color: var(--text-primary);
+  border-color: var(--border);
 }
 
-.action-btn:disabled {
-  opacity: 0.4;
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;   /* Anchors menu to the right edge */
+  left: auto; /* Prevents overflow off-screen */
+  margin-top: 4px;
+  background: var(--bg-dropdown);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  width: 160px;
+  z-index: 200;
+  display: none;
+  overflow: hidden;
+  padding: 4px 0;
+}
+
+.dropdown-menu.show {
+  display: block;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-decoration: none;
+}
+
+.dropdown-item:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.dropdown-item:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.action-btn.view {
-  color: var(--accent-blue);
-  border-color: var(--accent-blue);
-}
-
-.action-btn.view:hover:not(:disabled) {
-  background: rgba(0, 121, 211, 0.1);
-}
-
-.action-btn.suspend {
-  color: #FF9F0A;
-  border-color: #FF9F0A;
-}
-
-.action-btn.suspend:hover:not(:disabled) {
-  background: rgba(255, 159, 10, 0.1);
-}
-
-.action-btn.ban {
-  color: var(--accent-red);
-  border-color: var(--accent-red);
-}
-
-.action-btn.ban:hover:not(:disabled) {
-  background: rgba(255, 69, 0, 0.1);
-}
-
-.action-btn.restore {
-  color: var(--accent-green);
-  border-color: var(--accent-green);
-}
-
-.action-btn.restore:hover:not(:disabled) {
-  background: rgba(70, 209, 96, 0.1);
-}
-
-.action-btn.delete {
-  color: var(--accent-red);
-}
-
-.action-btn .material-icons {
-  font-size: 16px;
-}
-
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
+.dropdown-item .material-icons {
+  font-size: 18px;
   color: var(--text-secondary);
 }
 
-.empty-state .material-icons {
-  font-size: 64px;
-  opacity: 0.3;
-  margin-bottom: 16px;
+.dropdown-item:hover .material-icons {
+  color: var(--text-primary);
+}
+
+.dropdown-item.text-red:hover { background: rgba(255, 69, 0, 0.1); color: var(--accent-red); }
+.dropdown-item.text-red .material-icons { color: var(--accent-red); }
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
 }
 
 /* Pagination */
 .pagination-wrapper {
-  margin-top: 24px;
-  padding: 16px;
+  margin-top: 20px;
   text-align: center;
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .user-stats {
-    display: none;
-  }
-  
-  .user-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .action-btn {
-    justify-content: center;
-    width: 100%;
-  }
-}
-
+/* Responsive */
 @media (max-width: 768px) {
-  .users-container {
-    padding: 12px;
-  }
-  
-  .page-header h1 {
-    font-size: 22px;
-  }
-  
-  .filter-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .filter-bar input[type="search"],
-  .filter-bar select {
-    max-width: 100%;
-    width: 100%;
-  }
-  
-  .user-card {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 12px;
-  }
-  
-  .user-info {
-    width: 100%;
-  }
-  
-  .user-actions {
-    width: 100%;
-    margin-top: 8px;
-  }
-  
-  .user-meta {
-    font-size: 11px;
-  }
-}
-
-@media (max-width: 480px) {
-  .user-avatar {
-    width: 40px;
-    height: 40px;
-    font-size: 16px;
-  }
-  
-  .action-btn {
-    padding: 8px 12px;
-    font-size: 12px;
-  }
-  
-  .action-btn .material-icons {
-    font-size: 14px;
-  }
+  .user-stats { display: none; }
+  .user-info { flex-direction: column; align-items: flex-start; }
+  .user-name-row { flex-wrap: wrap; }
 }
 </style>
 
 <div class="users-container">
   <div class="page-header">
     <h1>Manage Users</h1>
-    <div class="subtitle">View and moderate user accounts across your platform</div>
+    <div class="subtitle">Moderate user accounts</div>
   </div>
 
   <form method="get" action="{{ route('admin.users.index') }}">
@@ -439,12 +350,11 @@ body {
       <input 
         type="search" 
         name="q" 
-        placeholder="Search users..." 
+        placeholder="Search..." 
         value="{{ request('q') }}"
-        aria-label="Search users by name or email"
       >
       
-      <select name="status" aria-label="Filter by status">
+      <select name="status">
         <option value="">All Status</option>
         <option value="active" {{ request('status')=='active' ? 'selected' : '' }}>Active</option>
         <option value="suspended" {{ request('status')=='suspended' ? 'selected' : '' }}>Suspended</option>
@@ -456,112 +366,131 @@ body {
   </form>
 
   @if(empty($users) || ($users instanceof \Illuminate\Support\Collection && $users->isEmpty()))
-    <div class="empty-state">
-      <span class="material-icons">people_outline</span>
+    <div class="empty-state" style="text-align:center; padding: 40px; color: var(--text-secondary);">
+      <span class="material-icons" style="font-size: 48px; opacity:0.3;">people_outline</span>
       <div>No users found</div>
     </div>
   @else
-    <div class="users-list" role="list" aria-label="Users list">
+    <div class="users-list">
       @foreach($users as $user)
         @php
-          $status = $user->status ?? 'active';
-          $isSelfAdmin = ($adminId && ($adminId === ($user->id ?? null)));
+            // 1. Get status directly from User model
+            $status = $user->status ?? 'active';
+            
+            // 2. Safe ID comparison for "Self" check (Loose comparison == handles string/int mismatch)
+            $currentAdminId = Auth::guard('admin')->id();
+            $isSelf = ($currentAdminId && $currentAdminId == $user->id);
+
+            // 3. Define boolean states for cleaner template logic
+            $isSuspended = ($status === 'suspended');
+            $isBanned    = ($status === 'banned');
+            $isActive    = ($status === 'active');
         @endphp
         
-        <div class="user-card" id="user-row-{{ $user->id }}" role="listitem">
-          <div class="user-avatar" aria-hidden="true">
+        <div class="user-card" id="user-row-{{ $user->id }}" data-user-id="{{ $user->id }}">
+          
+          {{-- Avatar --}}
+          <div class="user-avatar">
             @if(!empty($user->avatar))
-              <img src="{{ asset('storage/'.$user->avatar) }}" alt="{{ $user->name }}">
+                {{-- Use avatar_url accessor if available, else standard asset path --}}
+                <img src="{{ $user->avatar_url ?? asset('storage/'.$user->avatar) }}" alt="{{ $user->name }}">
             @else
-              {{ strtoupper(substr($user->name ?? 'U',0,1)) }}
+                {{ strtoupper(substr($user->name ?? 'U',0,1)) }}
             @endif
           </div>
 
+          {{-- Info --}}
           <div class="user-info">
-            <div class="user-name">
-              {{ $user->name ?? '—' }}
+            <div class="user-name-row">
+              <span class="user-name">{{ $user->name ?? '—' }}</span>
               <span class="role-badge">{{ $user->role ?? 'user' }}</span>
+              <span class="status-badge {{ $status }}">{{ ucfirst($status) }}</span>
             </div>
             <div class="user-email">{{ $user->email ?? '—' }}</div>
-            <div class="user-meta">
-              <span>Joined {{ optional($user->created_at)->diffForHumans() }}</span>
-              <span>•</span>
-              <span>{{ $user->posts_count ?? ($user->posts->count() ?? 0) }} posts</span>
-            </div>
           </div>
 
+          {{-- Stats --}}
           <div class="user-stats">
-            <div class="stat-item">
-              <span class="stat-value">{{ $user->posts_count ?? ($user->posts->count() ?? 0) }}</span>
-              <span class="stat-label">Posts</span>
-            </div>
+            <span class="stat-value">{{ $user->posts_count ?? 0 }}</span>
+            <span class="stat-label">Posts</span>
           </div>
 
-          <div class="status-badge {{ $status }}">
-            {{ ucfirst($status) }}
-          </div>
-
-          <div class="user-actions" role="group" aria-label="Actions for {{ $user->name }}">
-            <a 
-              href="{{ route('admin.users.show', ['user' => $user->id]) ?? '#' }}" 
-              class="action-btn view"
-              title="View user"
-            >
-              <span class="material-icons">visibility</span>
-              <span>View</span>
-            </a>
-
-            <button
-              class="action-btn suspend btn-suspend"
-              title="Suspend user"
-              data-action="{{ route('admin.users.suspend', ['user' => $user->id]) }}"
-              data-user-id="{{ $user->id }}"
-              {{ $isSelfAdmin ? 'disabled' : '' }}
-            >
-              <span class="material-icons">pause_circle</span>
-              <span>Suspend</span>
+          {{-- Action Dropdown --}}
+          <div class="action-menu-container">
+            <button type="button" class="menu-trigger-btn" onclick="toggleDropdown('dropdown-{{ $user->id }}', this, event)">
+              <span class="material-icons">more_vert</span>
             </button>
 
-            <button
-              class="action-btn ban btn-ban"
-              title="Ban user"
-              data-action="{{ route('admin.users.ban', ['user' => $user->id]) }}"
-              data-user-id="{{ $user->id }}"
-              {{ $isSelfAdmin ? 'disabled' : '' }}
-            >
-              <span class="material-icons">block</span>
-              <span>Ban</span>
-            </button>
+            <div id="dropdown-{{ $user->id }}" class="dropdown-menu">
+              
+              {{-- View Profile --}}
+              <a href="{{ route('admin.users.show', ['user' => $user->id]) }}" class="dropdown-item">
+                <span class="material-icons">visibility</span> View Profile
+              </a>
 
-            <button
-              class="action-btn restore btn-restore"
-              title="Restore user"
-              data-action="{{ route('admin.users.restore', ['user' => $user->id]) }}"
-              data-user-id="{{ $user->id }}"
-              {{ ($status === 'active' || $isSelfAdmin) ? 'disabled' : '' }}
-            >
-              <span class="material-icons">refresh</span>
-              <span>Restore</span>
-            </button>
+              <div class="dropdown-divider"></div>
 
-            <form 
-              method="POST" 
-              action="{{ route('admin.users.destroy', ['user' => $user->id]) }}" 
-              style="display:inline-block; margin: 0;"
-            >
-              @csrf
-              @method('DELETE')
-              <button 
-                type="submit" 
-                class="action-btn delete" 
-                title="Delete user" 
-                onclick="return confirm('Delete this user? This action cannot be undone.');" 
-                {{ $isSelfAdmin ? 'disabled' : '' }}
+              {{-- Suspend --}}
+              <button
+                type="button"
+                class="dropdown-item js-action-btn btn-suspend"
+                data-url="{{ route('admin.users.suspend', ['user' => $user->id]) }}"
+                data-action="suspend"
+                data-confirm="Are you sure you want to suspend this user?"
+                {{ ($isSelf || $isSuspended || $isBanned) ? 'disabled' : '' }}
+                title="{{ $isSelf ? 'Cannot suspend self' : ($isSuspended ? 'Already suspended' : '') }}"
               >
-                <span class="material-icons">delete_outline</span>
-                <span>Delete</span>
+                <span class="material-icons">pause_circle</span> Suspend User
               </button>
-            </form>
+
+              {{-- Ban --}}
+              <button
+                type="button"
+                class="dropdown-item js-action-btn btn-ban"
+                data-url="{{ route('admin.users.ban', ['user' => $user->id]) }}"
+                data-action="ban"
+                data-confirm="Are you sure you want to permanently BAN this user?"
+                {{ ($isSelf || $isBanned) ? 'disabled' : '' }}
+                title="{{ $isSelf ? 'Cannot ban self' : ($isBanned ? 'Already banned' : '') }}"
+              >
+                <span class="material-icons">block</span> Ban User
+              </button>
+
+              {{-- Restore --}}
+              <button
+                type="button"
+                class="dropdown-item js-action-btn btn-restore"
+                data-url="{{ route('admin.users.restore', ['user' => $user->id]) }}"
+                data-action="restore"
+                data-confirm="Restore this user to active status?"
+                {{ ($isSelf || $isActive) ? 'disabled' : '' }}
+                title="{{ $isActive ? 'Already active' : '' }}"
+              >
+                <span class="material-icons">refresh</span> Restore User
+              </button>
+
+              <div class="dropdown-divider"></div>
+
+              {{-- Delete --}}
+              <form 
+                method="POST" 
+                action="{{ route('admin.users.destroy', ['user' => $user->id]) }}" 
+                style="margin: 0;"
+              >
+                @csrf
+                @method('DELETE')
+                <button 
+                  type="submit" 
+                  class="dropdown-item text-red" 
+                  onclick="return confirm('Delete this user? This action cannot be undone.');" 
+                  {{ $isSelf ? 'disabled' : '' }}
+                  title="{{ $isSelf ? 'Cannot delete self' : '' }}"
+                >
+                  <span class="material-icons">delete_outline</span> Delete Account
+                </button>
+              </form>
+
+            </div>
           </div>
         </div>
       @endforeach
@@ -575,104 +504,114 @@ body {
   @endif
 </div>
 
-@push('scripts')
+{{-- Inline script to ensure functionality without external deps --}}
 <script>
-(function(){
-  'use strict';
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // --- 1. Dropdown Toggle Logic ---
+    window.toggleDropdown = function(id, btn, e) {
+        if(e) e.stopPropagation();
+        
+        // Close others
+        document.querySelectorAll('.dropdown-menu.show').forEach(m => {
+            if(m.id !== id) m.classList.remove('show');
+        });
+        document.querySelectorAll('.menu-trigger-btn.active').forEach(b => {
+            if(b !== btn) b.classList.remove('active');
+        });
+        document.querySelectorAll('.user-card.row-active').forEach(r => {
+             r.classList.remove('row-active');
+        });
 
-  if (typeof $ === 'undefined') {
-    console.error('jQuery required for admin users actions.');
-    return;
-  }
-
-  $.ajaxSetup({
-    headers: {
-      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-      'Accept': 'application/json'
-    }
-  });
-
-  function handleAction($btn, opts) {
-    opts = opts || {};
-    const action = $btn.data('action');
-    const userId = $btn.data('user-id');
-
-    if (!action) {
-      console.error('No action URL found on button', $btn);
-      return;
-    }
-
-    const defaultConfirm = opts.confirmMessage || 'Are you sure you want to perform this action?';
-    if (!confirm(defaultConfirm)) return;
-
-    $btn.prop('disabled', true).css('opacity', 0.6);
-
-    $.ajax({
-      url: action,
-      type: 'POST',
-      dataType: 'json',
-      success: function(res) {
-        if (res && res.success) {
-          const $statusBadge = $('#user-row-' + userId + ' .status-badge');
-          
-          if ($btn.hasClass('btn-suspend')) {
-            $statusBadge.removeClass('active banned').addClass('suspended').text('Suspended');
-            $btn.prop('disabled', true);
-            $('#user-row-' + userId + ' .btn-restore').prop('disabled', false).css('opacity', 1);
-          } else if ($btn.hasClass('btn-ban')) {
-            $statusBadge.removeClass('active suspended').addClass('banned').text('Banned');
-            $('#user-row-' + userId + ' .btn-suspend').prop('disabled', true);
-            $('#user-row-' + userId + ' .btn-restore').prop('disabled', false).css('opacity', 1);
-          } else if ($btn.hasClass('btn-restore')) {
-            $statusBadge.removeClass('suspended banned').addClass('active').text('Active');
-            $('#user-row-' + userId + ' .btn-suspend, #user-row-' + userId + ' .btn-ban').prop('disabled', false).css('opacity', 1);
-            $btn.prop('disabled', true);
-          }
-          
-          alert(res.message || 'Action completed successfully.');
+        // Toggle current
+        const menu = document.getElementById(id);
+        const row = btn.closest('.user-card');
+        
+        if (menu.classList.contains('show')) {
+            menu.classList.remove('show');
+            btn.classList.remove('active');
+            if(row) row.classList.remove('row-active');
         } else {
-          alert(res && res.message ? res.message : 'Unexpected response from server.');
+            menu.classList.add('show');
+            btn.classList.add('active');
+            if(row) row.classList.add('row-active');
         }
-      },
-      error: function(xhr) {
-        console.error('Action failed', xhr.responseText || xhr.statusText);
-        var msg = 'Action failed. ';
-        try {
-          var json = JSON.parse(xhr.responseText);
-          if (json && json.message) msg += json.message;
-        } catch(err){}
-        alert(msg);
-      },
-      complete: function() {
-        $btn.prop('disabled', false).css('opacity', 1);
-      }
+    };
+
+    // Close on click outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.action-menu-container')) {
+            document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+            document.querySelectorAll('.menu-trigger-btn.active').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.user-card.row-active').forEach(r => r.classList.remove('row-active'));
+        }
     });
-  }
 
-  $(document).on('click', '.btn-suspend', function(e){
-    e.preventDefault();
-    handleAction($(this), { confirmMessage: 'Suspend this user? They will be prevented from logging in.' });
-  });
+    // --- 2. AJAX Action Logic (Vanilla JS) ---
+    document.body.addEventListener('click', function(e) {
+        // Find the closest button with class 'js-action-btn'
+        const btn = e.target.closest('.js-action-btn');
+        if (!btn) return;
 
-  $(document).on('click', '.btn-ban', function(e){
-    e.preventDefault();
-    handleAction($(this), { confirmMessage: 'Ban this user permanently?' });
-  });
+        // Prevent default behavior
+        e.preventDefault();
 
-  $(document).on('click', '.btn-restore', function(e){
-    e.preventDefault();
-    handleAction($(this), { confirmMessage: 'Restore this user to active status?' });
-  });
+        // 1. Check Confirmation
+        const confirmMsg = btn.dataset.confirm || 'Are you sure?';
+        if (!confirm(confirmMsg)) return;
 
-  $(document).on('keydown', '.action-btn', function(e){
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      $(this).trigger('click');
-    }
-  });
+        // 2. Prepare Data
+        const url = btn.dataset.url;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-})();
+        if (!url || !csrfToken) {
+            alert('Error: Missing URL or CSRF Token');
+            return;
+        }
+
+        // 3. UI Loading State
+        const originalContent = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-icons" style="animation: spin 1s linear infinite;">refresh</span> Processing...';
+
+        // 4. Send Request
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Success: Reload page to reflect changes cleanly
+                window.location.reload(); 
+            } else {
+                alert(data.message || 'Action failed');
+                // Reset button on failure
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An unexpected error occurred.');
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+        });
+    });
+
+    // Add spinner style dynamically
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    `;
+    document.head.appendChild(style);
+
+});
 </script>
-@endpush
 
 @endsection

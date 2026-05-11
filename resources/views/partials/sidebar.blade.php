@@ -349,6 +349,10 @@ body {
                 </a>
             </li>
 
+            <li class="{{ request()->is('services*') ? 'active' : '' }}">
+                <a href="/services"><span class="material-icons">business_center</span> Services</a>
+            </li>
+
             <li class="{{ request()->is('notifications*') ? 'active' : '' }}">
                 <a href="{{ route('notifications') }}">
                     <span class="material-icons">notifications</span>
@@ -396,12 +400,11 @@ body {
         </div>
     </div>
 
-    <form action="{{ route('logout') }}" method="POST" class="mt-4">
-        @csrf
-        <button type="submit" class="btn btn-danger w-100">
-            <span class="material-symbols-outlined">logout</span>
-            Logout
-        </button>
+    <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+    @csrf
+    <button type="submit" class="your-logout-class">
+        <span class="material-icons">logout</span> Logout
+    </button>
     </form>
 </div>
 

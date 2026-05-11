@@ -16,6 +16,8 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
 use App\Models\User;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\Admin\ServiceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -157,6 +159,10 @@ Route::middleware('auth')->group(function () {
         return view('userExplore');
     })->name('userExplore');
 
+    // User Service Routes
+    Route::get('/services', [App\Http\Controllers\ServiceController::class, 'index'])->name('services.index');
+    Route::post('/services', [App\Http\Controllers\ServiceController::class, 'store'])->name('services.store');
+
     /** -----------------------
      * POST INTERACTIONS
      * ---------------------- */
@@ -252,6 +258,24 @@ Route::prefix('admin')
         Route::post('/users/{user}/restore', [AdminUserController::class, 'restore'])->name('users.restore');
         Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | ADMIN CHAT ROUTES
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+        Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+
+        /*
+        |--------------------------------------------------------------------------
+        | ADMIN SERVICE ROUTES (ADD THESE)
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+        Route::post('/services', [ServiceController::class, 'store'])->name('services.store');
+        Route::delete('/services/{service}', [ServiceController::class, 'destroy'])->name('services.destroy');
+        Route::post('/services/{service}/approve', [ServiceController::class, 'approve'])->name('services.approve');
         /** -----------------------
          * ADMIN ANALYTICS / SETTINGS
          * ---------------------- */

@@ -1,4 +1,7 @@
+{{-- resources/views/admin/settings.blade.php --}}
 @extends('layouts.admin')
+
+@section('title', 'Admin Settings')
 
 @section('content')
 @php
@@ -6,133 +9,124 @@
 @endphp
 
 <style>
+/* === THEME SYNC === */
 :root {
-  --bg-primary: #0B1416;
-  --bg-secondary: #1A1A1B;
-  --bg-hover: #272729;
-  --border: #343536;
-  --text-primary: #D7DADC;
-  --text-secondary: #818384;
-  --accent-red: #FF0558;
-  --accent-green: #46D160;
-  --card-radius: 8px;
+  --bg-card: #ffffff;
+  --accent: #CF0F47;
+  --accent-hover: #FF0B55;
+  --text-main: #111315;
+  --text-muted: #666666;
+  --border-light: #eeeeee;
+  --input-bg: #f8f9fa;
 }
 
-body {
-  background: var(--bg-primary);
-  color: var(--text-primary);
+/* Force Poppins */
+.settings-container, 
+.settings-card, 
+.form-input, 
+.btn, 
+.field-value {
+  font-family: 'Poppins', sans-serif !important;
 }
 
-/* Settings container - centered */
+/* Settings container */
 .settings-container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  padding-top: 10px;
 }
 
 /* Page header */
 .settings-header {
-  text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 30px;
 }
 
 .settings-header h1 {
-  font-size: 28px;
-  font-weight: 500;
-  margin: 0 0 8px 0;
-  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-main);
 }
 
 .settings-header .subtitle {
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: 14px;
 }
 
-/* Alert */
+/* Alert Success */
 .alert-success {
-  background: linear-gradient(135deg, #46D160, #3CB54A);
-  color: white;
-  border-radius: var(--card-radius);
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 12px;
   padding: 16px 20px;
   font-weight: 600;
-  box-shadow: 0 8px 24px rgba(70, 209, 96, 0.3);
   margin-bottom: 24px;
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.alert-success::before {
-  content: '✓';
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  font-weight: 700;
+  border: 1px solid #c8e6c9;
 }
 
 /* Settings cards */
 .settings-cards {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .settings-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent-red);
-  border-radius: var(--card-radius);
-  padding: 24px;
-  transition: all 0.2s;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  transition: all 0.3s ease;
 }
 
 .settings-card:hover {
-  background: var(--bg-hover);
-  border-color: var(--text-secondary);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 5, 88, 0.2);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
 }
 
 .card-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 20px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 24px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .card-title .material-icons {
-  font-size: 20px;
-  color: var(--accent-red);
+  font-size: 22px;
+  color: var(--accent);
 }
 
 /* Info fields */
 .info-field {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f8f9fa;
 }
 
 .info-field:last-child {
   margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .field-label {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: 11px;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
-  margin-bottom: 6px;
+  letter-spacing: 0.8px;
+  font-weight: 700;
+  margin-bottom: 4px;
 }
 
 .field-value {
   font-size: 15px;
-  color: var(--text-primary);
+  color: var(--text-main);
   font-weight: 500;
 }
 
@@ -141,13 +135,9 @@ body {
   margin-bottom: 20px;
 }
 
-.form-group:last-of-type {
-  margin-bottom: 0;
-}
-
 .form-label {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--text-main);
   font-weight: 600;
   margin-bottom: 8px;
   display: block;
@@ -156,10 +146,10 @@ body {
 .form-input {
   width: 100%;
   padding: 12px 16px;
-  border-radius: var(--card-radius);
-  border: 1px solid var(--border);
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  background: var(--input-bg);
+  color: var(--text-main);
   font-size: 14px;
   transition: all 0.2s;
   box-sizing: border-box;
@@ -167,19 +157,15 @@ body {
 
 .form-input:focus {
   outline: none;
-  border-color: var(--accent-red);
-  box-shadow: 0 0 0 3px rgba(255, 5, 88, 0.1);
-}
-
-.form-input::placeholder {
-  color: var(--text-secondary);
-  opacity: 0.5;
+  border-color: var(--accent);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(207, 15, 71, 0.1);
 }
 
 /* Radio buttons */
 .radio-group {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-top: 12px;
 }
@@ -188,123 +174,78 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: var(--card-radius);
+  padding: 14px;
+  background: #f8f9fa;
+  border: 1px solid #eee;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.radio-option:hover {
-  background: rgba(255, 255, 255, 0.05);
+.radio-option:has(input:checked) {
+  border-color: var(--accent);
+  background: #fff;
 }
 
 .radio-option input[type="radio"] {
   width: 18px;
   height: 18px;
-  cursor: pointer;
-  accent-color: var(--accent-red);
+  accent-color: var(--accent);
 }
 
 .radio-option label {
   cursor: pointer;
-  color: var(--text-primary);
+  color: var(--text-main);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   flex: 1;
 }
 
 /* Buttons */
-.btn {
+.btn-primary {
   width: 100%;
   padding: 12px 24px;
-  border-radius: var(--card-radius);
+  border-radius: 50px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   margin-top: 20px;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent-red), #D10447);
+  background: var(--accent);
   color: white;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #FF1E6B, var(--accent-red));
-  box-shadow: 0 8px 24px rgba(255, 5, 88, 0.4);
+  background: var(--accent-hover);
   transform: translateY(-2px);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
+  box-shadow: 0 6px 20px rgba(207, 15, 71, 0.25);
 }
 
 /* Error messages */
 .error-message {
-  color: #FF6B6B;
+  color: var(--accent);
   font-size: 12px;
   margin-top: 6px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.error-message::before {
-  content: '⚠';
-  font-size: 14px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .settings-container {
-    padding: 16px;
-  }
-
-  .settings-header h1 {
-    font-size: 24px;
-  }
-
-  .settings-card {
-    padding: 20px;
-  }
-
-  .card-title {
-    font-size: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .settings-container {
-    padding: 12px;
-  }
-
-  .settings-card {
-    padding: 16px;
-  }
-
-  .settings-header h1 {
-    font-size: 22px;
-  }
+  font-weight: 500;
 }
 </style>
 
 <div class="settings-container">
   <!-- Header -->
   <div class="settings-header">
-    <h1>Settings</h1>
-    <div class="subtitle">Manage your admin account and preferences</div>
+    <h1>Account Settings</h1>
+    <div class="subtitle">Update your administrator credentials and preferences</div>
   </div>
 
   <!-- Success Alert -->
   @if(session('success'))
     <div class="alert-success">
+      <span class="material-icons">check_circle</span>
       {{ session('success') }}
     </div>
   @endif
@@ -314,27 +255,27 @@ body {
     <!-- Account Information -->
     <div class="settings-card">
       <div class="card-title">
-        <span class="material-icons">account_circle</span>
-        Account Information
+        <span class="material-icons">manage_accounts</span>
+        Account Profile
       </div>
 
       <div class="info-field">
-        <div class="field-label">Name</div>
+        <div class="field-label">Full Name</div>
         <div class="field-value">{{ $admin->name ?? '—' }}</div>
       </div>
 
       <div class="info-field">
-        <div class="field-label">Email</div>
+        <div class="field-label">Email Address</div>
         <div class="field-value">{{ $admin->email ?? '—' }}</div>
       </div>
 
       <div class="info-field">
-        <div class="field-label">Last Login</div>
+        <div class="field-label">Last Session</div>
         <div class="field-value">
           @if($lastLogin)
-            {{ \Carbon\Carbon::parse($lastLogin)->format('M d, Y h:i A') }}
+            {{ \Carbon\Carbon::parse($lastLogin)->format('M d, Y — h:i A') }}
           @else
-            —
+            No recorded login
           @endif
         </div>
       </div>
@@ -344,15 +285,15 @@ body {
     <div class="settings-card">
       <div class="card-title">
         <span class="material-icons">palette</span>
-        Preferences
+        Display Preferences
       </div>
 
       <form action="{{ route('admin.settings.updateTheme') }}" method="POST">
         @csrf
-        <div class="form-label">Theme</div>
+        <div class="form-label">Active Theme</div>
         
         <div class="radio-group">
-          <div class="radio-option">
+          <label class="radio-option" for="dark-mode">
             <input 
               type="radio" 
               id="dark-mode" 
@@ -360,10 +301,10 @@ body {
               value="dark" 
               {{ ($settings['theme'] ?? 'dark') === 'dark' ? 'checked' : '' }}
             >
-            <label for="dark-mode">Dark Mode</label>
-          </div>
+            Dark Mode
+          </label>
           
-          <div class="radio-option">
+          <label class="radio-option" for="light-mode">
             <input 
               type="radio" 
               id="light-mode" 
@@ -371,13 +312,13 @@ body {
               value="light" 
               {{ ($settings['theme'] ?? 'dark') === 'light' ? 'checked' : '' }}
             >
-            <label for="light-mode">Light Mode</label>
-          </div>
+            Light Mode
+          </label>
         </div>
 
-        <button type="submit" class="btn btn-primary">
-          <span class="material-icons" style="font-size: 18px;">check</span>
-          Save Preference
+        <button type="submit" class="btn-primary">
+          <span class="material-icons" style="font-size: 18px;">save</span>
+          Save Theme Preference
         </button>
       </form>
     </div>
@@ -385,8 +326,8 @@ body {
     <!-- Change Password -->
     <div class="settings-card">
       <div class="card-title">
-        <span class="material-icons">lock</span>
-        Change Password
+        <span class="material-icons">lock_reset</span>
+        Security Update
       </div>
 
       <form action="{{ route('admin.settings.updatePassword') }}" method="POST">
@@ -399,7 +340,7 @@ body {
             id="current_password" 
             name="current_password" 
             class="form-input" 
-            placeholder="Enter your current password"
+            placeholder="Required to authorize changes"
             required
           >
           @error('current_password')
@@ -414,7 +355,7 @@ body {
             id="new_password" 
             name="new_password" 
             class="form-input" 
-            placeholder="Enter your new password"
+            placeholder="Minimum 8 characters"
             required
           >
           @error('new_password')
@@ -429,14 +370,14 @@ body {
             id="new_password_confirmation" 
             name="new_password_confirmation" 
             class="form-input" 
-            placeholder="Confirm your new password"
+            placeholder="Repeat new password"
             required
           >
         </div>
 
-        <button type="submit" class="btn btn-primary">
-          <span class="material-icons" style="font-size: 18px;">vpn_key</span>
-          Update Password
+        <button type="submit" class="btn-primary">
+          <span class="material-icons" style="font-size: 18px;">security</span>
+          Update Security Credentials
         </button>
       </form>
     </div>

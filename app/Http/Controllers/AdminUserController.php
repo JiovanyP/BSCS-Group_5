@@ -286,10 +286,19 @@ class AdminUserController extends Controller
         return back()->withErrors(['error' => $message]);
     }
 
+    /**
+     * Helper: Check if the target user is the currently logged-in admin.
+     * FIX: Uses loose comparison (==) to handle String vs Integer ID mismatches.
+     */
     protected function isCurrentAdminUser(User $user): bool
     {
         $admin = Auth::guard('admin')->user();
-        if (!$admin) return false;
-        return property_exists($admin, 'id') && $admin->id === $user->id;
+        
+        if (!$admin) {
+            return false;
+        }
+
+        // Fix: Use '==' instead of '==='
+        return $admin->id == $user->id;
     }
 }

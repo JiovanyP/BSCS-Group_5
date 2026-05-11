@@ -8,373 +8,234 @@
   <title>@yield('title','Admin') — Publ.</title>
 
   {{-- Fonts / Icons --}}
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-  {{-- Bootstrap (kept) --}}
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 
   <style>
     :root {
-      --bg: #0b0f12;
-      --panel: #101618;
-      --panel-opaque: #0f1416;
-      --muted: #98a0a8;
-      --accent: #CF0F47;
-      --admin-pink: #FF69B4;
-      --card-radius: 12px;
-      --shadow: 0 12px 40px rgba(2,6,12,0.6);
-      --sidebar-width: 260px;
-      --breakpoint: 900px;
+        --primary: #494ca2;
+        --accent: #CF0F47;
+        --accent-hover: #FF0B55;
+        --sidebar-bg: #ffffff;
+        --white: #ffffff;
+        --black: #000000;
+        --text-muted: #666;
+        --light-pink: #fbebf1;
+        --sidebar-width: 270px;
     }
 
-    html, body {
-      height: 100%;
-      margin: 0;
-      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
-      background: linear-gradient(180deg, #060708 0%, #071018 100%);
-      color: #e6eef6;
-      font-size: 14px;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      overflow-x: hidden;
+    body {
+        font-family: 'Poppins', Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.8;
+        background: #fafafa;
+        margin: 0;
+        display: flex;
     }
 
+    /* Layout Wrapper */
     .admin-wrap {
-      display: flex;
-      min-height: 100vh;
-      overflow-x: hidden;
-      position: relative;
-      background: var(--bg);
-    }
-
-    .admin-sidebar {
-      width: var(--sidebar-width);
-      background: var(--panel-opaque);
-      color: var(--muted);
-      height: 100vh;
-      position: fixed;
-      left: 0;
-      top: 0;
-      z-index: 1000;
-      padding: 20px 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      box-shadow: 2px 0 20px rgba(0, 0, 0, 0.4);
-      transition: transform 0.28s ease, width 0.28s ease, left 0.28s ease;
-    }
-
-    .admin-sidebar.closed {
-      width: 72px;
-      transform: none;
-      overflow: hidden;
-      padding-left: 10px;
-      padding-right: 10px;
-    }
-
-    .admin-sidebar.open {
-      transform: translateX(0);
-    }
-
-    .admin-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .brand-logo {
-      width: 42px;
-      height: 42px;
-      background: var(--accent);
-      color: #111;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 18px;
-    }
-
-    .brand-name { font-weight: 700; }
-    .brand-sub { font-size: 12px; color: var(--muted); }
-
-    .admin-nav {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-top: 18px;
-    }
-
-    .admin-nav a {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      color: var(--muted);
-      font-weight: 600;
-      padding: 10px 12px;
-      border-radius: 10px;
-      transition: 0.15s ease;
-      white-space: nowrap;
-    }
-
-    .admin-nav a:hover,
-    .admin-nav a.active {
-      color: #fff;
-      background: rgba(255,255,255,0.04);
-      transform: translateX(4px);
-    }
-
-    .admin-main {
-      margin-left: var(--sidebar-width);
-      width: calc(100% - var(--sidebar-width));
-      padding: 30px 24px 60px;
-      transition: margin-left 0.28s ease, width 0.28s ease, padding 0.2s ease;
-      z-index: 1;
-      position: relative;
-      min-height: 100vh;
-    }
-
-    .admin-main.sidebar-collapsed {
-      margin-left: 72px;
-      width: calc(100% - 72px);
-    }
-
-    .admin-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 18px;
-    }
-
-    .admin-title h1 {
-      font-size: 18px;
-      margin: 0;
-      font-weight: 700;
-    }
-
-    .admin-meta {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .toggle-btn {
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 8px;
-      color: var(--muted);
-      padding: 8px 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: 0.18s;
-    }
-
-    .toggle-btn:hover {
-      border-color: var(--accent);
-      color: #fff;
-    }
-
-    .sidebar-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.55);
-      z-index: 900;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.22s ease;
-    }
-
-    .sidebar-overlay.active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    @media (max-width: 900px) {
-      .admin-sidebar {
-        transform: translateX(-100%);
-        left: 0;
-      }
-
-      .admin-sidebar.open {
-        transform: translateX(0);
-        left: 0;
-      }
-
-      .admin-main {
-        margin-left: 0;
+        display: flex;
         width: 100%;
-        padding: 22px 16px;
-      }
+    }
 
-      .admin-header {
-        position: sticky;
+    /* Sidebar Styling */
+    .sidebar {
+        min-width: var(--sidebar-width);
+        max-width: var(--sidebar-width);
+        background: var(--sidebar-bg);
+        color: var(--text-muted);
+        transition: all 0.3s;
+        position: fixed;
+        left: 0;
         top: 0;
-        background: var(--bg);
-        z-index: 10;
-        padding-bottom: 8px;
-      }
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid #eee;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.02);
+        background-image: linear-gradient(to bottom, #fff 40%, var(--light-pink) 100%);
+        z-index: 1000;
+    }
 
-      .sidebar-overlay {
-        display: block;
-      }
+    .sidebar-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        scrollbar-width: thin;
+        scrollbar-color: transparent transparent;
+    }
+
+    .sidebar-content::-webkit-scrollbar { width: 6px; background: transparent; }
+    .sidebar-content::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 3px; }
+    .sidebar:hover .sidebar-content::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.4); }
+
+    /* Main Content Area */
+    .admin-main {
+        flex: 1;
+        margin-left: var(--sidebar-width);
+        padding: 30px;
+        min-height: 100vh;
+        transition: all 0.3s;
+    }
+
+    /* Logo & Nav */
+    .logo-container { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .logo-container h1 { margin: 0; font-weight: 700; font-size: 1.5rem; }
+    .logo { color: var(--accent); text-decoration: none; }
+    
+    .components { list-style: none; padding: 0; margin: 0; }
+    .components li a, .components li button {
+        padding: 10px 0; display: flex; align-items: center; gap: 10px;
+        color: var(--text-muted); border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        text-decoration: none; transition: 0.3s; background: transparent;
+        border: none; width: 100%; text-align: left; cursor: pointer; font: inherit;
+    }
+    .components li a:hover, .components li.active > a { color: var(--accent); font-weight: 600; }
+
+    /* Profile Expandable */
+    .profile-section {
+        overflow: hidden; max-height: 0; opacity: 0;
+        transition: all 0.5s ease; margin-left: 15px; padding-left: 20px;
+    }
+    .profile-item:hover .profile-section { max-height: 220px; opacity: 1; margin-top: 5px; }
+    .profile-section a { display: flex; align-items: center; gap: 6px; padding: 4px 0; color: var(--text-muted); text-decoration: none; font-size: 14px; }
+    .profile-section a:hover { color: var(--accent); }
+
+    /* Weather Widget */
+    .weather-widget {
+        margin-top: 20px; padding: 15px; background: #f9f9ff;
+        border: 1px solid #eee; border-radius: 15px; text-align: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .weather-widget h3 { font-size: 14px; font-weight: 600; color: var(--primary); margin-bottom: 8px; }
+
+    /* Buttons */
+    .btn-logout {
+        background: var(--accent); color: white; border: none;
+        padding: 12px; border-radius: 40px; font-weight: 600;
+        width: 100%; margin-top: 20px; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+        .sidebar { margin-left: -270px; }
+        .sidebar.active { margin-left: 0; }
+        .admin-main { margin-left: 0; }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 900; }
+        .sidebar-overlay.active { display: block; }
     }
   </style>
-
   @stack('head')
 </head>
 <body>
   <div class="admin-wrap">
     {{-- Sidebar --}}
-    <aside id="adminSidebar" class="admin-sidebar" aria-hidden="false">
-      <div>
-        <div class="admin-brand">
-          <div class="brand-logo">P</div>
-          <div class="brand-meta">
-            <div class="brand-name">Publ. Admin</div>
-            <div class="brand-sub">{{ optional(Auth::guard('admin')->user())->role ?? 'Super Administrator' }}</div>
-          </div>
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-content">
+        <div class="logo-container">
+          <h1><a href="/" class="logo">Publ.</a></h1>
+          <a href="{{ route('admin.users.index') }}" class="search-btn" title="Manage Users">
+            <span class="material-icons">search</span>
+          </a>
         </div>
 
-        <nav class="admin-nav" role="navigation" aria-label="Admin navigation">
-          <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">🏠 Dashboard</a>
-          <a href="{{ route('admin.posts.create') }}" class="{{ request()->routeIs('admin.posts.create') ? 'active' : '' }}">✏️ Create Post</a>
-          <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">⚠️ Reports</a>
-          {{-- Notifications removed per request --}}
-          <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">👥 Manage Users</a>
-          <a href="{{ route('admin.analytics') }}" class="{{ request()->routeIs('admin.analytics') ? 'active' : '' }}">📊 Analytics</a>
-          <a href="{{ route('admin.settings') }}" class="{{ request()->routeIs('admin.settings') ? 'active' : '' }}">⚙️ Settings</a>
-        </nav>
-      </div>
+        <ul class="components">
+          <li class="{{ request()->routeIs('admin.posts.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.posts.create') }}">
+              <span class="material-icons">add_circle</span>
+              <span>Create Announcement</span>
+            </a>
+          </li>
+          <li class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.reports.index') }}">
+              <span class="material-icons">warning</span>
+              <span>Reports</span>
+            </a>
+          </li>
+          <li class="{{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.services.index') }}">
+                <span class="material-icons">business_center</span>
+                <span>Services</span>
+            </a>
+        </li>
+          <li class="{{ request()->routeIs('admin.analytics') ? 'active' : '' }}">
+            <a href="{{ route('admin.analytics') }}">
+              <span class="material-icons">analytics</span>
+              <span>Analytics</span>
+            </a>
+          </li>
 
-      <div>
+          {{-- Profile Expandable --}}
+          <li class="profile-item">
+            <button type="button">
+              @php
+                $user = Auth::guard('admin')->user();
+                $avatar = $user->avatar_url ?? 'https://ui-avatars.com/api/?name=Admin';
+              @endphp
+              <img src="{{ $avatar }}" style="width:22px; height:22px; border-radius:50%; object-fit:cover;">
+              <span>{{ $user->name ?? 'Admin Profile' }}</span>
+            </button>
+            <div class="profile-section">
+              <a href="{{ route('admin.settings') }}"><span class="material-icons">settings</span> Settings</a>
+              <a href="{{ route('admin.chat.index') }}"><span class="material-icons">smart_toy</span> AI Assistant</a>
+            </div>
+          </li>
+        </ul>
+
+        <div class="weather-widget">
+          <h3>🌤 Kabacan Weather</h3>
+          <div id="weather-info"><p>Loading...</p></div>
+        </div>
+
         <form action="{{ route('admin.logout') }}" method="POST">
           @csrf
-          <button type="submit" class="btn btn-outline-light btn-block" style="font-weight:700;border-radius:10px;">
-            Logout
+          <button type="submit" class="btn-logout">
+            <span class="material-symbols-outlined">logout</span> Logout
           </button>
         </form>
       </div>
     </aside>
 
-    {{-- Overlay --}}
-    <div id="sidebarOverlay" class="sidebar-overlay" aria-hidden="true"></div>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
-    {{-- Main --}}
-    <main id="adminMain" class="admin-main" role="main">
-      <div class="admin-header">
-        <button id="sidebarToggle" class="toggle-btn" aria-label="Toggle Sidebar" aria-controls="adminSidebar" aria-expanded="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/></svg>
-        </button>
+    {{-- Main Content --}}
+    <main class="admin-main">
+        <header style="margin-bottom: 2rem;">
+            <h2 style="font-weight: 700; color: var(--black);">@yield('title')</h2>
+            @hasSection('subtitle')
+                <p class="text-muted">@yield('subtitle')</p>
+            @endif
+        </header>
 
-        <div class="admin-title">
-          <h1>@yield('title', 'Admin')</h1>
-          @hasSection('subtitle')
-            <div class="admin-meta">@yield('subtitle')</div>
-          @endif
-        </div>
-      </div>
-
-      @yield('content')
+        @yield('content')
     </main>
   </div>
 
-  {{-- JS --}}
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const sidebar = document.getElementById("adminSidebar");
-      const overlay = document.getElementById("sidebarOverlay");
-      const toggle = document.getElementById("sidebarToggle");
-      const main = document.getElementById("adminMain");
-
-      const DESKTOP_BREAK = 900;
-
-      const applyDesktopCollapse = (collapsed) => {
-        if (collapsed) {
-          sidebar.classList.add('closed');
-          main.classList.add('sidebar-collapsed');
-          toggle.setAttribute('aria-expanded', 'false');
-        } else {
-          sidebar.classList.remove('closed');
-          main.classList.remove('sidebar-collapsed');
-          toggle.setAttribute('aria-expanded', 'true');
-        }
-      };
-
-      const openMobileSidebar = () => {
-        sidebar.classList.add('open');
-        overlay.classList.add('active');
-        overlay.setAttribute('aria-hidden', 'false');
-      };
-
-      const closeMobileSidebar = () => {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('active');
-        overlay.setAttribute('aria-hidden', 'true');
-      };
-
-      toggle.addEventListener("click", () => {
-        if (window.innerWidth <= DESKTOP_BREAK) {
-          if (sidebar.classList.contains('open')) closeMobileSidebar();
-          else openMobileSidebar();
-        } else {
-          const isCollapsed = sidebar.classList.contains('closed');
-          applyDesktopCollapse(!isCollapsed);
-        }
-      });
-
-      overlay.addEventListener("click", () => {
-        if (window.innerWidth <= DESKTOP_BREAK) closeMobileSidebar();
-      });
-
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-          if (window.innerWidth <= DESKTOP_BREAK) closeMobileSidebar();
-          else {
-            applyDesktopCollapse(false);
-          }
-        }
-      });
-
-      const resetSidebarOnResize = () => {
-        if (window.innerWidth > DESKTOP_BREAK) {
-          overlay.classList.remove('active');
-          overlay.setAttribute('aria-hidden','true');
-          sidebar.classList.remove('open');
-          if (!sidebar.classList.contains('closed')) {
-            main.classList.remove('sidebar-collapsed');
-          } else {
-            main.classList.add('sidebar-collapsed');
-          }
-        } else {
-          sidebar.classList.remove('closed');
-          main.classList.remove('sidebar-collapsed');
-          sidebar.classList.remove('open');
-          overlay.classList.remove('active');
-          overlay.setAttribute('aria-hidden','true');
-        }
-      };
-
-      const init = () => {
-        if (window.innerWidth > DESKTOP_BREAK) {
-          applyDesktopCollapse(false);
-        } else {
-          sidebar.classList.remove('closed');
-          sidebar.classList.remove('open');
-          overlay.classList.remove('active');
-          main.classList.remove('sidebar-collapsed');
-        }
-      };
-
-      window.addEventListener('resize', resetSidebarOnResize);
-      init();
-      resetSidebarOnResize();
-    });
+    // Weather Logic
+    async function fetchWeather() {
+        try {
+            const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=7.1067&longitude=124.8294&current_weather=true");
+            const data = await res.json();
+            const weather = data.current_weather;
+            const container = document.getElementById("weather-info");
+            if (weather) {
+                let icon = "☁️";
+                if (weather.weathercode === 0) icon = "☀️";
+                else if ([1,2].includes(weather.weathercode)) icon = "⛅";
+                else if ([51,61,80].includes(weather.weathercode)) icon = "🌧️";
+                container.innerHTML = `<p style="font-size: 24px; margin:0;">${icon}</p>
+                                       <p style="margin:0;">🌡️ ${weather.temperature}°C</p>`;
+            }
+        } catch (err) { console.error("Weather load failed"); }
+    }
+    fetchWeather();
   </script>
-
   @stack('scripts')
 </body>
 </html>

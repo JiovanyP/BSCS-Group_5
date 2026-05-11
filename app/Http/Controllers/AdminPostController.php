@@ -81,7 +81,7 @@ class AdminPostController extends Controller
             // Create post
             $post = Post::create($postData);
 
-            return redirect()->route('admin.dashboard')
+            return redirect()->route('admin.posts.create')
                 ->with('success', 'Post created successfully!');
 
         } catch (\Throwable $e) {

@@ -17,7 +17,7 @@
         {{-- Warning Card (Location) --}}
         @if(auth()->user() && empty(auth()->user()->location))
             <div class="stack-card warning-type ripple" onclick="loadEditModal()">
-                <div class="card-accent-stripe"></div>
+                {{-- REMOVED STRIPE DIV HERE --}}
                 <div class="card-content-wrapper">
                     <div class="leading-visual">
                          <div class="avatar-icon warning-icon">
@@ -91,15 +91,10 @@
         {{-- Stacked Notification List --}}
         <div class="notifications-stack">
             @forelse($notifications as $notification)
-                {{-- 
-                    Adding specific color classes based on type: 
-                    color-priority, color-social, or color-general 
-                --}}
                 <div class="stack-card color-{{ $notification->notification_type }} {{ $notification->is_read ? 'read' : 'unread' }} ripple"
                      onclick="markAsReadAndNavigate({{ $notification->id }}, '{{ $notification->post ? route('posts.view', $notification->post_id) : '#' }}')">
                     
-                    {{-- Colored Accent Stripe on left --}}
-                    <div class="card-accent-stripe"></div>
+                    {{-- REMOVED STRIPE DIV HERE --}}
 
                     <div class="card-content-wrapper">
                         {{-- Leading Icon --}}
@@ -186,14 +181,11 @@
     </div>
 </div>
 
-{{-- Include the edit profile modal --}}
-@include('partials.edit-modal')
-
 <style>
 /* --- THEME COLOR DEFINITIONS --- */
 :root {
-    /* Base Grays */
-    --stack-bg: #f0f2f5;
+    /* Base Colors - CHANGED STACK BG TO WHITE */
+    --stack-bg: #ffffff; 
     --card-bg: #ffffff;
     --text-primary: #1c1e21;
     --text-secondary: #65676b;
@@ -236,13 +228,13 @@
 
 .notifications-main-column {
     width: 100%;
-    max-width: 600px; /* Slightly narrower for better stack card feel */
+    max-width: 600px;
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-/* --- FILTER CHIPS (Colorful) --- */
+/* --- FILTER CHIPS --- */
 .filter-chips-wrapper {
     overflow-x: auto;
     padding: 4px 0 12px 0;
@@ -265,7 +257,8 @@
     padding: 0 18px;
     border-radius: 18px;
     border: none;
-    background: var(--card-bg);
+    /* Added subtle gray bg to chips so they stand out against white page */
+    background: #f0f2f5; 
     color: var(--text-secondary);
     font-size: 14px;
     font-weight: 600;
@@ -280,7 +273,6 @@
     color: var(--text-primary);
 }
 
-/* Selected state uses the theme color */
 .filter-chip.selected {
     background-color: var(--theme-color);
     color: white;
@@ -299,7 +291,7 @@
     border-radius: 18px;
     padding: 0 16px;
     border: 1px solid #ddd;
-    background: var(--card-bg);
+    background: #f0f2f5; 
     color: var(--text-secondary);
     font-size: 14px;
     font-weight: 500;
@@ -307,7 +299,7 @@
 }
 .filter-chip-select:focus { border-color: var(--theme-color); outline: none; }
 
-/* --- HEADERS & BUTTONS --- */
+/* --- HEADERS --- */
 .section-header {
     display: flex;
     justify-content: space-between;
@@ -338,46 +330,43 @@
 .notifications-stack {
     display: flex;
     flex-direction: column;
-    gap: 10px; /* Gap between cards in the stack */
+    gap: 10px;
 }
 
 .stack-card {
     position: relative;
     background: var(--card-bg);
-    border-radius: 16px; /* Rounded stack corners */
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05); /* Depth shadow */
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
     overflow: hidden;
     cursor: pointer;
     transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
     display: flex;
     align-items: stretch;
+    /* Added border because page is white */
+    border: 1px solid #f0f2f5; 
 }
 
 .stack-card:hover {
-    transform: translateY(-3px) scale(1.01); /* Lift effect on hover */
+    transform: translateY(-3px) scale(1.01);
     box-shadow: 0 6px 15px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
     z-index: 2;
 }
 
-/* The colored stripe on the left */
-.card-accent-stripe {
-    width: 6px;
-    background-color: var(--theme-color);
-    flex-shrink: 0;
-}
-
-/* Container for the actual content next to the stripe */
+/* Container for the actual content */
 .card-content-wrapper {
     flex: 1;
     display: flex;
     align-items: flex-start;
-    padding: 16px 16px 16px 12px;
+    padding: 16px; /* Uniform padding, no stripe */
     gap: 14px;
 }
 
-/* Unread State: Subtle background tint based on theme */
+/* --- UNREAD STATE (KEPT TINT) --- */
 .stack-card.unread {
-    background-color: var(--theme-bg);
+    /* This keeps the tint even though the stripe is gone */
+    background-color: var(--theme-bg); 
+    border-color: transparent; /* Remove border on colored cards for cleaner look */
 }
 .stack-card.unread .item-body {
      color: var(--text-primary);
@@ -390,12 +379,16 @@
 
 .avatar-icon {
     width: 44px; height: 44px;
-    border-radius: 12px; /* Soft square look for icons */
+    border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
-    /* Icon background depends on theme */
     background-color: var(--theme-bg);
     color: var(--theme-color);
 }
+/* If the card is unread (already tinted), make the icon bg white so it pops */
+.stack-card.unread .avatar-icon {
+    background-color: #ffffff;
+}
+
 .avatar-icon .material-icons { font-size: 22px; }
 
 
@@ -412,7 +405,7 @@
 .category-label {
     font-weight: 700; letter-spacing: 0.5px;
     font-size: 10px; text-transform: uppercase;
-    color: var(--theme-color); /* Label matches theme */
+    color: var(--theme-color);
 }
 
 .item-body {
@@ -439,7 +432,7 @@
 .unread-dot {
     width: 10px; height: 10px;
     border-radius: 50%;
-    background-color: var(--theme-color); /* Dot matches theme */
+    background-color: var(--theme-color);
     box-shadow: 0 0 0 2px var(--card-bg);
 }
 .stack-card.unread .unread-dot {
@@ -447,12 +440,11 @@
 }
 
 
-/* --- SPECIAL CARDS (Warning/Success) --- */
+/* --- SPECIAL CARDS --- */
 .stack-card.warning-type {
     --theme-color: var(--theme-priority-color);
     background: #fff5f4;
 }
-
 .warning-icon { background: white; }
 .headline { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
 .subhead { font-size: 14px; color: var(--text-secondary); }
@@ -500,7 +492,7 @@
     box-shadow: 0 2px 5px rgba(24, 119, 242, 0.3);
 }
 
-/* Ripple Animation (Kept for interactive feel) */
+/* Ripple Animation */
 .ripple { position: relative; overflow: hidden; transform: translate3d(0, 0, 0); }
 .ripple:after {
     content: ""; display: block; position: absolute;
@@ -515,7 +507,7 @@
 
 @media (max-width: 600px) {
     .stack-layout-grid { padding: 1rem 0.5rem; }
-    .card-content-wrapper { padding: 14px 12px; gap: 10px; }
+    .card-content-wrapper { padding: 14px; gap: 10px; }
     .avatar-icon { width: 38px; height: 38px; }
     .item-body { font-size: 14px; }
 }
@@ -569,7 +561,7 @@
         }
     };
 
-    // Auto Refresh Logic (Kept the same)
+    // Auto Refresh Logic
     let autoRefreshInterval;
     let lastNotificationCount = {{ $notifications->count() }}; 
     function startSmartAutoRefresh() {
@@ -581,7 +573,6 @@
             .then(html => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
-                // Updated selector to match new card class
                 const currentCount = doc.querySelectorAll('.stack-card').length; 
                 if (currentCount !== lastNotificationCount) {
                     lastNotificationCount = currentCount;

@@ -65,15 +65,15 @@ class UserController extends Controller
      */
     public function logout(Request $request)
     {
-        \Log::info('Logout method called'); // ✅ Add this line
-        
-        Auth::logout();
+        // 1. Force the logout
+        Auth::guard('web')->logout();
+
+        // 2. Destroy all session data completely
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
-        \Log::info('Logout completed'); // ✅ Add this line
-        
-        return redirect()->route('login')->with('success', 'You have been logged out successfully.');
+
+        // 3. Force redirect to the welcome page (NOT login)
+        return redirect('/');
     }
     /**
      * AJAX: Check if email exists

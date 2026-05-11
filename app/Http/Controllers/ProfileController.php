@@ -28,47 +28,40 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        // Handle avatar upload
+        // 1. Handle Avatar Upload (Keep existing logic)
         if ($request->hasFile('avatar')) {
-            $request->validate([
-                'avatar' => 'image|max:2048', // 2MB max
-            ]);
-
-            // Delete old avatar if exists
+            $request->validate(['avatar' => 'image|max:2048']);
+            
             if ($user->avatar && Storage::exists('public/' . $user->avatar)) {
                 Storage::delete('public/' . $user->avatar);
             }
 
-            // Store new avatar
             $path = $request->file('avatar')->store('avatars', 'public');
             $user->avatar = $path;
             $user->save();
 
-            // ✅ Return JSON if AJAX request
             if ($request->ajax()) {
                 return response()->json([
-                    'success' => true,
-                    'message' => 'Profile picture updated successfully!',
-                    'avatar' => $user->avatar_url, // Use the accessor
+                    'success' => true, 
+                    'message' => 'Profile picture updated!', 
+                    'avatar' => $user->avatar_url
                 ]);
             }
-
-            // ✅ Fallback for normal form submission
             return redirect()->back()->with('success', 'Profile picture updated successfully!');
         }
 
-        // Handle personal info update (optional)
+        // 2. Handle Text Data Update (Name, Email, Phone, Location)
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-            'location' => 'nullable|string|max:255',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|max:255|unique:users,email,' . $user->id,
+            'phone'    => 'nullable|string|max:20',  // Matches your DB varchar(20)
+            'location' => 'nullable|string|max:255', // Matches your DB varchar(255)
         ]);
 
-        $user->update($request->only('name', 'email', 'location'));
+        $user->update($request->only('name', 'email', 'phone', 'location'));
 
-        return redirect()->back()->with('success', 'Personal information updated successfully!');
+        return redirect()->back()->with('success', 'Profile updated successfully!');
     }
-
     // Remove avatar
     public function removeAvatar()
     {

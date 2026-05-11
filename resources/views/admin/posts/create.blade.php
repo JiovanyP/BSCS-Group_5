@@ -1,355 +1,468 @@
 {{-- resources/views/admin/posts/create.blade.php --}}
 @extends('layouts.admin')
 
-@section('title', 'Create Admin Post')
+@section('title', 'Create Announcement')
 
 @section('content')
-<style>
-:root {
-  --accent: #CF0F47;
-  --accent-2: #FF0B55;
-  --card-bg: #1A1A1B;
-  --muted: #98a0a8;
-  --input-bg: #272729;
-  --border: #343536;
-}
 
-.post-container {
-  max-width: 600px;
-  margin: 0 auto;
-  background: var(--card-bg);
-  border-radius: 16px;
-  padding: 36px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
-}
+{{-- Use Material Symbols to match your new sidebar --}}
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 
-.post-container h1 {
-  margin: 0 0 14px 0;
-  color: var(--accent);
-  font-size: 24px;
-  letter-spacing: 0.2px;
-}
+<div class="edit-wrapper">
+    
+    {{-- Admin Alert Messages --}}
+    @if (session('success'))
+        <div class="alert-box success">
+            <span class="material-symbols-outlined">check_circle</span>
+            {{ session('success') }}
+        </div>
+    @endif
 
-.subtitle {
-  color: var(--muted);
-  margin-bottom: 24px;
-  font-size: 13px;
-}
+    @if ($errors->any())
+        <div class="alert-box error">
+            <span class="material-symbols-outlined">error</span>
+            <div>
+                @foreach ($errors->all() as $error)
+                    <div>{{ $error }}</div>
+                @endforeach
+            </div>
+        </div>
+    @endif
 
-.post-container label {
-  display: block;
-  font-size: 13px;
-  color: #D7DADC;
-  margin-bottom: 8px;
-  font-weight: 600;
-}
+    <div class="post-card create-mode">
+        
+        {{-- Main Create Form --}}
+        <form id="create-post-form" action="{{ route('admin.posts.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            
+            {{-- Hidden fields to save final combined values --}}
+            <input type="hidden" name="final_accident_type" id="final_accident_type">
+            <input type="hidden" name="final_location" id="final_location">
 
-.post-container textarea,
-.post-container input[type="text"],
-.post-container input[type="file"],
-.post-container select {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  margin-bottom: 16px;
-  box-sizing: border-box;
-  font-size: 14px;
-  background: var(--input-bg);
-  color: #D7DADC;
-  transition: all 0.2s;
-}
+            <div class="post-content">
+                <div class="post-header">
+                    <div class="report-details-edit">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label class="edit-label">NEW ANNOUNCEMENT</label>
+                            <span class="admin-badge">ADMIN MODE</span>
+                        </div>
+                        
+                        <div class="input-row">
+                            {{-- Accident Type Select --}}
+                            <select id="accident_type" name="accident_type" class="edit-select required-field" required>
+                                <option value="" disabled selected>SELECT TYPE</option>
+                                <option value="Fire" {{ old('accident_type') == 'Fire' ? 'selected' : '' }}>FIRE</option>
+                                <option value="Crime" {{ old('accident_type') == 'Crime' ? 'selected' : '' }}>CRIME</option>
+                                <option value="Traffic" {{ old('accident_type') == 'Traffic' ? 'selected' : '' }}>TRAFFIC</option>
+                                <option value="Others" {{ old('accident_type') == 'Others' ? 'selected' : '' }}>OTHERS</option>
+                            </select>
+                            
+                            <span class="separator">•</span>
+                            
+                            {{-- Location Select --}}
+                            <select id="location" name="location" class="edit-select location-select required-field" required>
+                                <option value="" disabled selected>Select Location</option>
+                                @php
+                                    $locations = ['Bonifacio','Sinamar 1','Sinamar 2','Guiang','Avenue','Sunset','Sunrise','Villanueva','Abellera','Miracle','Others'];
+                                @endphp
+                                @foreach($locations as $loc)
+                                    <option value="{{ $loc }}" {{ old('location') == $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-.post-container textarea {
-  resize: vertical;
-  min-height: 120px;
-  font-family: inherit;
-}
+                        {{-- Hidden "Other" Inputs --}}
+                        <input id="other_type" name="other_type" type="text" class="edit-input-underlined" placeholder="Specify Incident..." 
+                               value="{{ old('other_type') }}" style="display:none;" />
 
-.post-container textarea:focus,
-.post-container input:focus,
-.post-container select:focus {
-  border-color: var(--accent);
-  background: #1f1f20;
-  box-shadow: 0 0 0 3px rgba(207, 15, 71, 0.15);
-  outline: none;
-}
+                        <input id="other_location" name="other_location" type="text" class="edit-input-underlined" placeholder="Specify Location..." 
+                               value="{{ old('other_location') }}" style="display:none;" />
+                    </div>
+                </div>
 
-.post-container select {
-  cursor: pointer;
-}
+                <div class="post-body">
+                    {{-- Text Content --}}
+                    <textarea id="content" name="content" class="edit-textarea required-field" rows="3" placeholder="What's the announcement?" required>{{ old('content') }}</textarea>
 
-.post-container .btn {
-  display: block;
-  padding: 12px 16px;
-  border-radius: 10px;
-  border: 0;
-  font-weight: 700;
-  cursor: pointer;
-  font-size: 15px;
-  transition: all 0.25s;
-  text-align: center;
-  text-decoration: none;
-}
+                    <div class="media-edit-area">
+                        {{-- Hidden File Input --}}
+                        <input id="image" name="image" type="file" accept="image/*,video/*,image/gif" style="display: none;" />
+                        <input type="hidden" id="media_type_input" name="media_type" value=""> 
 
-.post-container .btn-primary {
-  width: 100%;
-  background: var(--accent);
-  color: #fff;
-}
+                        {{-- Toolbar --}}
+                        <div class="media-toolbar">
+                            <button type="button" class="media-btn" onclick="document.getElementById('image').click()">
+                                <span class="material-symbols-outlined">image</span> Add Media
+                            </button>
+                            <button type="button" id="cameraBtn" class="media-btn">
+                                <span class="material-symbols-outlined">photo_camera</span> Camera
+                            </button>
+                        </div>
 
-.post-container .btn-primary:hover:not(:disabled) {
-  background: var(--accent-2);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(207, 15, 71, 0.4);
-}
+                        {{-- Previews --}}
+                        <div id="preview-container" class="preview-box" style="display:none;">
+                            <img id="preview-image" class="preview-media" style="display:none;" alt="Preview" />
+                            <video id="preview-video" class="preview-media" controls style="display:none;"></video>
+                            
+                            {{-- Camera Stream --}}
+                            <video id="camera-preview" autoplay playsinline class="preview-media" style="display:none;"></video>
+                            <canvas id="camera-canvas" style="display:none;"></canvas>
+                            
+                            {{-- Camera Controls --}}
+                            <div id="camera-controls" class="camera-actions" style="display:none;">
+                                <button type="button" id="captureBtn" class="btn-action primary">Capture</button>
+                                <button type="button" id="cancelCameraBtn" class="btn-action secondary">Cancel</button>
+                            </div>
 
-.post-container .btn-primary:disabled {
-  background: #555;
-  cursor: not-allowed;
-  opacity: 0.5;
-}
+                            <button type="button" id="removePreviewBtn" class="remove-media-btn" style="display:none;">
+                                <span class="material-symbols-outlined" style="font-size: 16px;">close</span> Remove Media
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-.post-container .btn-secondary {
-  margin-top: 12px;
-  width: 100%;
-  background: #343536;
-  color: #D7DADC;
-}
+                <div class="post-signature">
+                    <div class="user-info">
+                        @php
+                            $user = Auth::guard('admin')->user();
+                            $avatar = $user->avatar_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($user->name ?? 'A');
+                        @endphp
+                        <img src="{{ $avatar }}" width="28" height="28" class="rounded-circle">
+                        <strong>{{ $user->name ?? 'Administrator' }}</strong>
+                        <small>Official Post</small>
+                    </div>
+                </div>
 
-.post-container .btn-secondary:hover {
-  background: #3f4041;
-}
-
-#preview-container {
-  margin-bottom: 16px;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-#preview-container img,
-#preview-container video {
-  max-width: 100%;
-  max-height: 300px;
-  width: 100%;
-  object-fit: contain;
-  background: #000;
-  border-radius: 8px;
-}
-
-.file-input-wrapper {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.file-input-wrapper input[type="file"] {
-  flex: 1;
-  margin-bottom: 0;
-}
-
-.admin-badge {
-  display: inline-block;
-  background: rgba(255, 105, 180, 0.15);
-  color: #FF69B4;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 20px;
-}
-
-.alert {
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 14px;
-}
-
-.alert-danger {
-  background: rgba(220, 53, 69, 0.15);
-  color: #ff6b6b;
-  border: 1px solid rgba(220, 53, 69, 0.3);
-}
-
-.alert-success {
-  background: rgba(40, 167, 69, 0.15);
-  color: #5cb85c;
-  border: 1px solid rgba(40, 167, 69, 0.3);
-}
-</style>
-
-<div class="post-container">
-  <div class="admin-badge">
-    ⭐ Posting as Admin
-  </div>
-
-  <h1><strong>Create Admin Post</strong></h1>
-  <div class="subtitle">Share important updates and announcements</div>
-
-  @if (session('success'))
-    <div class="alert alert-success">
-      {{ session('success') }}
+                <div class="post-footer action-footer">
+                    <a href="{{ route('admin.posts.create') }}" class="btn-cancel">Cancel</a>
+                    <button type="submit" id="postBtn" class="btn-save" disabled>Publish</button>
+                </div>
+            </div>
+        </form>
     </div>
-  @endif
-
-  @if ($errors->any())
-    <div class="alert alert-danger">
-      <ul style="margin: 0; padding-left: 20px;">
-        @foreach ($errors->all() as $error)
-          <li>{{ $error }}</li>
-        @endforeach
-      </ul>
-    </div>
-  @endif
-
-  <form id="adminPostForm" action="{{ route('admin.posts.store') }}" method="POST" enctype="multipart/form-data">
-    @csrf
-
-    {{-- Accident Type --}}
-    <label for="accident_type">Incident Type <span style="color:var(--accent);">*</span></label>
-    <select id="accident_type" name="accident_type" required>
-      <option value="" disabled selected>Select Type</option>
-      <option value="Fire" {{ old('accident_type') == 'Fire' ? 'selected' : '' }}>Fire</option>
-      <option value="Crime" {{ old('accident_type') == 'Crime' ? 'selected' : '' }}>Crime</option>
-      <option value="Traffic" {{ old('accident_type') == 'Traffic' ? 'selected' : '' }}>Traffic</option>
-      <option value="Others" {{ old('accident_type') == 'Others' ? 'selected' : '' }}>Others</option>
-    </select>
-    <input id="other_type" name="other_type" type="text" placeholder="Please specify" value="{{ old('other_type') }}" style="display:none;" />
-
-    {{-- Location --}}
-    <label for="location">Location <span style="color:var(--accent);">*</span></label>
-    <select id="location" name="location" required>
-      <option value="" disabled selected>Select Location</option>
-      <option value="Bonifacio" {{ old('location') == 'Bonifacio' ? 'selected' : '' }}>Bonifacio</option>
-      <option value="Sinamar 1" {{ old('location') == 'Sinamar 1' ? 'selected' : '' }}>Sinamar 1</option>
-      <option value="Sinamar 2" {{ old('location') == 'Sinamar 2' ? 'selected' : '' }}>Sinamar 2</option>
-      <option value="Guiang" {{ old('location') == 'Guiang' ? 'selected' : '' }}>Guiang</option>
-      <option value="Avenue" {{ old('location') == 'Avenue' ? 'selected' : '' }}>Avenue</option>
-      <option value="Sunset" {{ old('location') == 'Sunset' ? 'selected' : '' }}>Sunset</option>
-      <option value="Sunrise" {{ old('location') == 'Sunrise' ? 'selected' : '' }}>Sunrise</option>
-      <option value="Villanueva" {{ old('location') == 'Villanueva' ? 'selected' : '' }}>Villanueva</option>
-      <option value="Abellera" {{ old('location') == 'Abellera' ? 'selected' : '' }}>Abellera</option>
-      <option value="Miracle" {{ old('location') == 'Miracle' ? 'selected' : '' }}>Miracle</option>
-      <option value="Others" {{ old('location') == 'Others' ? 'selected' : '' }}>Others</option>
-    </select>
-    <input id="other_location" name="other_location" type="text" placeholder="Please specify" value="{{ old('other_location') }}" style="display:none;" />
-
-    {{-- Content --}}
-    <label for="content">Post Content <span style="color:var(--accent);">*</span></label>
-    <textarea id="content" name="content" rows="6" placeholder="Write your announcement or update..." required>{{ old('content') }}</textarea>
-
-    {{-- Image/Video --}}
-    <label for="image">Attach Image/Video (Optional)</label>
-    <div class="file-input-wrapper">
-      <input id="image" name="image" type="file" accept="image/*,video/*,image/gif" />
-    </div>
-
-    <div id="preview-container" style="display:none;">
-      <img id="preview-image" src="" alt="Preview" style="display:none;" />
-      <video id="preview-video" controls style="display:none;"></video>
-    </div>
-
-    <button id="postBtn" type="submit" class="btn btn-primary">
-      Publish Post
-    </button>
-    <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">Cancel</a>
-  </form>
 </div>
 
-<script>
-(function(){
-  const form = document.getElementById('adminPostForm');
-  const postBtn = document.getElementById('postBtn');
-  const content = document.getElementById('content');
-  const accidentType = document.getElementById('accident_type');
-  const otherType = document.getElementById('other_type');
-  const location = document.getElementById('location');
-  const otherLocation = document.getElementById('other_location');
-  const imageInput = document.getElementById('image');
-  const previewContainer = document.getElementById('preview-container');
-  const previewImage = document.getElementById('preview-image');
-  const previewVideo = document.getElementById('preview-video');
-
-  // Check if "Others" was selected on page load (for old values)
-  if (accidentType.value === "Others") {
-    otherType.style.display = "block";
-    otherType.required = true;
-  }
-  if (location.value === "Others") {
-    otherLocation.style.display = "block";
-    otherLocation.required = true;
-  }
-
-  // Toggle submit button
-  function toggleButton(){
-    const contentValid = content.value.trim().length > 0;
-    const typeValid = accidentType.value && (accidentType.value !== "Others" || otherType.value.trim());
-    const locationValid = location.value && (location.value !== "Others" || otherLocation.value.trim());
-    
-    postBtn.disabled = !(contentValid && typeValid && locationValid);
-  }
-
-  // Listen to all inputs
-  [content, accidentType, otherType, location, otherLocation].forEach(el => {
-    el.addEventListener('input', toggleButton);
-    el.addEventListener('change', toggleButton);
-  });
-
-  // Handle "Others" option
-  function handleOther(selectEl, inputEl){
-    selectEl.addEventListener('change', function(){
-      if(this.value === "Others"){
-        inputEl.style.display = "block";
-        inputEl.required = true;
-      } else {
-        inputEl.style.display = "none";
-        inputEl.value = "";
-        inputEl.required = false;
-      }
-      toggleButton();
-    });
-  }
-
-  handleOther(accidentType, otherType);
-  handleOther(location, otherLocation);
-
-  // Image preview
-  imageInput.addEventListener('change', function(e){
-    const file = e.target.files[0];
-    if (!file) {
-      previewContainer.style.display = 'none';
-      return;
+<style>
+    /* === VARIABLES (Synced with Layout) === */
+    :root {
+        --primary: #494ca2;
+        --accent: #CF0F47;
+        --accent-hover: #FF0B55;
+        --card-bg: #ffffff;
+        --text-muted: #666;
+        --border-light: #f0f0f0;
     }
 
-    const reader = new FileReader();
-    reader.onload = function(event){
-      previewContainer.style.display = 'block';
-      
-      if (file.type.startsWith('image/')) {
-        previewImage.src = event.target.result;
-        previewImage.style.display = 'block';
-        previewVideo.style.display = 'none';
-      } else if (file.type.startsWith('video/')) {
-        previewVideo.src = event.target.result;
-        previewVideo.style.display = 'block';
-        previewImage.style.display = 'none';
-      }
-    };
-    reader.readAsDataURL(file);
-  });
+    /* === RESET TO POPPINS === */
+    .edit-wrapper,
+    .post-card,
+    input,
+    select,
+    textarea,
+    button,
+    .admin-badge,
+    .user-info strong {
+        font-family: 'Poppins', sans-serif !important;
+    }
 
-  // Form submit - show loading state
-  form.addEventListener('submit', function(e){
-    // Don't prevent default - let form submit normally
-    postBtn.disabled = true;
-    postBtn.textContent = 'Publishing...';
-  });
+    .edit-wrapper {
+        width: 100%;
+        max-width: 550px;
+        margin: 0 auto;
+        padding-top: 10px;
+    }
 
-  // Initial check
-  toggleButton();
-})();
+    /* === POST CARD === */
+    .post-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: 1px solid #eee;
+        overflow: hidden;
+    }
+
+    .post-content { padding: 1.5rem; }
+
+    /* Header & Badge */
+    .edit-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        letter-spacing: 0.8px;
+    }
+
+    .admin-badge {
+        background: var(--primary);
+        color: white;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    /* Inputs */
+    .input-row { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+
+    .edit-select {
+        border: none;
+        background: transparent;
+        font-weight: 700;
+        color: var(--accent);
+        font-size: 15px;
+        cursor: pointer;
+        padding: 5px 0;
+        outline: none;
+        border-bottom: 2px solid transparent;
+        transition: 0.3s;
+    }
+    
+    .edit-select:focus { border-bottom-color: var(--accent); }
+    .location-select { color: #333; font-weight: 600; }
+    .separator { color: #ccc; }
+
+    .edit-input-underlined {
+        width: 100%;
+        border: none;
+        border-bottom: 1px solid #ddd;
+        padding: 8px 0;
+        font-size: 14px;
+        outline: none;
+        background: transparent;
+        margin-top: 10px;
+    }
+
+    .edit-textarea {
+        width: 100%;
+        border: none;
+        resize: none;
+        font-size: 16px;
+        line-height: 1.6;
+        color: #333;
+        padding: 15px 0;
+        outline: none;
+        min-height: 120px;
+        background: transparent;
+    }
+
+    /* Media Area */
+    .media-edit-area {
+        margin-top: 10px;
+        border-top: 1px solid var(--border-light);
+        padding-top: 15px;
+    }
+
+    .media-toolbar { display: flex; gap: 12px; }
+
+    .media-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #f8f9fa;
+        border: 1px solid #eee;
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .media-btn:hover {
+        background: #fff;
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .preview-media {
+        width: 100%;
+        border-radius: 15px;
+        margin-top: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    /* Signature & Footer */
+    .post-signature {
+        padding-top: 15px;
+        margin-top: 15px;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .user-info { display: flex; align-items: center; gap: 10px; }
+    .user-info strong { font-size: 14px; color: #333; }
+    .user-info small { color: var(--text-muted); margin-left: auto; font-size: 12px; }
+    .rounded-circle { border-radius: 50%; object-fit: cover; }
+
+    .action-footer {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        padding-top: 20px;
+    }
+
+    .btn-save {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .btn-save:hover:not(:disabled) {
+        background: var(--accent-hover);
+        transform: translateY(-2px);
+    }
+
+    .btn-save:disabled { background: #ccc; cursor: not-allowed; }
+
+    .btn-cancel {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-weight: 600;
+        padding: 10px;
+    }
+
+    /* Alerts */
+    .alert-box {
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 500;
+    }
+    .alert-box.success { background: #e8f5e9; color: #2e7d32; }
+    .alert-box.error { background: #ffebee; color: #c62828; }
+
+    /* Camera Actions */
+    .btn-action {
+        padding: 6px 15px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .btn-action.primary { background: var(--primary); color: white; }
+    .btn-action.secondary { background: #eee; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById('create-post-form');
+    const postBtn = document.getElementById('postBtn');
+    const content = document.getElementById('content');
+    const accidentType = document.getElementById('accident_type');
+    const otherType = document.getElementById('other_type');
+    const location = document.getElementById('location');
+    const otherLocation = document.getElementById('other_location');
+    const finalAccidentType = document.getElementById('final_accident_type');
+    const finalLocation = document.getElementById('final_location');
+
+    function toggleOtherType() {
+        otherType.style.display = (accidentType.value === "Others") ? "block" : "none";
+        otherType.required = (accidentType.value === "Others");
+        checkValidity();
+    }
+
+    function toggleOtherLocation() {
+        otherLocation.style.display = (location.value === "Others") ? "block" : "none";
+        otherLocation.required = (location.value === "Others");
+        checkValidity();
+    }
+
+    function checkValidity() {
+        const typeValid = accidentType.value && (accidentType.value !== "Others" || otherType.value.trim());
+        const locValid = location.value && (location.value !== "Others" || otherLocation.value.trim());
+        const contentValid = content.value.trim().length > 0;
+        postBtn.disabled = !(typeValid && locValid && contentValid);
+    }
+
+    accidentType.addEventListener("change", toggleOtherType);
+    location.addEventListener("change", toggleOtherLocation);
+    [content, otherType, otherLocation].forEach(el => el.addEventListener('input', checkValidity));
+
+    form.addEventListener('submit', function() {
+        finalAccidentType.value = (accidentType.value === "Others" ? otherType.value.trim() : accidentType.value);
+        finalLocation.value = (location.value === "Others" ? otherLocation.value.trim() : location.value);
+        postBtn.disabled = true;
+        postBtn.innerHTML = 'Publishing...';
+    });
+
+    // Media Logic
+    const imageInput = document.getElementById('image');
+    const previewContainer = document.getElementById('preview-container');
+    const previewImage = document.getElementById('preview-image');
+    const previewVideo = document.getElementById('preview-video');
+    const removePreviewBtn = document.getElementById('removePreviewBtn');
+    const cameraBtn = document.getElementById('cameraBtn');
+    const cameraPreview = document.getElementById('camera-preview');
+    const cameraCanvas = document.getElementById('camera-canvas');
+    const cameraControls = document.getElementById('camera-controls');
+    const captureBtn = document.getElementById('captureBtn');
+    const cancelCameraBtn = document.getElementById('cancelCameraBtn');
+    let stream = null;
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            previewContainer.style.display = 'block';
+            removePreviewBtn.style.display = 'flex';
+            reader.onload = function(e) {
+                if (file.type.startsWith('image/')) {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block';
+                    previewVideo.style.display = 'none';
+                } else {
+                    previewVideo.src = e.target.result;
+                    previewVideo.style.display = 'block';
+                    previewImage.style.display = 'none';
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    removePreviewBtn.addEventListener('click', () => {
+        imageInput.value = ''; 
+        previewContainer.style.display = 'none';
+    });
+
+    cameraBtn.addEventListener('click', async () => {
+        try {
+            previewContainer.style.display = 'block';
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            cameraPreview.srcObject = stream;
+            cameraPreview.style.display = 'block';
+            cameraControls.style.display = 'flex';
+        } catch (err) { alert("Camera error."); }
+    });
+
+    captureBtn.addEventListener('click', () => {
+        cameraCanvas.width = cameraPreview.videoWidth;
+        cameraCanvas.height = cameraPreview.videoHeight;
+        cameraCanvas.getContext('2d').drawImage(cameraPreview, 0, 0);
+        cameraCanvas.toBlob(blob => {
+            const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            imageInput.files = dt.files;
+            imageInput.dispatchEvent(new Event('change'));
+            stopCamera();
+        }, 'image/jpeg');
+    });
+
+    function stopCamera() {
+        if (stream) stream.getTracks().forEach(t => t.stop());
+        cameraPreview.style.display = 'none';
+        cameraControls.style.display = 'none';
+    }
+
+    cancelCameraBtn.addEventListener('click', stopCamera);
+});
 </script>
 @endsection

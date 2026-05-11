@@ -66,7 +66,7 @@ class AdminController extends Controller
                 Log::warning('Could not update admin.last_login_at: '.$e->getMessage());
             }
 
-            return redirect()->route('admin.dashboard')
+            return redirect()->route('admin.posts.create')
                 ->with('success', 'Welcome back, Super Admin!');
         }
 
