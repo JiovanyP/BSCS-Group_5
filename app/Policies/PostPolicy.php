@@ -43,14 +43,11 @@ class PostPolicy
         return $user->id === $post->user_id;
     }
 
-    /**
-     * Determine whether the user can delete the post.
-     * Only the post owner can delete.
-     */
     public function delete(User $user, Post $post)
     {
-        return $user->id === $post->user_id;
+        // Only allow deleting if user owns the post or is admin
+        return $user->id === $post->user_id || $user->is_admin;
     }
-
+    
     // Add restore/forceDelete if necessary
 }

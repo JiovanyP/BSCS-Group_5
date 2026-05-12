@@ -253,8 +253,7 @@
       <a href="{{ url('/') }}">Back to home</a>
     </div>
 
-    <footer class="small">By continuing, you agree to our <a href="#" style="color:var(--accent)">Terms</a> and <a href="#" style="color:var(--accent)">Privacy</a>.</footer>
-  </main>
+    <footer class="small">By continuing, you agree to our <a href="{{ route('terms') }}" style="color:var(--accent)">Terms</a> and <a href="{{ route('privacy') }}" style="color:var(--accent)">Privacy Policy</a>.</footer>
 
   <script>
     (function(){

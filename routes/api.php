@@ -2,33 +2,33 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| API Routes for Mobile (Flutter)
 |--------------------------------------------------------------------------
-|
-| These routes are stateless. Do NOT return Blade views or call session-dependent
-| controllers here. Place web routes in routes/web.php.
-|
+| These endpoints must return JSON only.
+| No redirects. No Blade. No sessions.
+|--------------------------------------------------------------------------
 */
 
-/**
- * Optional safety redirect:
- * Temporary: If something still requests GET /api/login, redirect to /login (web)
- * so the correct middleware runs. Remove this once all references are fixed.
- */
-Route::get('/login', function () {
-    return redirect()->route('login');
-});
+// PUBLIC ROUTES
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
 
-/**
- * Example API route (stateless); protect with tokens (Sanctum) if needed:
- */
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// api.php
 
-/*
- * Add other JSON-only API routes below.
- */
+// PROTECTED ROUTES (Require Sanctum Token)
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    // COMMENT THESE OUT TOO:
+    // Route::get('/posts', [PostController::class, 'index']);
+    // Route::post('/posts', [PostController::class, 'store']);
+
+    Route::post('/logout', [AuthController::class, 'logout']);
+});

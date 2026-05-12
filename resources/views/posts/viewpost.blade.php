@@ -7,8 +7,9 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 
 <meta name="csrf-token" content="{{ csrf_token() }}">
+
 <style>
-/* === VARIABLES & BASE STYLES === */
+/* === VARIABLES === */
 :root {
     --primary: #494ca2;
     --accent: #CF0F47;
@@ -40,41 +41,57 @@
     color: var(--accent);
     text-decoration: none;
     font-weight: 600;
-    font-size: 15px;
-    margin-bottom: 20px;
+    font-size: 14px;
+    margin-bottom: 15px;
     transition: color 0.2s;
+    /* Center aligns with the card */
+    max-width: 550px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
 }
 .back-button:hover {
     color: var(--accent-2);
     text-decoration: none;
 }
 .back-button .material-icons {
-    font-size: 20px;
+    font-size: 18px;
 }
 
-/* === POST CARD === */
+/* === POST CARD (EXACT COPY OF NARROW CARD) === */
 .post-card {
     background: var(--card-bg);
-    border-radius: 16px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
     transition: all 0.25s ease;
+    position: relative;
+    font-size: 14px;
+    
+    /* WIDTH SETTINGS */
+    max-width: 550px;       
+    width: 100%;            
+    margin: 0 auto 20px auto; 
+}
+
+/* Keep interactive elements above overlay */
+.post-header, .post-footer, .dropdown, .footer-action, .vote-container, .comment-container, .comments-section {
+    position: relative;
+    z-index: 5;
 }
 
 .post-content {
-    padding: 1.5rem 2rem;
+    padding: 1rem 1.5rem;
 }
 
-/* Post Header and Report Details */
 .post-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 
 .report-details {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--accent);
     line-height: 1.4;
@@ -88,47 +105,54 @@
 
 .post-body {
     color: #333;
-    line-height: 1.6;
-    font-size: 15px;
+    line-height: 1.4;
+    font-size: 14px;
     margin-top: 0.5rem;
-    margin-bottom: 1rem;
-}
-.post-body img, .post-body video {
-    max-width: 100%;
-    border-radius: 10px;
-    margin-top: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 0.75rem;
 }
 
-/* === Post Signature Spacing === */
+/* EXACT IMAGE SIZING FROM CARD */
+.post-body img, .post-body video {
+    max-width: 220px;
+    max-height: 150px;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    margin-top: 8px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    display: block;
+    object-fit: cover;
+}
+
+/* Signature */
 .post-signature {
-    padding-top: 10px;
-    margin-bottom: 1rem;
+    padding-top: 8px;
+    margin-bottom: 0.75rem;
     border-top: 1px solid #f0f0f0;
 }
 .user-info {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 .user-info strong {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
 }
 .user-info small {
     color: var(--text-muted);
-    font-size: 13px;
+    font-size: 12px;
     margin-left: auto;
 }
 
-/* === POST FOOTER (Voting and Comments) === */
+/* Footer */
 .post-footer {
     display: flex;
     align-items: center;
-    margin-top: 1rem;
-    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
     border-top: 1px solid #f0f0f0;
-    gap: 15px;
+    gap: 10px;
 }
 
 .footer-action {
@@ -136,108 +160,99 @@
     align-items: center;
     color: var(--text-muted);
     text-decoration: none;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     transition: color 0.2s;
     cursor: pointer;
 }
 
+/* Comment Container */
 .comment-container {
     display: flex;
     align-items: center;
     background: #f0f0f0;
-    border-radius: 18px;
-    padding: 2px 8px;
+    border-radius: 16px;
+    padding: 2px 6px;
 }
 .comment-container .footer-action {
-    padding: 4px 6px;
+    padding: 3px 5px;
     color: var(--text-muted);
 }
 .comment-container .material-icons-outlined {
-    margin-right: 4px;
-    font-size: 20px;
+    margin-right: 3px;
+    font-size: 18px;
 }
 
+/* Votes */
 .vote-container {
     display: flex;
     align-items: center;
     margin-left: auto;
     background: #f0f0f0;
-    border-radius: 18px;
+    border-radius: 16px;
     padding: 2px;
 }
-
-.upvote-btn, .downvote-btn {
-    padding: 4px 8px;
-}
+.upvote-btn, .downvote-btn { padding: 3px 6px; }
 .upvote-btn:hover { color: var(--upvote-color); }
 .downvote-btn:hover { color: var(--downvote-color); }
-
 .voted-up { color: var(--upvote-color) !important; }
 .voted-down { color: var(--downvote-color) !important; }
 
-/* === Comments & Replies Styles === */
+/* Comments section (VISIBLE BY DEFAULT FOR VIEW PAGE) */
 .comments-section {
+    display: block; /* Forced visible for View Page */
     background: #f8f9fa;
     border-top: 1px solid #eee;
-    padding: 1.5rem 2rem;
-    border-radius: 0 0 16px 16px;
-    margin: 0 -2rem -1.5rem -2rem;
+    padding: 1rem 1.5rem;
+    border-radius: 0 0 12px 12px;
+    margin: 0 -1.5rem -1rem -1.5rem;
+    overflow: hidden;
 }
 
 .comments-header {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     color: #333;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
 }
 
 .comment {
     display: flex;
     align-items: flex-start;
-    margin-bottom: 0.5rem;
-    gap: 8px;
+    margin-bottom: 0.4rem;
+    gap: 6px;
 }
-.comment img {
-    flex-shrink: 0;
-}
-.comment strong {
-    font-weight: 600;
-    margin-right: 4px;
-}
+.comment img { border-radius: 50%; flex-shrink: 0; width: 24px; height: 24px; }
+.comment strong { font-weight: 600; margin-right: 3px; }
 
 .replies .comment {
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
-    margin-left: 20px;
-    margin-top: 4px;
+    margin-left: 18px;
+    margin-top: 3px;
+    gap: 4px;
 }
 
 .comments-section > .input-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     position: relative;
-    height: 44px;
+    height: 36px;
 }
 
 .comment-input, .reply-input {
     width: 100%;
-    padding: 12px 60px 12px 16px !important;
-    border-radius: 22px !important;
+    padding: 8px 50px 8px 12px !important;
+    border-radius: 18px !important;
     border: 1px solid var(--border-color);
-    font-size: 14px;
+    font-size: 13px;
     background: var(--input-bg);
     transition: border-color 0.2s, box-shadow 0.2s;
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     height: 100%;
 }
-
 .comment-input:focus, .reply-input:focus {
     border-color: var(--accent) !important;
     background: #fff;
-    box-shadow: 0 0 0 3px rgba(207, 15, 71, 0.15) !important;
+    box-shadow: 0 0 0 2px rgba(207, 15, 71, 0.15) !important;
     outline: none;
 }
 
@@ -252,11 +267,11 @@
     border: none;
     font-weight: 700;
     transition: background 0.25s, color 0.25s;
-    padding: 4px 12px;
-    font-size: 14px;
-    border-radius: 18px !important;
-    height: 34px;
-    line-height: 1.8;
+    padding: 3px 10px;
+    font-size: 13px;
+    border-radius: 16px !important;
+    height: 30px;
+    line-height: 1.6;
 }
 
 .comment-send:not(:disabled), .reply-send:not(:disabled) {
@@ -268,13 +283,12 @@
 }
 
 .reply-btn {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     cursor: pointer;
     color: var(--reply-btn-default) !important;
     font-weight: 500;
     text-decoration: none !important;
     transition: color 0.2s;
-    display: inline-block;
 }
 .reply-btn:hover, .reply-btn:focus {
     color: var(--accent) !important;
@@ -282,175 +296,134 @@
 
 .reply-input-group {
     position: relative;
-    height: 44px;
-    margin-top: 0.75rem;
+    height: 36px;
+    margin-top: 0.5rem;
 }
 
-/* Dropdown menu items for Edit/Delete/Report */
-.dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.dropdown-item .material-icons {
-    font-size: 18px;
-}
-
-/* === REPORT MODAL SPECIFIC STYLES === */
-.report-reason-list label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 400;
-    color: #333;
-}
-
-#confirmReportBtn {
-    background-color: var(--accent) !important;
-    color: #fff !important;
-    border: none !important;
-    font-weight: 700;
-    transition: background-color 0.25s;
-}
-#confirmReportBtn:hover {
-    background-color: var(--accent-2) !important;
-}
-
-.modal-footer .btn-secondary {
-    background-color: #f0f0f0 !important;
-    color: #666 !important;
-    border: 1px solid #ddd !important;
-    font-weight: 500;
-}
-.modal-footer .btn-secondary:hover {
-    background-color: #e9e9e9 !important;
+/* DROPDOWNS & MODALS */
+.dropdown, .dropdown-menu, .modal {
+    position: relative;
+    z-index: 20 !important;
 }
 </style>
 
 <div class="main-content">
     <div class="container mt-4">
-        <div class="col-xl-8 mx-auto">
+        
+        <a href="{{ url()->previous() }}" class="back-button">
+            <span class="material-icons">arrow_back</span>
+            Back
+        </a>
 
-            {{-- Back Button --}}
-            <a href="{{ url()->previous() }}" class="back-button">
-                <span class="material-icons">arrow_back</span>
-                Back
-            </a>
+        @if (session('success'))
+            <div class="alert alert-success text-center" id="successAlert" style="max-width: 550px; margin: 0 auto 15px auto;">
+                {{ session('success') }}
+            </div>
+            <script>
+                setTimeout(() => document.getElementById('successAlert').style.display = 'none', 3000);
+            </script>
+        @endif
 
-            {{-- Success Alert --}}
-            @if (session('success'))
-                <div class="alert alert-success text-center" id="successAlert">
-                    {{ session('success') }}
-                </div>
-                <script>
-                    setTimeout(() => document.getElementById('successAlert').style.display = 'none', 3000);
-                </script>
-            @endif
-
-            {{-- Single Post --}}
-            @php $userVote = $post->userVote(auth()->id()); @endphp
-            <div class="post-card" id="post-{{ $post->id }}">
-
-                <div class="post-content">
-                    <div class="post-header">
-                        <div class="report-details">
-                            {{ strtoupper($post->accident_type) }} • <span class="location">{{ $post->location }}</span>
-                            @if($post->other_type) <small class="text-muted">({{ $post->other_type }})</small> @endif
-                        </div>
-
-                        <div class="dropdown">
-                            <a href="#" class="text-muted" data-toggle="dropdown"><span class="material-icons">more_horiz</span></a>
-                            <div class="dropdown-menu dropdown-menu-right">
-                                @if(auth()->id() === $post->user_id)
-                                    <a class="dropdown-item cute-edit-btn" href="{{ route('posts.edit', $post->id) }}">
-                                        <span class="material-icons">edit</span> Edit
-                                    </a>
-                                    <button class="dropdown-item cute-delete-btn delete-post-btn" data-id="{{ $post->id }}" data-toggle="modal" data-target="#deleteModal">
-                                        <span class="material-icons">delete</span> Delete
-                                    </button>
-                                @else
-                                    <button class="dropdown-item report-post-btn" data-id="{{ $post->id }}" data-toggle="modal" data-target="#reportModal">
-                                        <span class="material-icons">flag</span> Report
-                                    </button>
-                                @endif
-                            </div>
-                        </div>
+        @php $userVote = $post->userVote(auth()->id()); @endphp
+        
+        <div class="post-card" id="post-{{ $post->id }}">
+            <div class="post-content">
+                <div class="post-header">
+                    <div class="report-details">
+                        {{ strtoupper($post->accident_type) }} • <span class="location">{{ $post->location }}</span>
+                        @if($post->other_type) <small class="text-muted">({{ $post->other_type }})</small> @endif
                     </div>
 
-                    <div class="post-body">
-                        <p>{{ $post->content }}</p>
-                        @if($post->image)
-                            @if($post->media_type === 'image' || $post->media_type === 'gif')
-                                <img src="{{ asset('storage/' . $post->image) }}" alt="Post Image">
-                            @elseif($post->media_type === 'video')
-                                <video controls><source src="{{ asset('storage/' . $post->image) }}" type="video/mp4"></video>
+                    <div class="dropdown">
+                        <a href="#" class="text-muted" data-toggle="dropdown"><span class="material-icons">more_horiz</span></a>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            @if(auth()->id() === $post->user_id)
+                                <a class="dropdown-item" href="{{ route('posts.edit', $post->id) }}">
+                                    <span class="material-icons">edit</span> Edit
+                                </a>
+                                <button class="dropdown-item delete-post-btn" data-id="{{ $post->id }}" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                    <span class="material-icons">delete</span> Delete
+                                </button>
+                            @else
+                                <button class="dropdown-item report-post-btn" data-id="{{ $post->id }}" data-bs-toggle="modal" data-bs-target="#reportModal">
+                                    <span class="material-icons">flag</span> Report
+                                </button>
                             @endif
+                        </div>
+                    </div>
+                </div>
+
+                <div class="post-body">
+                    <p>{{ $post->content }}</p>
+                    @if($post->image)
+                        @if($post->media_type === 'image' || $post->media_type === 'gif')
+                            <img src="{{ asset('storage/' . $post->image) }}" alt="Post Image">
+                        @elseif($post->media_type === 'video')
+                            <video controls><source src="{{ asset('storage/' . $post->image) }}" type="video/mp4"></video>
                         @endif
-                    </div>
+                    @endif
+                </div>
 
-                    {{-- Post Signature --}}
-                    <div class="post-signature">
-                        <div class="user-info">
-                            <img src="{{ $post->user->avatar_url }}" width="32" height="32" class="rounded-circle">
-                            <strong>{{ $post->user->name }}</strong>
-                            <small>{{ $post->created_at->diffForHumans() }}</small>
-                        </div>
-                    </div>
-
-                    {{-- Post Footer --}}
-                    <div class="post-footer">
-                        <div class="comment-container">
-                            <div class="footer-action">
-                                <span class="material-icons-outlined">chat_bubble_outline</span>
-                                <span id="comment-count-{{ $post->id }}">{{ $post->total_comments_count }}</span>
-                            </div>
-                        </div>
+                <div class="post-signature">
+                    <div class="user-info">
+                        <img src="{{ $post->user->avatar_url }}" width="28" height="28" class="rounded-circle">
+                        <strong>{{ $post->user->name }}</strong>
                         
-                        <div class="vote-container">
-                            <a href="#" class="upvote-btn footer-action {{ $userVote==='up'?'voted-up':'' }}" data-id="{{ $post->id }}">
-                                <span class="material-icons">arrow_upward</span>
-                            </a>
-                            <div class="vote-count" id="upvote-count-{{ $post->id }}">
-                                {{ $post->upvotes()->count() - $post->downvotes()->count() }}
-                            </div>
-                            <a href="#" class="downvote-btn footer-action {{ $userVote==='down'?'voted-down':'' }}" data-id="{{ $post->id }}">
-                                <span class="material-icons">arrow_downward</span>
-                            </a>
+                        <small>{{ $post->created_at->format('M j, Y g:i A') }}</small>
+                    </div>
+                </div>
+
+                <div class="post-footer">
+                    <div class="comment-container">
+                        <div class="footer-action">
+                            <span class="material-icons-outlined">chat_bubble_outline</span>
+                            <span id="comment-count-{{ $post->id }}">{{ $post->total_comments_count }}</span>
                         </div>
                     </div>
-
-                    {{-- Comments Section (Always Visible) --}}
-                    <div class="comments-section" id="comments-section-{{ $post->id }}">
-                        <div class="input-group">
-                            <input type="text" class="form-control comment-input" id="comment-input-{{ $post->id }}" placeholder="Add a comment...">
-                            <button class="comment-send" data-id="{{ $post->id }}" id="comment-send-{{ $post->id }}" disabled>Send</button>
+                    
+                    <div class="vote-container">
+                        <a href="#" class="upvote-btn footer-action {{ $userVote==='up'?'voted-up':'' }}" data-id="{{ $post->id }}">
+                            <span class="material-icons">arrow_upward</span>
+                        </a>
+                        <div class="vote-count" id="upvote-count-{{ $post->id }}">
+                            {{ $post->upvotes()->count() - $post->downvotes()->count() }}
                         </div>
+                        <a href="#" class="downvote-btn footer-action {{ $userVote==='down'?'voted-down':'' }}" data-id="{{ $post->id }}">
+                            <span class="material-icons">arrow_downward</span>
+                        </a>
+                    </div>
+                </div>
 
-                        @if($post->comments->count() > 0)
-                            <div class="comments-header">Comments</div>
-                            <div class="comments-list mb-3">
-                                @foreach($post->comments as $comment)
-                                    <div class="comment" id="comment-{{ $comment->id }}">
-                                        <img src="{{ $comment->user->avatar_url }}" width="28" height="28" class="rounded-circle">
-                                        <div style="flex: 1;">
-                                            <div><strong>{{ $comment->user->name }}</strong> {{ $comment->content }}</div>
-                                            <a href="#" class="reply-btn small" data-id="{{ $comment->id }}">Reply</a>
-                                            <div class="replies">
-                                                @foreach($comment->replies as $reply)
-                                                    <div class="comment" id="comment-{{ $reply->id }}">
-                                                        <img src="{{ $reply->user->avatar_url }}" width="25" height="25" class="rounded-circle">
-                                                        <div><strong>{{ $reply->user->name }}</strong> {{ $reply->content }}</div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
+                <div class="comments-section" id="comments-section-{{ $post->id }}">
+                    <div class="input-group">
+                        <input type="text" class="form-control comment-input" id="comment-input-{{ $post->id }}" placeholder="Add a comment...">
+                        <button class="comment-send" data-id="{{ $post->id }}" id="comment-send-{{ $post->id }}" disabled>Send</button>
+                    </div>
+
+                    @if($post->comments->count() > 0)
+                        <div class="comments-header">Comments</div>
+                        <div class="comments-list mb-3">
+                            @foreach($post->comments as $comment)
+                                <div class="comment" id="comment-{{ $comment->id }}">
+                                    <img src="{{ $comment->user->avatar_url }}" width="24" height="24" class="rounded-circle">
+                                    <div style="flex: 1;">
+                                        <div><strong>{{ $comment->user->name }}</strong> {{ $comment->content }}</div>
+                                        <a href="#" class="reply-btn small" data-id="{{ $comment->id }}">Reply</a>
+                                        <div class="replies">
+                                            @foreach($comment->replies as $reply)
+                                                <div class="comment" id="comment-{{ $reply->id }}">
+                                                    <img src="{{ $reply->user->avatar_url }}" width="22" height="22" class="rounded-circle">
+                                                    <div><strong>{{ $reply->user->name }}</strong> {{ $reply->content }}</div>
+                                                </div>
+                                            @endforeach
                                         </div>
                                     </div>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
-
         </div>
     </div>
 </div>
@@ -459,7 +432,7 @@
 <div class="modal fade" id="deleteModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header delete-header">
+      <div class="modal-header">
         <h5 class="modal-title"><span class="material-icons">warning</span> Delete Report</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
@@ -476,7 +449,7 @@
 <div class="modal fade" id="reportModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header report-header">
+      <div class="modal-header">
         <h5 class="modal-title"><span class="material-icons">flag</span> Report Post</h5>
       </div>
       <div class="modal-body">
@@ -502,146 +475,125 @@
 
 <script>
 $(function(){
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-  const currentPostId = {{ $post->id }};
-
-  // --- Dynamic Send Button Logic ---
-  $(document).on('input', '.comment-input', function() {
-    const postId = $(this).attr('id').replace('comment-input-', '');
-    const sendBtn = $(`#comment-send-${postId}`);
-    sendBtn.prop('disabled', $(this).val().trim() === '');
-  });
-
-  $(document).on('input', '.reply-input', function() {
-    const sendBtn = $(this).closest('.reply-input-group').find('.reply-send');
-    sendBtn.prop('disabled', $(this).val().trim() === '');
-  });
-
-  // Voting
-  $(document).on('click','.upvote-btn,.downvote-btn',function(e){
-    e.preventDefault();
-    const btn = $(this);
-    const id = btn.data('id');
-    const vote = btn.hasClass('upvote-btn') ? 'up' : 'down';
-    
-    $.post(`/posts/${id}/vote`, {vote: vote}, res => {
-      const netScore = res.upvotes_count - res.downvotes_count;
-      $(`#upvote-count-${id}`).text(netScore);
-      
-      $(`.upvote-btn[data-id="${id}"]`).removeClass('voted-up');
-      $(`.downvote-btn[data-id="${id}"]`).removeClass('voted-down');
-      
-      if (res.user_vote === 'up') {
-        $(`.upvote-btn[data-id="${id}"]`).addClass('voted-up');
-      } else if (res.user_vote === 'down') {
-        $(`.downvote-btn[data-id="${id}"]`).addClass('voted-down');
-      }
-    }).fail(function(xhr) {
-      console.error('Vote failed:', xhr.responseText);
-      alert('Failed to register vote. Please try again.');
+    $.ajaxSetup({
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
     });
-  });
 
-  // Add Comment
-  $(document).on('click','.comment-send:not(:disabled)',function(){
-    const btn=$(this);
-    const id=btn.data('id');
-    const input=$(`#comment-input-${id}`);
-    const content=input.val().trim();
-    if(!content) return;
-
-    btn.prop('disabled', true);
-    btn.text('Sending...');
-
-    $.post(`/posts/${id}/comments`,{content:content},res=>{
-      const html=`<div class="comment" id="comment-${res.id}">
-          <img src="${res.avatar}" width="28" height="28" class="rounded-circle">
-          <div style="flex: 1;">
-              <div><strong>${res.user}</strong> ${res.comment}</div>
-              <a href="#" class="reply-btn small" data-id="${res.id}">Reply</a>
-              <div class="replies"></div>
-          </div>
-      </div>`;
-      
-      // If no comments exist yet, add the header
-      if ($(`#comments-section-${id} .comments-list`).length === 0) {
-        $(`#comments-section-${id}`).append('<div class="comments-header">Comments</div><div class="comments-list mb-3"></div>');
-      }
-      
-      $(`#comments-section-${id} .comments-list`).append(html);
-      const count = parseInt($(`#comment-count-${id}`).text()) + 1;
-      $(`#comment-count-${id}`).text(count);
-      input.val('');
-      btn.text('Send');
+    $(document).on('input', '.comment-input', function() {
+        const btn = $(this).siblings('.comment-send');
+        btn.prop('disabled', $(this).val().trim() === '');
     });
-  });
 
-  // Reply Button
-  $(document).on('click','.reply-btn',function(e){
-    e.preventDefault();
-    const commentId=$(this).data('id');
-    const repliesDiv=$(`#comment-${commentId} .replies`);
+    $(document).on('click', '.comment-send:not(:disabled)', function(){
+        const postId = $(this).data('id');
+        const input = $(`#comment-input-${postId}`);
+        const content = input.val().trim();
 
-    if(repliesDiv.find('.reply-input-group').length === 0){
-      const replyInputId = `reply-input-${commentId}`;
-      const replySendId = `reply-send-${commentId}`;
+        if (!content) return;
 
-      const replyInput=`<div class="reply-input-group">
-          <input type="text" class="form-control reply-input" id="${replyInputId}" placeholder="Write a reply...">
-          <button class="reply-send" data-comment-id="${commentId}" id="${replySendId}" disabled>Send</button>
-      </div>`;
-      repliesDiv.append(replyInput);
-      $(`#${replyInputId}`).trigger('input').focus();
+        const button = $(this);
+        button.prop('disabled', true).text('Sending...');
+
+        $.ajax({
+            url: `/posts/${postId}/comments`,
+            method: 'POST',
+            data: { content },
+            success: function(response) {
+                input.val('');
+                button.text('Send').prop('disabled', true);
+
+                const countEl = $(`#comment-count-${postId}`);
+                const newCount = parseInt(countEl.text()) + 1;
+                countEl.text(newCount);
+
+                const commentsSection = $(`#comments-section-${postId}`);
+                if (commentsSection.find('.comments-header').length === 0) {
+                    commentsSection.prepend('<div class="comments-header">Comments</div>');
+                }
+
+                let commentsList = commentsSection.find('.comments-list');
+                if (commentsList.length === 0) {
+                    commentsList = $('<div class="comments-list mb-3"></div>');
+                    commentsSection.append(commentsList);
+                }
+
+                const newComment = `
+                    <div class="comment" id="comment-${response.id}">
+                        <img src="${response.user.avatar_url}" width="24" height="24" class="rounded-circle">
+                        <div style="flex:1;">
+                            <div><strong>${response.user.name}</strong> ${response.content}</div>
+                            <a href="#" class="reply-btn small" data-id="${response.id}">Reply</a>
+                            <div class="replies"></div>
+                        </div>
+                    </div>
+                `;
+                commentsList.prepend(newComment);
+            },
+            error: function(xhr) {
+                console.error(xhr.responseText);
+                button.text('Send').prop('disabled', false);
+            }
+        });
+    });
+});
+
+$(document).on('click', '.reply-btn', function(e) {
+    e.preventDefault(); 
+    const commentId = $(this).data('id');
+    const repliesContainer = $(this).siblings('.replies');
+
+    if (repliesContainer.find('.reply-input-group').length > 0) {
+        repliesContainer.find('.reply-input-group').remove();
+        return;
     }
-  });
 
-  // Send Reply
-  $(document).on('click','.reply-send:not(:disabled)',function(){
-    const btn=$(this);
-    const commentId=btn.data('comment-id');
-    const input=$(`#reply-input-${commentId}`);
-    const content=input.val().trim();
-    if(!content) return;
+    const replyBox = `
+        <div class="reply-input-group">
+            <input type="text" class="form-control reply-input" id="reply-input-${commentId}" placeholder="Write a reply...">
+            <button class="reply-send" data-id="${commentId}" disabled>Reply</button>
+        </div>
+    `;
+    repliesContainer.append(replyBox);
+});
 
-    btn.prop('disabled', true);
-    btn.text('Sending...');
+$(document).on('input', '.reply-input', function() {
+    const btn = $(this).siblings('.reply-send');
+    btn.prop('disabled', $(this).val().trim() === '');
+});
 
-    $.post(`/comments/${commentId}/reply`,{content:content},res=>{
-      const html=`<div class="comment" id="comment-${res.id}">
-          <img src="${res.avatar}" width="25" height="25" class="rounded-circle">
-          <div><strong>${res.user}</strong> ${res.content}</div>
-      </div>`;
-      $(`#comment-${commentId} .replies`).prepend(html);
-      const countSpan = $(`#comment-count-${currentPostId}`);
-      countSpan.text(parseInt(countSpan.text()) + 1);
+$(document).on('click', '.reply-send:not(:disabled)', function() {
+    const commentId = $(this).data('id');
+    const input = $(`#reply-input-${commentId}`);
+    const content = input.val().trim();
+    const button = $(this);
 
-      input.closest('.reply-input-group').remove();
+    if (!content) return;
+
+    button.prop('disabled', true).text('Sending...');
+
+    $.ajax({
+        url: `/comments/${commentId}/reply`,
+        method: 'POST',
+        data: { content },
+        success: function(response) {
+            input.closest('.reply-input-group').remove();
+            const repliesContainer = $(`#comment-${commentId}`).find('.replies');
+            const newReply = `
+                <div class="comment" id="comment-${response.id}">
+                    <img src="${response.user.avatar_url}" width="22" height="22" class="rounded-circle">
+                    <div><strong>${response.user.name}</strong> ${response.content}</div>
+                </div>
+            `;
+            repliesContainer.append(newReply);
+        },
+        error: function(xhr) {
+            console.error(xhr.responseText);
+            button.text('Reply').prop('disabled', false);
+        }
     });
-  });
-
-  // Delete Post
-  $(document).on('click','.delete-post-btn',function(){ /* currentPostId already set */ });
-  $('#confirmDeleteBtn').click(function(){
-    $.ajax({ 
-      url:`/posts/${currentPostId}`, 
-      type:'POST', 
-      data:{_method:'DELETE'},
-      success:()=>{ 
-        window.location.href = '/timeline'; // Redirect after deletion
-      }
-    });
-  });
-
-  // Report Post
-  $(document).on('click','.report-post-btn',function(){ /* currentPostId already set */ });
-  $('#confirmReportBtn').click(function(){
-    const reason=$('input[name="reason"]:checked').val();
-    if(!reason){ alert('Please select a reason'); return; }
-    $.post(`/posts/${currentPostId}/report`,{reason:reason},()=>{
-      $('#reportModal').modal('hide');
-      alert('Thank you for your report.');
-    });
-  });
 });
 </script>
+
+@include('partials.voting-logic')
+
 @endsection

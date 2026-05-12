@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('post_likes', function (Blueprint $table) {
-            $table->enum('vote_type', ['up', 'down'])->default('up');
+        Schema::table('users', function (Blueprint $table) {
+            $table->timestamp('last_login_at')->nullable()->after('email_verified_at');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('post_likes', function (Blueprint $table) {
-            $table->dropColumn('vote_type');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('last_login_at');
         });
     }
 };

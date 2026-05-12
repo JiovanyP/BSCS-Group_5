@@ -19,15 +19,17 @@ class Notification extends Model
         'notification_type',
         'accident_type',
         'distance_km',
+        'data', // ✅ added for JSON admin notifications
     ];
 
     protected $casts = [
-        'is_read' => 'boolean',
-        'user_id' => 'integer',
-        'actor_id' => 'integer',
-        'post_id' => 'integer',
-        'comment_id' => 'integer',
-        'distance_km' => 'decimal:2',
+        'is_read'       => 'boolean',
+        'user_id'       => 'integer',
+        'actor_id'      => 'integer',
+        'post_id'       => 'integer',
+        'comment_id'    => 'integer',
+        'distance_km'   => 'decimal:2',
+        'data'          => 'array', // ✅ ensures proper JSON encoding/decoding
     ];
 
     /**
@@ -100,7 +102,7 @@ class Notification extends Model
     public function getNotificationMessage()
     {
         $actorName = $this->actor ? $this->actor->name : 'Someone';
-        
+
         switch ($this->type) {
             case 'upvote':
                 return "{$actorName} upvoted your post";
@@ -115,6 +117,15 @@ class Notification extends Model
                     return "<strong>{$this->post->user->name}</strong> reported a {$this->accident_type} incident";
                 }
                 return "New {$this->accident_type} report in your area";
+
+            // ✅ added support for admin system notifications
+            case 'account_suspended':
+                return "Your account has been suspended by an administrator.";
+            case 'account_banned':
+                return "Your account has been permanently banned by an administrator.";
+            case 'account_restored':
+                return "Your account access has been restored by an administrator.";
+
             default:
                 return "New notification";
         }
@@ -130,6 +141,11 @@ class Notification extends Model
             case 'comment':
             case 'reply':
                 return 'fas fa-comment';
+            case 'account_suspended':
+            case 'account_banned':
+                return 'fas fa-user-slash';
+            case 'account_restored':
+                return 'fas fa-user-check';
             default:
                 if ($this->notification_type === 'priority') {
                     return 'fas fa-exclamation-triangle';
@@ -150,48 +166,46 @@ class Notification extends Model
             case 'comment':
             case 'reply':
                 return '#2196F3';
+            case 'account_suspended':
+            case 'account_banned':
+                return '#E53935';
+            case 'account_restored':
+                return '#43A047';
             default:
                 if ($this->notification_type === 'priority') {
-                    return '#FF5722'; // Orange/Red for urgency
+                    return '#FF5722';
                 } elseif ($this->notification_type === 'general') {
-                    return '#9C27B0'; // Purple for general
+                    return '#9C27B0';
                 }
                 return '#999';
         }
     }
 
     /**
-     * Calculate distance between two locations (simple string comparison for now)
-     * In a real app, you'd use geocoding APIs
+     * Distance / Demo helpers
      */
     public static function calculateDistance($userLocation, $postLocation)
     {
-        // Simple implementation - in production, use Google Maps API or similar
         if ($userLocation === $postLocation) {
             return 0;
         }
-        
-        // For demo purposes, return random distance
         return rand(1, 50);
     }
 
-    /**
-     * Create location-based notifications
-     */
     public static function createLocationNotification($user, $post)
     {
         $distance = self::calculateDistance($user->location, $post->location);
-        $notificationType = $distance <= 10 ? 'priority' : 'general'; // Within 10km = priority
+        $notificationType = $distance <= 10 ? 'priority' : 'general';
 
         return self::create([
-            'user_id' => $user->id,
-            'actor_id' => $post->user_id,
-            'post_id' => $post->id,
-            'type' => 'location_alert',
-            'notification_type' => $notificationType,
-            'accident_type' => $post->accident_type,
-            'distance_km' => $distance,
-            'is_read' => false,
+            'user_id'          => $user->id,
+            'actor_id'         => $post->user_id,
+            'post_id'          => $post->id,
+            'type'             => 'location_alert',
+            'notification_type'=> $notificationType,
+            'accident_type'    => $post->accident_type,
+            'distance_km'      => $distance,
+            'is_read'          => false,
         ]);
     }
 }
